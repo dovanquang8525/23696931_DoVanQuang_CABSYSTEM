@@ -74,3 +74,46 @@ Các mục tiêu kinh doanh được xác định từ yêu cầu của khách h
 - Hỗ trợ nhân viên vận hành quản lý và xử lý sự cố.
 - Cung cấp dữ liệu và báo cáo cho ban lãnh đạo.
 - Đảm bảo kiến trúc đủ linh hoạt để phát triển các dịch vụ và tính năng mới.
+
+## 2. Stakeholder Analysis
+
+### 2.1. Stakeholder
+
+| Stakeholder | Vai trò |
+|---|---|
+| **Khách hàng** | Đăng ký tài khoản, đăng nhập, cập nhật thông tin cá nhân, đặt xe, theo dõi chuyến đi, xem lịch sử chuyến, thanh toán và đánh giá tài xế. |
+| **Tài xế** | Đăng ký hoặc được tạo tài khoản, quản lý hồ sơ và phương tiện, cập nhật trạng thái hoạt động, nhận/từ chối chuyến và cập nhật trạng thái chuyến đi. |
+| **Nhân viên vận hành** | Quản lý khách hàng, tài xế, phương tiện và chuyến đi; theo dõi các chuyến đang diễn ra, trạng thái tài xế, xử lý sự cố và tra cứu lịch sử giao dịch. |
+| **Ban lãnh đạo** | Theo dõi và sử dụng các báo cáo về số lượng chuyến, doanh thu, tỷ lệ hoàn thành, tỷ lệ hủy và hiệu quả hoạt động của tài xế. |
+| **Nhà cung cấp thanh toán** | Cung cấp dịch vụ thanh toán điện tử bên ngoài cho hệ thống CAB. |
+| **Nhà cung cấp thông báo** | Cung cấp các kênh thông báo cho khách hàng và tài xế, đồng thời có khả năng mở rộng thêm các kênh trong tương lai. |
+| **Business Analyst (BA)** | Làm rõ phạm vi, tác nhân, quy trình nghiệp vụ, yêu cầu, quy tắc nghiệp vụ, trường hợp ngoại lệ và các vấn đề chưa được xác nhận với khách hàng. |
+
+### 2.2. Stakeholder Matrix
+
+Ma trận stakeholder được xây dựng dựa trên hai tiêu chí:
+
+- **Influence:** Mức độ ảnh hưởng hoặc quyền quyết định đối với hệ thống.
+- **Interest:** Mức độ quan tâm và mức độ liên quan của stakeholder đối với hệ thống.
+
+```mermaid
+quadrantChart
+    title Stakeholder Matrix - CAB System
+    x-axis Low Interest --> High Interest
+    y-axis Low Influence --> High Influence
+
+    quadrant-1 "Keep Satisfied"
+    quadrant-2 "Manage Closely"
+    quadrant-3 "Monitor"
+    quadrant-4 "Keep Informed"
+
+    "Ban lãnh đạo": [0.75, 0.90]
+    "Nhân viên vận hành": [0.90, 0.80]
+
+    "Nhà cung cấp thanh toán": [0.50, 0.75]
+    "Nhà cung cấp thông báo": [0.40, 0.65]
+
+    "Khách hàng": [0.85, 0.35]
+    "Tài xế": [0.80, 0.30]
+
+    "Business Analyst": [0.45, 0.20]
