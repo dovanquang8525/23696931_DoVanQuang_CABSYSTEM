@@ -1610,3 +1610,84 @@ erDiagram
 ```
 
 ## còn 9.5 -> 9.6
+
+## 10. Non-Functional Requirements
+
+Non-Functional Requirements (NFR) mô tả các yêu cầu về chất lượng, hiệu năng,
+bảo mật, khả năng mở rộng, tính ổn định và khả năng bảo trì của hệ thống CAB.
+
+Các yêu cầu này không mô tả hệ thống phải thực hiện nghiệp vụ gì mà mô tả
+hệ thống phải thực hiện các nghiệp vụ đó như thế nào.
+
+---
+
+### 10.1. Danh sách Non-Functional Requirements
+
+| Mã NFR | Nhóm | Tên yêu cầu | Diễn giải |
+|---|---|---|---|
+| **NFR01** | Performance | **Hiệu năng** | Hệ thống phải có khả năng xử lý các yêu cầu đặt xe và các thao tác chính với thời gian phản hồi phù hợp với nhu cầu sử dụng thực tế. |
+| **NFR02** | Performance | **Tìm tài xế nhanh** | Hệ thống phải hỗ trợ quá trình tìm và phân công tài xế nhanh chóng để giảm thời gian chờ của khách hàng. |
+| **NFR03** | Scalability | **Khả năng mở rộng khi tải tăng** | Hệ thống phải có khả năng mở rộng các thành phần độc lập khi số lượng người dùng và yêu cầu tăng cao. |
+| **NFR04** | Availability | **Hoạt động ổn định** | Hệ thống phải hoạt động ổn định trong các thời điểm nhu cầu sử dụng tăng cao. |
+| **NFR05** | Fault Tolerance | **Cô lập lỗi giữa các thành phần** | Lỗi xảy ra ở chức năng thanh toán hoặc thông báo không được làm cho toàn bộ hệ thống đặt xe ngừng hoạt động. |
+| **NFR06** | Security | **Bảo vệ dữ liệu người dùng** | Hệ thống phải bảo vệ thông tin cá nhân của khách hàng và tài xế. |
+| **NFR07** | Security | **Bảo vệ dữ liệu thanh toán** | Hệ thống không được lưu trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán. |
+| **NFR08** | Security | **Kiểm soát quyền truy cập** | Hệ thống phải hỗ trợ phân quyền để nhân viên thông thường không thể thực hiện các thao tác quản trị nhạy cảm. |
+| **NFR09** | Maintainability | **Dễ bảo trì** | Các thành phần của hệ thống cần có khả năng được thay đổi hoặc bảo trì mà hạn chế ảnh hưởng đến các thành phần khác. |
+| **NFR10** | Extensibility | **Mở rộng kênh thông báo** | Hệ thống phải cho phép bổ sung các kênh hoặc nhà cung cấp thông báo mới mà không phải thay đổi toàn bộ hệ thống. |
+| **NFR11** | Extensibility | **Mở rộng phương thức thanh toán** | Kiến trúc hệ thống phải cho phép bổ sung thêm phương thức hoặc nhà cung cấp thanh toán trong tương lai. |
+| **NFR12** | Extensibility | **Mở rộng loại dịch vụ** | Hệ thống phải có khả năng bổ sung các loại dịch vụ mới mà không phải xây dựng lại toàn bộ ứng dụng. |
+| **NFR13** | Deployability | **Triển khai từng phần** | Các chức năng mới phải có khả năng được triển khai từng phần và hạn chế ảnh hưởng đến các chức năng đang hoạt động. |
+| **NFR14** | Reliability | **Không để lỗi cục bộ làm dừng toàn hệ thống** | Khi một thành phần gặp sự cố, các chức năng khác vẫn phải tiếp tục hoạt động ở mức phù hợp. |
+| **NFR15** | Auditability | **Lưu vết hoạt động** | Các thao tác quan trọng của hệ thống cần được lưu vết để phục vụ kiểm tra và xử lý sự cố. |
+
+---
+
+## 10.2. NFR theo nhóm
+
+### 10.2.1. Performance
+
+#### NFR01 — Hiệu năng
+
+Hệ thống phải có khả năng xử lý các thao tác chính như:
+
+- Đặt chuyến.
+- Tìm tài xế.
+- Theo dõi trạng thái chuyến.
+- Thanh toán.
+- Gửi thông báo.
+
+với thời gian phản hồi phù hợp với nhu cầu sử dụng thực tế.
+
+> **TBD:** Tài liệu chưa xác định cụ thể thời gian phản hồi tối đa
+> (ví dụ: 2 giây, 3 giây...). Cần xác nhận với stakeholder.
+
+#### NFR02 — Tìm tài xế nhanh
+
+Hệ thống cần hỗ trợ việc tìm và phân công tài xế nhanh nhằm giảm thời gian
+khách hàng phải chờ.
+
+---
+
+### 10.2.2. Availability & Reliability
+
+#### NFR03 — Khả năng mở rộng khi tải tăng
+
+Hệ thống phải có khả năng mở rộng các thành phần độc lập khi tải tăng.
+
+#### NFR04 — Hoạt động ổn định
+
+Hệ thống phải hoạt động ổn định trong các thời điểm nhu cầu tăng cao.
+
+#### NFR05 — Cô lập lỗi
+
+Một lỗi xảy ra ở chức năng thanh toán hoặc thông báo không được làm toàn bộ
+hệ thống đặt xe ngừng hoạt động.
+
+```text
+Thanh toán lỗi
+     ↓
+Không làm dừng
+     ↓
+Hệ thống đặt xe
+```
