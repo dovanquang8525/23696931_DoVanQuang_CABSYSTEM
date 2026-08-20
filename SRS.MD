@@ -114,6 +114,7 @@ quadrantChart
 
     "Khách hàng": [0.85, 0.35]
     "Tài xế": [0.80, 0.30]
+
 ## 3. Business Goals
 
 Business Goals (BG) được xác định dựa trên các vấn đề kinh doanh và kỳ vọng
