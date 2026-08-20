@@ -3464,7 +3464,232 @@ Acceptance Criteria
 Test Cases
 ```
 
-Đặc biệt, **UC04 → Driver Matching → UC14/UC15 → UC16 → UC07** là chuỗi
-nghiệp vụ quan trọng nhất của CAB. Nên ưu tiên lấy chuỗi này để xây dựng
-**Activity Diagram và Sequence Diagram đầu tiên**, thay vì vẽ toàn bộ 31 UC
-một cách dàn trải.
+13: Acceptance Criteria (AC) – Tiêu chí chấp nhận
+
+Acceptance Criteria (AC) là tập hợp các điều kiện và quy tắc cụ thể mà một chức năng phải đáp ứng để được xem là hoàn thành và được khách hàng/người dùng chấp nhận.
+
+Nói đơn giản:
+
+AC trả lời câu hỏi: “Làm đến mức nào thì User Story/Use Case này được coi là hoàn thành?”
+
+AC phải cụ thể, kiểm thử được và có kết quả rõ ràng, tránh các từ mơ hồ như nhanh, dễ sử dụng, hợp lý, tốt...
+
+1. Nguyên tắc xây dựng Acceptance Criteria
+
+Một AC tốt nên đáp ứng:
+
+Tiêu chí	Ý nghĩa
+Cụ thể	Nêu chính xác hệ thống phải làm gì
+Đo lường/kiểm thử được	Có thể kiểm tra Pass/Fail
+Không mơ hồ	Không dùng các từ như "nhanh", "tốt", "hợp lý"
+Có điều kiện	Xác định khi nào yêu cầu được thực hiện
+Có kết quả	Xác định hệ thống phải phản hồi như thế nào
+Bao gồm trường hợp lỗi	Xác định hệ thống xử lý khi điều kiện không thỏa mãn
+2. Cấu trúc Acceptance Criteria
+
+Có thể viết theo dạng:
+
+Given: Điều kiện ban đầu
+When: Người dùng thực hiện hành động
+Then: Hệ thống phải đưa ra kết quả
+
+Ví dụ:
+
+Given: Customer đã đăng nhập
+When: Customer nhập điểm đón và điểm đến hợp lệ
+Then: Hệ thống phải hiển thị thông tin chuyến và cho phép Customer xác nhận đặt chuyến.
+3. AC cho hệ thống đặt xe
+AC01 – Đăng ký tài khoản
+
+UC: Đăng ký tài khoản
+
+Customer phải nhập đầy đủ các thông tin bắt buộc.
+Số điện thoại phải đúng định dạng.
+Số điện thoại không được trùng với tài khoản đã tồn tại.
+Mật khẩu phải đáp ứng quy tắc bảo mật của hệ thống.
+Nếu thông tin hợp lệ, hệ thống phải tạo tài khoản Customer thành công.
+Nếu thông tin không hợp lệ, hệ thống phải hiển thị thông báo lỗi tương ứng.
+Sau khi đăng ký thành công, Customer có thể đăng nhập vào hệ thống.
+
+Kết thúc khi:
+→ Tài khoản được tạo thành công và có thể sử dụng để đăng nhập.
+
+4. AC02 – Đăng nhập
+
+UC: Đăng nhập
+
+Customer phải nhập số điện thoại/email và mật khẩu.
+Nếu thông tin đăng nhập chính xác, hệ thống cho phép Customer truy cập hệ thống.
+Nếu sai thông tin, hệ thống phải thông báo đăng nhập thất bại.
+Hệ thống không được cho phép truy cập vào tài khoản nếu thông tin xác thực không hợp lệ.
+
+Kết thúc khi:
+→ Customer đăng nhập thành công hoặc nhận được thông báo lỗi.
+
+5. AC03 – Đặt chuyến xe
+
+UC: Đặt chuyến
+
+Điều kiện thành công
+Customer phải đăng nhập trước khi đặt chuyến.
+Customer phải chọn điểm đón.
+Customer phải chọn điểm đến.
+Điểm đón và điểm đến phải hợp lệ.
+Hệ thống phải tính/hiển thị thông tin cước dự kiến trước khi Customer xác nhận.
+Customer phải xác nhận yêu cầu đặt chuyến.
+Sau khi xác nhận, hệ thống phải tạo chuyến ở trạng thái Waiting for Driver.
+Hệ thống phải bắt đầu tìm tài xế phù hợp.
+Trường hợp tìm được tài xế
+Hệ thống gửi yêu cầu chuyến đến tài xế phù hợp.
+Nếu tài xế chấp nhận, chuyến chuyển sang trạng thái Driver Accepted.
+Hệ thống phải thông báo thông tin tài xế cho Customer.
+Trường hợp không tìm được tài xế
+Hệ thống phải thông báo cho Customer rằng hiện tại không tìm thấy tài xế.
+Chuyến không được chuyển sang trạng thái đang thực hiện.
+
+Kết thúc khi:
+→ Chuyến được tạo và tài xế chấp nhận hoặc hệ thống xác định không có tài xế phù hợp.
+
+6. AC04 – Tìm tài xế
+
+UC: Tìm tài xế phù hợp
+
+Hệ thống chỉ tìm những tài xế đang ở trạng thái Available/Online.
+Tài xế phải phù hợp với loại chuyến/loại phương tiện được yêu cầu.
+Hệ thống phải ưu tiên các tài xế phù hợp theo quy tắc phân công đã xác định.
+Hệ thống không được gửi cùng một yêu cầu chuyến cho tài xế đã từ chối chuyến đó.
+Nếu tài xế từ chối, hệ thống phải tiếp tục tìm tài xế khác.
+Nếu không còn tài xế phù hợp, hệ thống phải thông báo cho Customer.
+
+Kết thúc khi:
+→ Một tài xế được phân công hoặc hệ thống xác định không còn tài xế phù hợp.
+
+7. AC05 – Nhận/chấp nhận chuyến
+
+UC: Xử lý yêu cầu chuyến
+
+Driver phải đang ở trạng thái có thể nhận chuyến.
+Driver có thể Accept hoặc Reject yêu cầu.
+Khi Driver Accept, hệ thống phải xác nhận Driver cho chuyến.
+Khi Driver Reject, hệ thống phải tìm Driver khác.
+Sau khi chuyến đã được Driver khác nhận, các Driver khác không được nhận cùng chuyến đó.
+Customer phải nhận được thông báo về kết quả.
+
+Kết thúc khi:
+→ Driver chấp nhận chuyến hoặc từ chối và hệ thống chuyển sang tìm Driver khác.
+
+8. AC06 – Thực hiện chuyến
+
+UC: Thực hiện chuyến
+
+Driver phải được xác nhận cho chuyến trước khi bắt đầu.
+Driver phải đến điểm đón.
+Driver phải xác nhận bắt đầu chuyến.
+Hệ thống phải cập nhật trạng thái chuyến thành In Progress.
+Customer có thể theo dõi trạng thái chuyến.
+Khi đến điểm đến, Driver có thể kết thúc chuyến.
+Hệ thống phải cập nhật trạng thái thành Completed.
+
+Kết thúc khi:
+→ Chuyến chuyển sang trạng thái Completed.
+
+9. AC07 – Hủy chuyến
+
+UC: Hủy chuyến
+
+Customer có thể yêu cầu hủy chuyến khi chuyến đang ở trạng thái cho phép hủy.
+Driver có thể yêu cầu hủy chuyến theo quy định.
+Hệ thống phải kiểm tra điều kiện hủy trước khi thực hiện.
+Nếu được phép hủy, trạng thái chuyến chuyển thành Cancelled.
+Hệ thống phải thông báo cho các bên liên quan.
+Nếu có phí hủy, hệ thống phải tính phí theo chính sách đã quy định.
+Nếu không được phép hủy, hệ thống phải thông báo lý do.
+
+Kết thúc khi:
+→ Chuyến được hủy thành công hoặc yêu cầu hủy bị từ chối.
+
+10. AC08 – Thanh toán
+
+UC: Thanh toán chuyến xe
+
+Customer chỉ được thanh toán đối với chuyến đã hoàn thành.
+Hệ thống phải xác định chính xác số tiền cần thanh toán.
+Customer phải chọn phương thức thanh toán hợp lệ.
+Hệ thống gửi yêu cầu thanh toán đến Payment Gateway.
+Nếu thanh toán thành công, trạng thái thanh toán chuyển thành Paid.
+Nếu thanh toán thất bại, hệ thống phải thông báo cho Customer.
+Customer có thể thực hiện lại thanh toán hoặc chọn phương thức khác.
+Hệ thống phải lưu lại lịch sử giao dịch.
+
+Kết thúc khi:
+→ Giao dịch thanh toán thành công hoặc được ghi nhận là thất bại.
+
+11. AC09 – Đánh giá chuyến xe
+
+UC: Đánh giá chuyến xe
+
+Customer chỉ được đánh giá chuyến đã hoàn thành.
+Customer chỉ được đánh giá mỗi chuyến theo số lần quy định.
+Điểm đánh giá phải nằm trong khoảng cho phép, ví dụ 1–5 sao.
+Customer có thể nhập nhận xét nếu hệ thống hỗ trợ.
+Hệ thống phải lưu đánh giá.
+Hệ thống phải cập nhật Rating của Driver sau khi đánh giá hợp lệ.
+
+Kết thúc khi:
+→ Đánh giá được lưu thành công.
+
+12. AC10 – Khiếu nại
+
+UC: Gửi khiếu nại
+
+Customer/Driver phải cung cấp thông tin liên quan đến khiếu nại.
+Hệ thống phải tạo một mã khiếu nại duy nhất.
+Khiếu nại phải được lưu với trạng thái Pending.
+Admin có thể xem và xử lý khiếu nại.
+Admin phải cập nhật kết quả xử lý.
+Người gửi khiếu nại phải nhận được thông báo kết quả.
+
+Kết thúc khi:
+→ Khiếu nại được xử lý và chuyển sang trạng thái Resolved/Closed.
+
+13. AC11 – Duyệt tài xế
+
+UC: Duyệt hồ sơ Driver
+
+Driver phải cung cấp đầy đủ thông tin và giấy tờ bắt buộc.
+Admin có thể xem hồ sơ Driver.
+Admin có thể Approve hoặc Reject.
+Nếu hồ sơ hợp lệ → Driver được kích hoạt.
+Nếu hồ sơ không hợp lệ → Driver bị từ chối hoặc yêu cầu bổ sung thông tin.
+Driver chưa được duyệt không được phép nhận chuyến.
+
+Kết thúc khi:
+→ Hồ sơ Driver được Approved hoặc Rejected.
+
+14. AC12 – Quản lý trạng thái tài xế
+
+UC: Quản lý trạng thái Driver
+
+Driver có thể chuyển trạng thái giữa Online và Offline.
+Driver chỉ có thể nhận chuyến khi ở trạng thái Available.
+Khi Driver đang thực hiện chuyến, hệ thống không được phân thêm chuyến mới cho Driver đó.
+Khi chuyến hoàn thành, Driver có thể trở lại trạng thái Available.
+Hệ thống phải cập nhật trạng thái theo thời gian thực hoặc theo khoảng thời gian đã quy định.
+
+Kết thúc khi:
+→ Trạng thái Driver được cập nhật thành công.
+
+15. Bảng tổng hợp AC
+UC	Chức năng	Điều kiện hoàn thành
+UC01	Đăng ký	Tạo tài khoản thành công
+UC02	Đăng nhập	Xác thực thành công
+UC03	Đặt chuyến	Tạo chuyến + tìm được tài xế hoặc xác định không có tài xế
+UC04	Tìm tài xế	Có tài xế được phân công hoặc không còn tài xế
+UC05	Nhận chuyến	Driver Accept/Reject và hệ thống xử lý đúng
+UC06	Thực hiện chuyến	Chuyến chuyển sang Completed
+UC07	Hủy chuyến	Chuyến chuyển sang Cancelled hoặc yêu cầu bị từ chối
+UC08	Thanh toán	Giao dịch được xác nhận thành công/thất bại
+UC09	Đánh giá	Đánh giá được lưu
+UC10	Khiếu nại	Khiếu nại được xử lý/đóng
+UC11	Duyệt Driver	Hồ sơ được Approved/Rejected
+UC12	Trạng thái Driver	Trạng thái được cập nhật hợp lệ
