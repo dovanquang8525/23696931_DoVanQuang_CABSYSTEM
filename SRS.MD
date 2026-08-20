@@ -711,7 +711,309 @@ mỗi yêu cầu đều phục vụ một mục tiêu kinh doanh cụ thể.
 | **BG09 — Nâng cao trải nghiệm khách hàng sau chuyến đi** | BR13, BR14 |
 | **BG10 — Tăng khả năng phát triển dịch vụ trong tương lai** | BR25 |
 
-## bước 6
+Bước 6: Xây dựng các Business Process
+
+Ở bước này, cần xác định các quy trình nghiệp vụ quan trọng của hệ thống dựa trên hoạt động thực tế của doanh nghiệp. Mỗi Business Process nên thể hiện rõ ai thực hiện → thực hiện gì → điều kiện → kết quả → trường hợp ngoại lệ.
+
+Đối với hệ thống đặt chuyến xe, có thể xây dựng các Business Process chính như sau:
+
+BP01. Đặt chuyến xe
+
+Actor: Customer
+
+Quy trình:
+
+Customer tạo yêu cầu đặt chuyến
+        ↓
+Chọn điểm đón
+        ↓
+Chọn điểm đến
+        ↓
+Hệ thống tính toán/hiển thị thông tin chuyến
+        ↓
+Customer xác nhận đặt chuyến
+        ↓
+Hệ thống tìm tài xế phù hợp
+        ↓
+Có tài xế phù hợp?
+   ┌────┴────┐
+  Có        Không
+   ↓          ↓
+Gửi yêu cầu  Thông báo
+cho tài xế   không tìm thấy tài xế
+   ↓
+Tài xế chấp nhận?
+   ┌────┴────┐
+  Có        Không
+   ↓          ↓
+Xác nhận      Tìm tài xế khác
+chuyến        ↓
+   ↓       Còn tài xế?
+Bắt đầu       ↓
+chuyến     Có → tiếp tục tìm
+           Không → thông báo KH
+
+Kết quả:
+
+Nếu tìm được tài xế và tài xế chấp nhận → chuyến được xác nhận.
+Nếu không tìm được tài xế → thông báo cho Customer.
+Nếu tài xế từ chối → hệ thống tiếp tục tìm tài xế khác.
+BP02. Tìm và phân công tài xế
+
+Actor: System / Driver
+
+Quy trình:
+
+Nhận yêu cầu đặt chuyến
+        ↓
+Xác định các tài xế phù hợp
+        ↓
+Kiểm tra trạng thái tài xế
+        ↓
+Kiểm tra khoảng cách/vị trí
+        ↓
+Gửi yêu cầu nhận chuyến
+        ↓
+Tài xế chấp nhận?
+   ┌────┴────┐
+  Có        Không
+   ↓          ↓
+Phân công     Chọn tài xế
+tài xế        tiếp theo
+   ↓
+Thông báo cho Customer
+
+Kết quả: Một tài xế được phân công cho chuyến hoặc hệ thống xác định không có tài xế phù hợp.
+
+BP03. Tài xế nhận và thực hiện chuyến
+
+Actor: Driver
+
+Driver nhận yêu cầu chuyến
+        ↓
+Chấp nhận chuyến
+        ↓
+Di chuyển đến điểm đón
+        ↓
+Đến điểm đón
+        ↓
+Đón Customer
+        ↓
+Bắt đầu chuyến
+        ↓
+Di chuyển đến điểm đến
+        ↓
+Đến điểm đến
+        ↓
+Kết thúc chuyến
+
+Các trường hợp ngoại lệ:
+
+Tài xế không thể đến điểm đón → hủy chuyến.
+Customer không xuất hiện → xử lý theo chính sách hệ thống.
+Phát sinh sự cố trong chuyến → ghi nhận và xử lý sự cố.
+BP04. Hủy chuyến
+
+Actor: Customer / Driver / System
+
+Yêu cầu hủy chuyến
+        ↓
+Xác định người yêu cầu hủy
+        ↓
+Kiểm tra trạng thái chuyến
+        ↓
+Có thể hủy?
+   ┌────┴────┐
+  Có        Không
+   ↓          ↓
+Hủy chuyến   Thông báo
+   ↓         không thể hủy
+Kiểm tra phí hủy
+   ↓
+Tính phí (nếu có)
+   ↓
+Hoàn tất hủy chuyến
+   ↓
+Thông báo các bên
+
+Cần phân biệt hủy trước khi tài xế nhận, hủy sau khi tài xế nhận và hủy khi chuyến đã bắt đầu, vì mỗi trường hợp có thể có chính sách khác nhau.
+
+BP05. Thanh toán chuyến xe
+
+Actor: Customer / System / Payment Gateway
+
+Chuyến hoàn thành
+        ↓
+Hệ thống tính cước
+        ↓
+Hiển thị số tiền cần thanh toán
+        ↓
+Customer chọn phương thức thanh toán
+        ↓
+Thực hiện thanh toán
+        ↓
+Thanh toán thành công?
+   ┌────┴────┐
+  Có        Không
+   ↓          ↓
+Ghi nhận      Thông báo
+thanh toán    thanh toán thất bại
+   ↓          ↓
+Cập nhật      Thử lại /
+trạng thái    chọn phương thức khác
+   ↓
+Gửi hóa đơn/biên nhận
+BP06. Đánh giá chuyến xe
+
+Actor: Customer / Driver
+
+Chuyến hoàn thành
+        ↓
+Hệ thống yêu cầu đánh giá
+        ↓
+Customer đánh giá Driver
+        ↓
+Nhập số sao / nhận xét
+        ↓
+Hệ thống lưu đánh giá
+        ↓
+Cập nhật rating của Driver
+
+Có thể mở rộng thành Driver đánh giá Customer nếu nghiệp vụ của hệ thống có hỗ trợ.
+
+BP07. Quản lý thông tin Customer
+
+Actor: Customer / System
+
+Customer đăng ký tài khoản
+        ↓
+Nhập thông tin cá nhân
+        ↓
+Xác thực thông tin
+        ↓
+Tạo tài khoản
+        ↓
+Customer cập nhật thông tin
+        ↓
+Hệ thống kiểm tra dữ liệu
+        ↓
+Lưu thông tin
+
+Các nghiệp vụ liên quan:
+
+Đăng ký tài khoản
+Đăng nhập
+Cập nhật thông tin cá nhân
+Thay đổi mật khẩu
+Quản lý phương thức thanh toán
+Quản lý địa chỉ thường dùng
+BP08. Quản lý tài xế
+
+Actor: Admin / Driver
+
+Driver đăng ký trở thành tài xế
+        ↓
+Cung cấp thông tin cá nhân
+        ↓
+Cung cấp thông tin phương tiện
+        ↓
+Cung cấp giấy tờ cần thiết
+        ↓
+Admin/System kiểm tra
+        ↓
+Hợp lệ?
+   ┌────┴────┐
+  Có        Không
+   ↓          ↓
+Phê duyệt    Từ chối/
+tài xế       yêu cầu bổ sung
+   ↓
+Kích hoạt tài khoản Driver
+        ↓
+Driver có thể nhận chuyến
+BP09. Quản lý trạng thái tài xế
+
+Actor: Driver / System
+
+Driver đăng nhập
+        ↓
+Chọn trạng thái hoạt động
+        ↓
+Online / Offline
+        ↓
+Nếu Online
+        ↓
+Cập nhật vị trí hiện tại
+        ↓
+Sẵn sàng nhận chuyến?
+        ↓
+Hệ thống đưa Driver vào danh sách
+tài xế có thể nhận chuyến
+
+Hệ thống cần quản lý các trạng thái như:
+
+Offline
+Online / Available
+Đang chờ nhận chuyến
+Đang đến điểm đón
+Đang thực hiện chuyến
+Tạm ngưng
+BP10. Xử lý khiếu nại / sự cố
+
+Actor: Customer / Driver / Admin
+
+Customer/Driver gửi khiếu nại
+        ↓
+Nhập nội dung + thông tin liên quan
+        ↓
+Hệ thống tạo Ticket/Khiếu nại
+        ↓
+Admin tiếp nhận
+        ↓
+Kiểm tra thông tin
+        ↓
+Xác minh sự việc
+        ↓
+Đưa ra phương án xử lý
+        ↓
+Cập nhật kết quả
+        ↓
+Thông báo cho người gửi
+        ↓
+Đóng khiếu nại
+Tổng hợp các Business Process quan trọng
+Mã	Business Process	Actor chính
+BP01	Đặt chuyến xe	Customer
+BP02	Tìm và phân công tài xế	System / Driver
+BP03	Nhận và thực hiện chuyến	Driver
+BP04	Hủy chuyến	Customer / Driver / System
+BP05	Thanh toán chuyến xe	Customer / System
+BP06	Đánh giá chuyến xe	Customer / Driver
+BP07	Quản lý thông tin Customer	Customer
+BP08	Quản lý tài xế	Admin / Driver
+BP09	Quản lý trạng thái tài xế	Driver / System
+BP10	Xử lý khiếu nại / sự cố	Customer / Driver / Admin
+Luồng nghiệp vụ cốt lõi
+
+Nếu bài của bạn đang xây dựng hệ thống đặt xe, thì không nên xem 10 process trên có mức độ quan trọng ngang nhau. Luồng cốt lõi của hệ thống nên là:
+
+Đặt chuyến
+   ↓
+Tìm tài xế
+   ↓
+Tài xế chấp nhận
+   ↓
+Đón khách
+   ↓
+Thực hiện chuyến
+   ↓
+Kết thúc chuyến
+   ↓
+Tính cước
+   ↓
+Thanh toán
+   ↓
+Đánh giá
 
 # 7. Functional Requirements
 
