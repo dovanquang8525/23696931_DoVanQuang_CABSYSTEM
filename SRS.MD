@@ -87,7 +87,6 @@ Các mục tiêu kinh doanh được xác định từ yêu cầu của khách h
 | **Ban lãnh đạo** | Theo dõi và sử dụng các báo cáo về số lượng chuyến, doanh thu, tỷ lệ hoàn thành, tỷ lệ hủy và hiệu quả hoạt động của tài xế. |
 | **Nhà cung cấp thanh toán** | Cung cấp dịch vụ thanh toán điện tử bên ngoài cho hệ thống CAB. |
 | **Nhà cung cấp thông báo** | Cung cấp các kênh thông báo cho khách hàng và tài xế, đồng thời có khả năng mở rộng thêm các kênh trong tương lai. |
-| **Business Analyst (BA)** | Làm rõ phạm vi, tác nhân, quy trình nghiệp vụ, yêu cầu, quy tắc nghiệp vụ, trường hợp ngoại lệ và các vấn đề chưa được xác nhận với khách hàng. |
 
 ### 2.2. Stakeholder Matrix
 
@@ -116,4 +115,4 @@ quadrantChart
     "Khách hàng": [0.85, 0.35]
     "Tài xế": [0.80, 0.30]
 
-    "Business Analyst": [0.45, 0.20]
+
