@@ -114,5 +114,224 @@ quadrantChart
 
     "Khách hàng": [0.85, 0.35]
     "Tài xế": [0.80, 0.30]
+## 3. Business Goals
 
+Business Goals (BG) được xác định dựa trên các vấn đề kinh doanh và kỳ vọng
+của Công ty ABC. Mỗi Business Goal mô tả một kết quả mà doanh nghiệp mong
+muốn đạt được, trong khi hệ thống sẽ cung cấp các chức năng và khả năng cần
+thiết để hỗ trợ đạt được mục tiêu đó.
 
+### 3.1. Danh sách Business Goals
+
+| ID | Business Goal | Mục đích / System Support |
+|---|---|---|
+| **BG01** | **Giảm thời gian tìm và phân công tài xế** | Hệ thống tự động xác định và ưu tiên tài xế phù hợp dựa trên vị trí, trạng thái sẵn sàng và các tiêu chí vận hành. |
+| **BG02** | **Hỗ trợ và quản lý thanh toán** | Cho phép khách hàng thanh toán bằng tiền mặt hoặc phương thức điện tử; tích hợp với nhà cung cấp thanh toán bên ngoài và không lưu thông tin thanh toán nhạy cảm trực tiếp trong hệ thống CAB. |
+| **BG03** | **Cải thiện khả năng theo dõi chuyến đi** | Cho phép khách hàng biết trạng thái yêu cầu, tài xế đã nhận chuyến, thời gian dự kiến tài xế đến và trạng thái hiện tại của chuyến đi. |
+| **BG04** | **Nâng cao hiệu quả vận hành** | Cung cấp giao diện quản trị để nhân viên vận hành quản lý khách hàng, tài xế, phương tiện và chuyến đi; theo dõi chuyến đang diễn ra và xử lý các trường hợp chuyến bị lỗi. |
+| **BG05** | **Cải thiện khả năng giao tiếp và thông báo** | Gửi thông báo cho khách hàng và tài xế tại các thời điểm quan trọng trong vòng đời chuyến đi và cho phép mở rộng thêm các kênh thông báo trong tương lai. |
+| **BG06** | **Nâng cao khả năng quản trị và ra quyết định** | Cung cấp dữ liệu và báo cáo về số lượng chuyến, doanh thu, tỷ lệ chuyến hoàn thành, tỷ lệ hủy và hiệu quả hoạt động của tài xế. |
+| **BG07** | **Đảm bảo khả năng mở rộng của hệ thống** | Cho phép các thành phần của hệ thống mở rộng độc lập khi tải tăng và cho phép triển khai chức năng mới từng phần mà hạn chế ảnh hưởng đến các chức năng đang hoạt động. |
+| **BG08** | **Đảm bảo tính bảo mật và khả năng kiểm soát hệ thống** | Xác thực người dùng, kiểm soát quyền truy cập các chức năng quản trị, bảo vệ dữ liệu cá nhân, dữ liệu phương tiện, vị trí và giao dịch; lưu vết các thao tác quan trọng. |
+| **BG09** | **Nâng cao trải nghiệm khách hàng sau chuyến đi** | Cho phép khách hàng xem lịch sử chuyến đi, số tiền phải trả và đánh giá tài xế sau khi chuyến hoàn thành. |
+| **BG10** | **Tăng khả năng phát triển dịch vụ trong tương lai** | Xây dựng nền tảng đủ linh hoạt để bổ sung loại dịch vụ, phương thức thanh toán, nhà cung cấp thông báo hoặc thay đổi thành phần kỹ thuật mà không phải xây dựng lại toàn bộ ứng dụng. |
+
+### 3.2. Chi tiết Business Goals
+
+#### BG01 — Giảm thời gian tìm và phân công tài xế
+
+**Business Goal:**
+
+Giảm thời gian cần thiết để tìm và phân công tài xế phù hợp cho một yêu cầu
+đặt xe.
+
+**System Support:**
+
+- Tự động xác định các tài xế phù hợp.
+- Ưu tiên tài xế gần khách hàng.
+- Xem xét trạng thái sẵn sàng của tài xế.
+- Xem xét các tiêu chí vận hành khác.
+- Tự động tiếp tục tìm tài xế khác khi tài xế được đề xuất không phản hồi
+  hoặc từ chối.
+- Thông báo cho khách hàng khi không tìm được tài xế.
+
+---
+
+#### BG02 — Hỗ trợ và quản lý thanh toán
+
+**Business Goal:**
+
+Đảm bảo khách hàng có thể thanh toán chuyến đi bằng các phương thức phù hợp
+và doanh nghiệp có thể quản lý kết quả thanh toán.
+
+**System Support:**
+
+- Tính số tiền khách hàng phải trả sau khi chuyến hoàn thành.
+- Hỗ trợ thanh toán bằng tiền mặt.
+- Hỗ trợ thanh toán điện tử.
+- Tích hợp với nhà cung cấp thanh toán bên ngoài.
+- Không lưu trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán.
+- Thông báo kết quả thanh toán cho khách hàng.
+- Cho phép xử lý lại khi thanh toán điện tử thất bại theo chính sách doanh nghiệp.
+
+---
+
+#### BG03 — Cải thiện khả năng theo dõi chuyến đi
+
+**Business Goal:**
+
+Tăng tính minh bạch của quá trình đặt và thực hiện chuyến đối với khách hàng.
+
+**System Support:**
+
+- Hiển thị trạng thái đang tìm tài xế.
+- Hiển thị tài xế đã nhận chuyến.
+- Hiển thị thời gian dự kiến tài xế đến.
+- Theo dõi trạng thái hiện tại của chuyến.
+- Thông báo các thay đổi quan trọng trong quá trình thực hiện chuyến.
+
+---
+
+#### BG04 — Nâng cao hiệu quả vận hành
+
+**Business Goal:**
+
+Giúp nhân viên vận hành có khả năng theo dõi, quản lý và xử lý hoạt động
+đặt xe từ một hệ thống tập trung.
+
+**System Support:**
+
+- Quản lý khách hàng.
+- Quản lý tài xế.
+- Quản lý phương tiện.
+- Quản lý chuyến đi.
+- Theo dõi các chuyến đang diễn ra.
+- Kiểm tra trạng thái tài xế.
+- Xử lý các trường hợp chuyến bị lỗi.
+- Tra cứu lịch sử giao dịch.
+- Phân quyền các chức năng quản trị.
+
+---
+
+#### BG05 — Cải thiện khả năng giao tiếp và thông báo
+
+**Business Goal:**
+
+Đảm bảo khách hàng và tài xế nhận được thông tin kịp thời trong quá trình
+đặt và thực hiện chuyến.
+
+**System Support:**
+
+- Thông báo khi yêu cầu đặt xe được tiếp nhận.
+- Thông báo khi tài xế nhận chuyến.
+- Thông báo khi tài xế đến điểm đón.
+- Thông báo khi chuyến hoàn thành.
+- Thông báo kết quả thanh toán.
+- Thông báo cho tài xế về chuyến mới hoặc thay đổi liên quan đến chuyến đang
+  thực hiện.
+- Hỗ trợ mở rộng thêm các kênh thông báo trong tương lai.
+
+---
+
+#### BG06 — Nâng cao khả năng quản trị và ra quyết định
+
+**Business Goal:**
+
+Cung cấp dữ liệu cần thiết để ban lãnh đạo theo dõi và đánh giá hiệu quả
+kinh doanh và vận hành.
+
+**System Support:**
+
+- Báo cáo số lượng chuyến.
+- Báo cáo doanh thu.
+- Báo cáo tỷ lệ chuyến hoàn thành.
+- Báo cáo tỷ lệ hủy.
+- Báo cáo hiệu quả hoạt động của tài xế.
+
+---
+
+#### BG07 — Đảm bảo khả năng mở rộng của hệ thống
+
+**Business Goal:**
+
+Đảm bảo hệ thống có thể tiếp tục hoạt động khi số lượng khách hàng, tài xế
+và tải hệ thống tăng lên.
+
+**System Support:**
+
+- Cho phép các thành phần mở rộng độc lập khi tải tăng.
+- Hạn chế việc một lỗi tại thanh toán hoặc thông báo làm toàn bộ hệ thống
+  đặt xe ngừng hoạt động.
+- Cho phép triển khai chức năng mới từng phần.
+- Hạn chế ảnh hưởng của chức năng mới đến các chức năng đang hoạt động.
+
+---
+
+#### BG08 — Đảm bảo tính bảo mật và khả năng kiểm soát hệ thống
+
+**Business Goal:**
+
+Bảo vệ dữ liệu và đảm bảo các thao tác trong hệ thống được thực hiện bởi
+đúng đối tượng có quyền.
+
+**System Support:**
+
+- Xác thực khách hàng và tài xế trước khi sử dụng chức năng yêu cầu tài khoản.
+- Kiểm soát quyền truy cập các chức năng quản trị.
+- Bảo vệ thông tin cá nhân.
+- Bảo vệ thông tin phương tiện.
+- Bảo vệ dữ liệu vị trí.
+- Bảo vệ dữ liệu giao dịch.
+- Lưu vết các thao tác quan trọng để phục vụ kiểm tra khi có sự cố.
+
+---
+
+#### BG09 — Nâng cao trải nghiệm khách hàng sau chuyến đi
+
+**Business Goal:**
+
+Cải thiện trải nghiệm khách hàng sau khi hoàn thành chuyến và tạo cơ sở để
+doanh nghiệp thu thập phản hồi về chất lượng tài xế.
+
+**System Support:**
+
+- Cho phép xem lịch sử chuyến đi.
+- Cho phép xem số tiền phải trả.
+- Cho phép đánh giá tài xế sau khi chuyến hoàn thành.
+
+---
+
+#### BG10 — Tăng khả năng phát triển dịch vụ trong tương lai
+
+**Business Goal:**
+
+Xây dựng nền tảng CAB có khả năng phát triển lâu dài mà không phải xây dựng
+lại toàn bộ hệ thống khi có nhu cầu kinh doanh mới.
+
+**System Support:**
+
+- Có khả năng bổ sung loại dịch vụ mới.
+- Có khả năng bổ sung phương thức thanh toán mới.
+- Có khả năng bổ sung nhà cung cấp thông báo mới.
+- Có khả năng thay đổi một số thành phần kỹ thuật.
+- Hạn chế ảnh hưởng đến các thành phần đang hoạt động khi mở rộng hệ thống.
+
+### 3.3. Business Goal Summary
+
+| ID | Business Goal | Priority |
+|---|---|---|
+| **BG01** | Giảm thời gian tìm và phân công tài xế | High |
+| **BG02** | Hỗ trợ và quản lý thanh toán | High |
+| **BG03** | Cải thiện khả năng theo dõi chuyến đi | High |
+| **BG04** | Nâng cao hiệu quả vận hành | High |
+| **BG05** | Cải thiện khả năng giao tiếp và thông báo | High |
+| **BG06** | Nâng cao khả năng quản trị và ra quyết định | Medium |
+| **BG07** | Đảm bảo khả năng mở rộng của hệ thống | High |
+| **BG08** | Đảm bảo tính bảo mật và khả năng kiểm soát hệ thống | High |
+| **BG09** | Nâng cao trải nghiệm khách hàng sau chuyến đi | Medium |
+| **BG10** | Tăng khả năng phát triển dịch vụ trong tương lai | High |
+
+> **Note:** Priority là đánh giá ban đầu dựa trên mức độ quan trọng thể hiện
+> trong yêu cầu khách hàng. Tài liệu chưa cung cấp thứ tự ưu tiên chính thức
+> từ phía doanh nghiệp, vì vậy cần xác nhận lại với stakeholder trong các bước
+> phân tích tiếp theo.
