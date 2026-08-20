@@ -1881,3 +1881,1288 @@ flowchart LR
     UC09 --- UC31
     UC19 --- UC31
 ```
+
+# 12. Use Case Specification
+
+Use Case Specification mô tả chi tiết cách Actor tương tác với hệ thống CAB để
+đạt được một mục tiêu nghiệp vụ cụ thể.
+
+Mỗi Use Case bao gồm:
+
+* **Use Case ID**
+* **Use Case Name**
+* **Primary Actor**
+* **Supporting Actor**
+* **Goal**
+* **Preconditions**
+* **Trigger**
+* **Main Success Scenario**
+* **Alternative / Exception Flows**
+* **Postconditions**
+* **Business Rules**
+* **Related Functional Requirements**
+
+> **Lưu ý:** Các giá trị nghiệp vụ chưa được khách hàng xác nhận như bán kính
+> tìm tài xế, thời gian phản hồi, công thức tính cước hoặc số lần retry thanh
+> toán không được tự giả định trong Use Case Specification.
+
+---
+
+# 12.1. Customer Use Cases
+
+## UC01 — Đăng ký tài khoản
+
+| Thuộc tính           | Nội dung                                                        |
+| -------------------- | --------------------------------------------------------------- |
+| **Use Case ID**      | UC01                                                            |
+| **Use Case Name**    | Đăng ký tài khoản                                               |
+| **Primary Actor**    | Customer                                                        |
+| **Supporting Actor** | —                                                               |
+| **Goal**             | Tạo tài khoản mới để sử dụng các chức năng yêu cầu tài khoản.   |
+| **Preconditions**    | Customer chưa có tài khoản hoặc chưa sử dụng tài khoản hiện có. |
+| **Trigger**          | Customer chọn chức năng đăng ký tài khoản.                      |
+
+### Main Success Scenario
+
+1. Customer chọn **Đăng ký tài khoản**.
+2. Hệ thống hiển thị biểu mẫu đăng ký.
+3. Customer nhập các thông tin cần thiết.
+4. Customer gửi thông tin đăng ký.
+5. Hệ thống kiểm tra tính hợp lệ của thông tin.
+6. Hệ thống tạo tài khoản Customer.
+7. Hệ thống thông báo đăng ký thành công.
+
+### Alternative / Exception Flows
+
+* **A1.** Thông tin đăng ký không hợp lệ → Hệ thống yêu cầu Customer sửa
+  thông tin.
+* **A2.** Tài khoản/thông tin định danh đã tồn tại → Hệ thống thông báo và
+  không tạo tài khoản mới.
+* **A3.** Hệ thống không thể tạo tài khoản → Hệ thống thông báo lỗi.
+
+### Postconditions
+
+* Tài khoản Customer được tạo thành công hoặc yêu cầu đăng ký bị từ chối.
+
+### Business Rules
+
+* BRULE02 — Khách hàng phải được xác thực khi sử dụng chức năng yêu cầu tài khoản.
+
+### Related FR
+
+* FR01, FR02
+
+---
+
+## UC02 — Đăng nhập
+
+| Thuộc tính        | Nội dung                                                       |
+| ----------------- | -------------------------------------------------------------- |
+| **Use Case ID**   | UC02                                                           |
+| **Use Case Name** | Đăng nhập                                                      |
+| **Primary Actor** | Customer                                                       |
+| **Goal**          | Xác thực Customer để truy cập các chức năng yêu cầu tài khoản. |
+| **Preconditions** | Customer đã có tài khoản.                                      |
+| **Trigger**       | Customer chọn chức năng đăng nhập.                             |
+
+### Main Success Scenario
+
+1. Customer nhập thông tin đăng nhập.
+2. Hệ thống tiếp nhận thông tin.
+3. Hệ thống xác thực thông tin.
+4. Hệ thống xác định tài khoản hợp lệ.
+5. Hệ thống cho phép Customer đăng nhập.
+
+### Alternative / Exception Flows
+
+* **A1.** Thông tin đăng nhập không đúng → Hệ thống từ chối đăng nhập.
+* **A2.** Tài khoản không ở trạng thái có thể sử dụng → Hệ thống thông báo
+  trạng thái tài khoản.
+
+### Postconditions
+
+* Customer được xác thực và có quyền sử dụng các chức năng tương ứng.
+
+### Business Rules
+
+* BRULE02
+
+### Related FR
+
+* FR03, FR04
+
+---
+
+## UC03 — Quản lý thông tin cá nhân
+
+| Thuộc tính        | Nội dung                             |
+| ----------------- | ------------------------------------ |
+| **Use Case ID**   | UC03                                 |
+| **Use Case Name** | Quản lý thông tin cá nhân            |
+| **Primary Actor** | Customer                             |
+| **Goal**          | Xem và cập nhật thông tin cá nhân.   |
+| **Preconditions** | Customer đã đăng nhập.               |
+| **Trigger**       | Customer truy cập thông tin cá nhân. |
+
+### Main Success Scenario
+
+1. Customer chọn **Thông tin cá nhân**.
+2. Hệ thống hiển thị thông tin hiện tại.
+3. Customer chọn cập nhật thông tin.
+4. Customer thay đổi thông tin.
+5. Customer lưu thay đổi.
+6. Hệ thống kiểm tra thông tin.
+7. Hệ thống lưu thông tin mới.
+8. Hệ thống thông báo cập nhật thành công.
+
+### Alternative / Exception Flows
+
+* **A1.** Thông tin không hợp lệ → Hệ thống yêu cầu nhập lại.
+* **A2.** Lỗi khi lưu → Hệ thống không cập nhật dữ liệu và thông báo lỗi.
+
+### Postconditions
+
+* Thông tin cá nhân được cập nhật nếu thao tác thành công.
+
+### Related FR
+
+* FR05, FR06
+
+---
+
+## UC04 — Đặt chuyến xe
+
+| Thuộc tính        | Nội dung                        |
+| ----------------- | ------------------------------- |
+| **Use Case ID**   | UC04                            |
+| **Use Case Name** | Đặt chuyến xe                   |
+| **Primary Actor** | Customer                        |
+| **Goal**          | Tạo một yêu cầu đặt xe.         |
+| **Preconditions** | Customer đã đăng nhập.          |
+| **Trigger**       | Customer chọn chức năng đặt xe. |
+
+### Main Success Scenario
+
+1. Customer chọn **Đặt xe**.
+2. Hệ thống yêu cầu nhập thông tin chuyến.
+3. Customer nhập điểm đón.
+4. Customer nhập điểm đến.
+5. Customer lựa chọn loại xe/dịch vụ.
+6. Customer gửi yêu cầu đặt xe.
+7. Hệ thống kiểm tra thông tin yêu cầu.
+8. Hệ thống tạo Booking.
+9. Hệ thống chuyển Booking sang trạng thái tìm tài xế.
+10. Hệ thống thông báo yêu cầu đã được tiếp nhận.
+11. Hệ thống bắt đầu quá trình tìm tài xế.
+
+### Alternative / Exception Flows
+
+* **A1.** Thiếu điểm đón, điểm đến hoặc loại xe → Không cho gửi yêu cầu.
+* **A2.** Thông tin chuyến không hợp lệ → Hệ thống yêu cầu chỉnh sửa.
+* **A3.** Không thể tạo Booking → Hệ thống thông báo lỗi.
+
+### Postconditions
+
+* Booking được tạo và chuyển sang quá trình tìm tài xế.
+
+### Business Rules
+
+* BRULE01
+* BRULE02
+
+### Related FR
+
+* FR15–FR20
+
+---
+
+## UC05 — Theo dõi chuyến
+
+| Thuộc tính        | Nội dung                                                  |
+| ----------------- | --------------------------------------------------------- |
+| **Use Case ID**   | UC05                                                      |
+| **Use Case Name** | Theo dõi chuyến                                           |
+| **Primary Actor** | Customer                                                  |
+| **Goal**          | Theo dõi trạng thái và thông tin liên quan đến chuyến đi. |
+| **Preconditions** | Customer có Booking/Trip hợp lệ.                          |
+| **Trigger**       | Customer mở màn hình theo dõi chuyến.                     |
+
+### Main Success Scenario
+
+1. Customer chọn chuyến đang theo dõi.
+2. Hệ thống hiển thị trạng thái hiện tại.
+3. Hệ thống hiển thị thông tin tài xế nếu đã được phân công.
+4. Hệ thống hiển thị thời gian dự kiến tài xế đến nếu có.
+5. Hệ thống cập nhật trạng thái khi có thay đổi.
+6. Customer tiếp tục theo dõi cho đến khi chuyến hoàn thành.
+
+### Alternative / Exception Flows
+
+* **A1.** Chưa tìm được tài xế → Hiển thị trạng thái đang tìm tài xế.
+* **A2.** Không tìm được tài xế → Hiển thị trạng thái không tìm được tài xế.
+* **A3.** Không thể cập nhật dữ liệu → Hiển thị trạng thái gần nhất đã biết.
+
+### Postconditions
+
+* Customer có thể biết trạng thái mới nhất của chuyến trong phạm vi dữ liệu
+  hệ thống cung cấp.
+
+### Related FR
+
+* FR35–FR37
+
+---
+
+## UC06 — Xem lịch sử chuyến
+
+| Thuộc tính        | Nội dung                         |
+| ----------------- | -------------------------------- |
+| **Use Case ID**   | UC06                             |
+| **Use Case Name** | Xem lịch sử chuyến               |
+| **Primary Actor** | Customer                         |
+| **Goal**          | Xem lại các chuyến đã thực hiện. |
+| **Preconditions** | Customer đã đăng nhập.           |
+| **Trigger**       | Customer chọn lịch sử chuyến.    |
+
+### Main Success Scenario
+
+1. Customer chọn **Lịch sử chuyến**.
+2. Hệ thống truy vấn các Trip thuộc Customer.
+3. Hệ thống hiển thị danh sách chuyến.
+4. Customer chọn một chuyến.
+5. Hệ thống hiển thị thông tin chi tiết chuyến và số tiền phải trả.
+
+### Alternative / Exception Flows
+
+* **A1.** Không có lịch sử chuyến → Hệ thống hiển thị danh sách rỗng.
+* **A2.** Không thể tải dữ liệu → Hệ thống thông báo lỗi.
+
+### Related FR
+
+* FR62–FR64
+
+---
+
+## UC07 — Thanh toán
+
+| Thuộc tính           | Nội dung                                   |
+| -------------------- | ------------------------------------------ |
+| **Use Case ID**      | UC07                                       |
+| **Use Case Name**    | Thanh toán                                 |
+| **Primary Actor**    | Customer                                   |
+| **Supporting Actor** | Payment Provider                           |
+| **Goal**             | Thanh toán số tiền phải trả cho chuyến đi. |
+| **Preconditions**    | Trip đã hoàn thành và có số tiền phải trả. |
+| **Trigger**          | Customer thực hiện thanh toán.             |
+
+### Main Success Scenario
+
+1. Hệ thống hiển thị số tiền phải trả.
+2. Customer lựa chọn phương thức thanh toán.
+3. Nếu chọn tiền mặt, hệ thống ghi nhận phương thức tiền mặt.
+4. Nếu chọn thanh toán điện tử, hệ thống gửi yêu cầu đến Payment Provider.
+5. Payment Provider xử lý giao dịch.
+6. Hệ thống nhận kết quả giao dịch.
+7. Hệ thống lưu trạng thái thanh toán.
+8. Hệ thống thông báo kết quả cho Customer.
+
+### Alternative / Exception Flows
+
+* **A1.** Thanh toán điện tử thất bại → Hệ thống thông báo thất bại.
+* **A2.** Customer thực hiện lại thanh toán → Hệ thống xử lý lại theo chính
+  sách doanh nghiệp.
+* **A3.** Payment Provider không phản hồi → Hệ thống ghi nhận trạng thái
+  phù hợp và không làm dừng toàn bộ hệ thống.
+
+### Postconditions
+
+* Payment được ghi nhận với trạng thái tương ứng.
+
+### Business Rules
+
+* BRULE11–BRULE17
+
+### Related FR
+
+* FR45–FR54
+
+---
+
+## UC08 — Đánh giá tài xế
+
+| Thuộc tính        | Nội dung                              |
+| ----------------- | ------------------------------------- |
+| **Use Case ID**   | UC08                                  |
+| **Use Case Name** | Đánh giá tài xế                       |
+| **Primary Actor** | Customer                              |
+| **Goal**          | Gửi đánh giá về tài xế sau chuyến đi. |
+| **Preconditions** | Trip đã hoàn thành.                   |
+| **Trigger**       | Customer chọn đánh giá tài xế.        |
+
+### Main Success Scenario
+
+1. Customer mở thông tin Trip đã hoàn thành.
+2. Hệ thống hiển thị chức năng đánh giá.
+3. Customer nhập điểm đánh giá và nội dung nếu có.
+4. Customer gửi đánh giá.
+5. Hệ thống kiểm tra dữ liệu.
+6. Hệ thống lưu Review.
+7. Hệ thống thông báo đánh giá đã được ghi nhận.
+
+### Alternative / Exception Flows
+
+* **A1.** Trip chưa hoàn thành → Không cho phép đánh giá.
+* **A2.** Dữ liệu đánh giá không hợp lệ → Yêu cầu nhập lại.
+* **A3.** Lỗi lưu Review → Thông báo lỗi.
+
+### Related FR
+
+* FR65, FR66
+
+---
+
+## UC09 — Nhận thông báo
+
+| Thuộc tính           | Nội dung                                                            |
+| -------------------- | ------------------------------------------------------------------- |
+| **Use Case ID**      | UC09                                                                |
+| **Use Case Name**    | Nhận thông báo                                                      |
+| **Primary Actor**    | Customer                                                            |
+| **Supporting Actor** | Notification Provider                                               |
+| **Goal**             | Customer nhận được thông tin quan trọng liên quan đến Booking/Trip. |
+| **Preconditions**    | Customer có tài khoản và có sự kiện cần thông báo.                  |
+| **Trigger**          | Một sự kiện nghiệp vụ phát sinh.                                    |
+
+### Main Success Scenario
+
+1. Một sự kiện nghiệp vụ xảy ra.
+2. CAB tạo thông báo.
+3. CAB gửi thông báo thông qua Notification Provider.
+4. Notification Provider thực hiện gửi.
+5. Customer nhận thông báo.
+6. Hệ thống ghi nhận trạng thái gửi.
+
+### Alternative / Exception Flows
+
+* **A1.** Notification Provider lỗi → Hệ thống ghi nhận lỗi và tiếp tục xử lý
+  các nghiệp vụ khác.
+
+### Related FR
+
+* FR55–FR59
+
+---
+
+# 12.2. Driver Use Cases
+
+## UC10 — Đăng nhập tài xế
+
+| Thuộc tính        | Nội dung                             |
+| ----------------- | ------------------------------------ |
+| **Use Case ID**   | UC10                                 |
+| **Use Case Name** | Đăng nhập                            |
+| **Primary Actor** | Driver                               |
+| **Goal**          | Xác thực Driver để sử dụng hệ thống. |
+| **Preconditions** | Driver đã có tài khoản.              |
+| **Trigger**       | Driver thực hiện đăng nhập.          |
+
+### Main Success Scenario
+
+1. Driver nhập thông tin đăng nhập.
+2. Hệ thống xác thực thông tin.
+3. Hệ thống xác nhận tài khoản hợp lệ.
+4. Hệ thống cho phép Driver truy cập ứng dụng.
+
+### Alternative / Exception Flows
+
+* **A1.** Thông tin đăng nhập không hợp lệ → Từ chối đăng nhập.
+* **A2.** Tài khoản không thể sử dụng → Thông báo trạng thái tài khoản.
+
+### Related FR
+
+* FR11, FR12
+
+---
+
+## UC11 — Quản lý hồ sơ tài xế
+
+| Thuộc tính        | Nội dung                      |
+| ----------------- | ----------------------------- |
+| **Use Case ID**   | UC11                          |
+| **Use Case Name** | Quản lý hồ sơ tài xế          |
+| **Primary Actor** | Driver                        |
+| **Goal**          | Xem và cập nhật hồ sơ tài xế. |
+| **Preconditions** | Driver đã đăng nhập.          |
+| **Trigger**       | Driver mở hồ sơ cá nhân.      |
+
+### Main Success Scenario
+
+1. Driver mở hồ sơ.
+2. Hệ thống hiển thị thông tin hiện tại.
+3. Driver cập nhật thông tin.
+4. Driver lưu thay đổi.
+5. Hệ thống kiểm tra dữ liệu.
+6. Hệ thống lưu thay đổi.
+
+### Alternative / Exception Flows
+
+* **A1.** Dữ liệu không hợp lệ → Yêu cầu chỉnh sửa.
+* **A2.** Lỗi lưu → Không cập nhật dữ liệu.
+
+### Related FR
+
+* FR09, FR10
+
+---
+
+## UC12 — Cập nhật trạng thái sẵn sàng
+
+| Thuộc tính        | Nội dung                                               |
+| ----------------- | ------------------------------------------------------ |
+| **Use Case ID**   | UC12                                                   |
+| **Use Case Name** | Cập nhật trạng thái sẵn sàng                           |
+| **Primary Actor** | Driver                                                 |
+| **Goal**          | Cho hệ thống biết Driver có thể nhận chuyến hay không. |
+| **Preconditions** | Driver đã đăng nhập.                                   |
+| **Trigger**       | Driver thay đổi trạng thái hoạt động.                  |
+
+### Main Success Scenario
+
+1. Driver chọn trạng thái hoạt động.
+2. Driver chuyển sang trạng thái sẵn sàng.
+3. Hệ thống cập nhật `availability_status`.
+4. Hệ thống đưa Driver vào nhóm có thể được xem xét phân công.
+
+### Alternative / Exception Flows
+
+* **A1.** Driver chuyển sang không sẵn sàng → Hệ thống không đưa Driver vào
+  danh sách tìm kiếm mới.
+* **A2.** Không thể cập nhật trạng thái → Giữ trạng thái trước đó và thông báo lỗi.
+
+### Business Rules
+
+* BRULE03
+
+### Related FR
+
+* FR13, FR14
+
+---
+
+## UC13 — Nhận yêu cầu chuyến
+
+| Thuộc tính        | Nội dung                                                |
+| ----------------- | ------------------------------------------------------- |
+| **Use Case ID**   | UC13                                                    |
+| **Use Case Name** | Nhận yêu cầu chuyến                                     |
+| **Primary Actor** | Driver                                                  |
+| **Goal**          | Nhận và xem thông tin một chuyến được hệ thống đề xuất. |
+| **Preconditions** | Driver đang sẵn sàng và được hệ thống lựa chọn.         |
+| **Trigger**       | Hệ thống gửi yêu cầu chuyến đến Driver.                 |
+
+### Main Success Scenario
+
+1. Hệ thống xác định Driver phù hợp.
+2. Hệ thống gửi thông tin chuyến.
+3. Driver nhận thông báo.
+4. Driver mở yêu cầu.
+5. Hệ thống hiển thị thông tin chuyến.
+
+### Alternative / Exception Flows
+
+* **A1.** Driver không phản hồi → Hệ thống xử lý theo quy tắc tìm tài xế.
+* **A2.** Driver từ chối → Chuyển sang quy trình tìm tài xế khác.
+
+### Related FR
+
+* FR22–FR25, FR29–FR30
+
+---
+
+## UC14 — Chấp nhận chuyến
+
+| Thuộc tính        | Nội dung                                                   |
+| ----------------- | ---------------------------------------------------------- |
+| **Use Case ID**   | UC14                                                       |
+| **Use Case Name** | Chấp nhận chuyến                                           |
+| **Primary Actor** | Driver                                                     |
+| **Goal**          | Chấp nhận yêu cầu chuyến được hệ thống đề xuất.            |
+| **Preconditions** | Driver nhận được yêu cầu hợp lệ và vẫn có thể nhận chuyến. |
+| **Trigger**       | Driver chọn **Chấp nhận**.                                 |
+
+### Main Success Scenario
+
+1. Driver chọn chấp nhận chuyến.
+2. Hệ thống kiểm tra trạng thái yêu cầu.
+3. Hệ thống xác nhận Driver được phân công.
+4. Hệ thống tạo/cập nhật Trip.
+5. Hệ thống cập nhật trạng thái Driver.
+6. Hệ thống thông báo cho Customer.
+
+### Alternative / Exception Flows
+
+* **A1.** Chuyến đã được Driver khác nhận → Hệ thống thông báo không thể
+  nhận chuyến.
+* **A2.** Chuyến không còn hợp lệ → Từ chối thao tác.
+* **A3.** Lỗi hệ thống → Không xác nhận phân công.
+
+### Business Rules
+
+* BRULE08
+
+### Related FR
+
+* FR31, FR33, FR34
+
+---
+
+## UC15 — Từ chối chuyến
+
+| Thuộc tính        | Nội dung                             |
+| ----------------- | ------------------------------------ |
+| **Use Case ID**   | UC15                                 |
+| **Use Case Name** | Từ chối chuyến                       |
+| **Primary Actor** | Driver                               |
+| **Goal**          | Từ chối một yêu cầu chuyến.          |
+| **Preconditions** | Driver đang nhận một yêu cầu chuyến. |
+| **Trigger**       | Driver chọn **Từ chối**.             |
+
+### Main Success Scenario
+
+1. Driver chọn từ chối.
+2. Hệ thống ghi nhận việc từ chối.
+3. Hệ thống loại Driver khỏi yêu cầu hiện tại.
+4. Hệ thống tiếp tục tìm Driver khác.
+5. Customer tiếp tục giữ Booking hiện tại.
+
+### Alternative / Exception Flows
+
+* **A1.** Booking đã được xử lý bởi Driver khác → Hệ thống thông báo trạng
+  thái hiện tại.
+
+### Business Rules
+
+* BRULE06
+
+### Related FR
+
+* FR26, FR32
+
+---
+
+## UC16 — Cập nhật trạng thái chuyến
+
+| Thuộc tính        | Nội dung                                                   |
+| ----------------- | ---------------------------------------------------------- |
+| **Use Case ID**   | UC16                                                       |
+| **Use Case Name** | Cập nhật trạng thái chuyến                                 |
+| **Primary Actor** | Driver                                                     |
+| **Goal**          | Cập nhật trạng thái Trip trong quá trình thực hiện chuyến. |
+| **Preconditions** | Driver đã được phân công cho Trip.                         |
+| **Trigger**       | Trạng thái chuyến thay đổi.                                |
+
+### Main Success Scenario
+
+1. Driver mở Trip hiện tại.
+2. Driver cập nhật trạng thái.
+3. Hệ thống kiểm tra trạng thái hiện tại.
+4. Hệ thống ghi nhận trạng thái mới.
+5. Hệ thống thông báo cho các Actor liên quan nếu cần.
+6. Quá trình tiếp tục cho đến khi Trip hoàn thành.
+
+### Các trạng thái nghiệp vụ
+
+```text
+Assigned
+   ↓
+Arrived at Pickup
+   ↓
+Passenger Picked Up
+   ↓
+In Progress
+   ↓
+Completed
+```
+
+### Alternative / Exception Flows
+
+* **A1.** Driver cố cập nhật trạng thái không phù hợp với vòng đời chuyến →
+  Hệ thống từ chối thao tác.
+* **A2.** Không thể cập nhật → Giữ trạng thái hiện tại và thông báo lỗi.
+
+### Business Rules
+
+* BRULE09
+* BRULE10
+
+### Related FR
+
+* FR37–FR40
+
+---
+
+## UC17 — Cập nhật vị trí
+
+| Thuộc tính        | Nội dung                                                                   |
+| ----------------- | -------------------------------------------------------------------------- |
+| **Use Case ID**   | UC17                                                                       |
+| **Use Case Name** | Cập nhật vị trí                                                            |
+| **Primary Actor** | Driver                                                                     |
+| **Goal**          | Cập nhật vị trí hiện tại để hệ thống hỗ trợ tìm tài xế và theo dõi chuyến. |
+| **Preconditions** | Driver đã đăng nhập và cho phép hệ thống nhận vị trí.                      |
+| **Trigger**       | Vị trí Driver thay đổi hoặc hệ thống yêu cầu cập nhật vị trí.              |
+
+### Main Success Scenario
+
+1. Ứng dụng Driver lấy vị trí hiện tại.
+2. Hệ thống tiếp nhận dữ liệu vị trí.
+3. Hệ thống lưu bản ghi vị trí.
+4. Dữ liệu được sử dụng cho các nghiệp vụ liên quan.
+
+### Alternative / Exception Flows
+
+* **A1.** Không lấy được vị trí → Hệ thống không cập nhật bản ghi mới.
+* **A2.** Mất kết nối → Dữ liệu được xử lý theo chính sách chưa được xác định.
+
+### Open Question
+
+* Tần suất cập nhật vị trí chưa được khách hàng xác định.
+* Chính sách xử lý mất kết nối chưa được xác định.
+
+### Related FR
+
+* FR21, FR35, FR36
+
+---
+
+## UC18 — Xem lịch sử chuyến
+
+| Thuộc tính        | Nội dung                            |
+| ----------------- | ----------------------------------- |
+| **Use Case ID**   | UC18                                |
+| **Use Case Name** | Xem lịch sử chuyến                  |
+| **Primary Actor** | Driver                              |
+| **Goal**          | Xem các chuyến Driver đã thực hiện. |
+| **Preconditions** | Driver đã đăng nhập.                |
+| **Trigger**       | Driver mở lịch sử chuyến.           |
+
+### Main Success Scenario
+
+1. Driver chọn lịch sử chuyến.
+2. Hệ thống truy vấn các Trip thuộc Driver.
+3. Hệ thống hiển thị danh sách.
+4. Driver chọn một Trip để xem chi tiết.
+
+### Alternative / Exception Flows
+
+* **A1.** Không có chuyến → Hiển thị danh sách rỗng.
+* **A2.** Không thể tải dữ liệu → Thông báo lỗi.
+
+### Related FR
+
+* Phạm vi này **chưa có FR riêng trong danh sách FR hiện tại**.
+
+> Đây là một điểm cần bổ sung vào FR nếu UC18 thực sự nằm trong Scope.
+
+---
+
+## UC19 — Nhận thông báo
+
+| Thuộc tính           | Nội dung                                                                |
+| -------------------- | ----------------------------------------------------------------------- |
+| **Use Case ID**      | UC19                                                                    |
+| **Use Case Name**    | Nhận thông báo                                                          |
+| **Primary Actor**    | Driver                                                                  |
+| **Supporting Actor** | Notification Provider                                                   |
+| **Goal**             | Driver nhận thông tin về chuyến mới hoặc thay đổi liên quan đến chuyến. |
+| **Preconditions**    | Driver có sự kiện cần thông báo.                                        |
+| **Trigger**          | Một sự kiện nghiệp vụ phát sinh.                                        |
+
+### Main Success Scenario
+
+1. Hệ thống phát sinh sự kiện.
+2. CAB tạo Notification.
+3. CAB gửi Notification đến Notification Provider.
+4. Provider thực hiện gửi.
+5. Driver nhận thông báo.
+6. Hệ thống ghi nhận trạng thái gửi.
+
+### Alternative / Exception Flows
+
+* **A1.** Provider gặp lỗi → Hệ thống ghi nhận lỗi và không làm dừng các
+  nghiệp vụ khác.
+
+### Business Rules
+
+* BRULE19
+
+### Related FR
+
+* FR60, FR61
+
+---
+
+# 12.3. Operator Use Cases
+
+## UC20 — Đăng nhập quản trị
+
+| Thuộc tính        | Nội dung                                         |
+| ----------------- | ------------------------------------------------ |
+| **Use Case ID**   | UC20                                             |
+| **Use Case Name** | Đăng nhập quản trị                               |
+| **Primary Actor** | Operator                                         |
+| **Goal**          | Xác thực Operator để truy cập hệ thống quản trị. |
+| **Preconditions** | Operator có tài khoản hợp lệ.                    |
+| **Trigger**       | Operator đăng nhập hệ thống quản trị.            |
+
+### Main Success Scenario
+
+1. Operator nhập thông tin đăng nhập.
+2. Hệ thống xác thực.
+3. Hệ thống kiểm tra trạng thái tài khoản.
+4. Hệ thống xác định quyền.
+5. Hệ thống cho phép truy cập chức năng quản trị phù hợp.
+
+### Alternative / Exception Flows
+
+* **A1.** Sai thông tin → Từ chối đăng nhập.
+* **A2.** Tài khoản không hoạt động → Từ chối truy cập.
+
+### Business Rules
+
+* BRULE20
+
+### Related FR
+
+* FR82, FR83
+
+---
+
+## UC21 — Quản lý Customer
+
+| Thuộc tính        | Nội dung                                                     |
+| ----------------- | ------------------------------------------------------------ |
+| **Use Case ID**   | UC21                                                         |
+| **Use Case Name** | Quản lý Customer                                             |
+| **Primary Actor** | Operator                                                     |
+| **Goal**          | Tra cứu và quản lý thông tin khách hàng theo quyền được cấp. |
+| **Preconditions** | Operator đã đăng nhập và có quyền phù hợp.                   |
+| **Trigger**       | Operator truy cập chức năng Customer Management.             |
+
+### Main Success Scenario
+
+1. Operator mở danh sách Customer.
+2. Hệ thống hiển thị danh sách.
+3. Operator tìm kiếm Customer nếu cần.
+4. Operator chọn Customer.
+5. Hệ thống hiển thị thông tin theo quyền.
+
+### Alternative / Exception Flows
+
+* **A1.** Không tìm thấy Customer → Hiển thị kết quả rỗng.
+* **A2.** Không đủ quyền → Từ chối thao tác.
+
+### Related FR
+
+* FR67–FR69
+
+---
+
+## UC22 — Quản lý Driver
+
+| Thuộc tính        | Nội dung                                   |
+| ----------------- | ------------------------------------------ |
+| **Use Case ID**   | UC22                                       |
+| **Use Case Name** | Quản lý Driver                             |
+| **Primary Actor** | Operator                                   |
+| **Goal**          | Tra cứu và quản lý thông tin Driver.       |
+| **Preconditions** | Operator đã đăng nhập và có quyền phù hợp. |
+| **Trigger**       | Operator truy cập Driver Management.       |
+
+### Main Success Scenario
+
+1. Operator mở danh sách Driver.
+2. Hệ thống hiển thị danh sách.
+3. Operator tìm kiếm Driver.
+4. Operator xem hồ sơ Driver.
+5. Hệ thống hiển thị thông tin theo quyền.
+
+### Alternative / Exception Flows
+
+* **A1.** Không tìm thấy Driver → Hiển thị kết quả rỗng.
+* **A2.** Không đủ quyền → Từ chối thao tác.
+
+### Related FR
+
+* FR70–FR72
+
+---
+
+## UC23 — Quản lý Vehicle
+
+| Thuộc tính        | Nội dung                                   |
+| ----------------- | ------------------------------------------ |
+| **Use Case ID**   | UC23                                       |
+| **Use Case Name** | Quản lý Vehicle                            |
+| **Primary Actor** | Operator                                   |
+| **Goal**          | Quản lý thông tin phương tiện.             |
+| **Preconditions** | Operator đã đăng nhập và có quyền phù hợp. |
+| **Trigger**       | Operator truy cập Vehicle Management.      |
+
+### Main Success Scenario
+
+1. Operator mở danh sách Vehicle.
+2. Hệ thống hiển thị phương tiện.
+3. Operator tìm kiếm hoặc chọn Vehicle.
+4. Hệ thống hiển thị thông tin phương tiện.
+5. Operator thực hiện thao tác được cấp quyền.
+6. Hệ thống lưu thay đổi nếu có.
+
+### Alternative / Exception Flows
+
+* **A1.** Không đủ quyền → Từ chối thao tác.
+* **A2.** Dữ liệu không hợp lệ → Không lưu thay đổi.
+
+### Related FR
+
+* FR73
+
+---
+
+## UC24 — Quản lý Trip
+
+| Thuộc tính        | Nội dung                            |
+| ----------------- | ----------------------------------- |
+| **Use Case ID**   | UC24                                |
+| **Use Case Name** | Quản lý Trip                        |
+| **Primary Actor** | Operator                            |
+| **Goal**          | Theo dõi và quản lý thông tin Trip. |
+| **Preconditions** | Operator đã đăng nhập.              |
+| **Trigger**       | Operator truy cập Trip Management.  |
+
+### Main Success Scenario
+
+1. Operator mở danh sách Trip.
+2. Hệ thống hiển thị Trip.
+3. Operator tìm kiếm Trip.
+4. Operator chọn Trip.
+5. Hệ thống hiển thị thông tin Trip.
+6. Operator thực hiện thao tác được cấp quyền.
+
+### Alternative / Exception Flows
+
+* **A1.** Không tìm thấy Trip → Hiển thị kết quả rỗng.
+* **A2.** Không đủ quyền → Từ chối thao tác.
+
+### Related FR
+
+* FR75–FR77
+
+---
+
+## UC25 — Theo dõi chuyến đang diễn ra
+
+| Thuộc tính        | Nội dung                                |
+| ----------------- | --------------------------------------- |
+| **Use Case ID**   | UC25                                    |
+| **Use Case Name** | Theo dõi chuyến đang diễn ra            |
+| **Primary Actor** | Operator                                |
+| **Goal**          | Theo dõi các Trip đang được thực hiện.  |
+| **Preconditions** | Operator đã đăng nhập.                  |
+| **Trigger**       | Operator mở màn hình theo dõi vận hành. |
+
+### Main Success Scenario
+
+1. Operator mở danh sách chuyến đang diễn ra.
+2. Hệ thống hiển thị các Trip đang hoạt động.
+3. Operator chọn một Trip.
+4. Hệ thống hiển thị trạng thái, Customer, Driver và thông tin liên quan.
+5. Hệ thống cập nhật dữ liệu khi trạng thái thay đổi.
+
+### Alternative / Exception Flows
+
+* **A1.** Không có Trip đang diễn ra → Hiển thị danh sách rỗng.
+* **A2.** Dữ liệu cập nhật không khả dụng → Hiển thị dữ liệu gần nhất.
+
+### Related FR
+
+* FR75, FR76, FR77
+
+---
+
+## UC26 — Xử lý chuyến bị lỗi
+
+| Thuộc tính        | Nội dung                                                    |
+| ----------------- | ----------------------------------------------------------- |
+| **Use Case ID**   | UC26                                                        |
+| **Use Case Name** | Xử lý chuyến bị lỗi                                         |
+| **Primary Actor** | Operator                                                    |
+| **Goal**          | Kiểm tra và hỗ trợ xử lý các trường hợp Trip phát sinh lỗi. |
+| **Preconditions** | Operator đã đăng nhập và có quyền xử lý sự cố.              |
+| **Trigger**       | Trip phát sinh lỗi hoặc Operator phát hiện bất thường.      |
+
+### Main Success Scenario
+
+1. Operator xác định Trip bị lỗi.
+2. Operator mở thông tin Trip.
+3. Hệ thống hiển thị trạng thái và thông tin liên quan.
+4. Operator kiểm tra nguyên nhân hoặc thông tin hiện có.
+5. Operator thực hiện thao tác được hệ thống hỗ trợ.
+6. Hệ thống ghi nhận thao tác.
+7. Trip được đưa về trạng thái phù hợp.
+
+### Alternative / Exception Flows
+
+* **A1.** Operator không đủ quyền → Từ chối thao tác.
+* **A2.** Không thể xử lý tự động → Operator tiếp tục xử lý theo quy trình
+  vận hành của doanh nghiệp.
+
+### Open Question
+
+Quy trình xử lý cụ thể cho từng loại lỗi chưa được khách hàng xác định.
+
+### Related FR
+
+* FR78
+
+---
+
+## UC27 — Tra cứu giao dịch
+
+| Thuộc tính        | Nội dung                                   |
+| ----------------- | ------------------------------------------ |
+| **Use Case ID**   | UC27                                       |
+| **Use Case Name** | Tra cứu giao dịch                          |
+| **Primary Actor** | Operator                                   |
+| **Goal**          | Tra cứu lịch sử và trạng thái giao dịch.   |
+| **Preconditions** | Operator đã đăng nhập và có quyền phù hợp. |
+| **Trigger**       | Operator truy cập Transaction Management.  |
+
+### Main Success Scenario
+
+1. Operator mở chức năng tra cứu giao dịch.
+2. Hệ thống hiển thị giao dịch.
+3. Operator tìm kiếm giao dịch.
+4. Operator chọn một giao dịch.
+5. Hệ thống hiển thị trạng thái và thông tin liên quan.
+6. Operator có thể đối chiếu giao dịch với Trip.
+
+### Alternative / Exception Flows
+
+* **A1.** Không tìm thấy giao dịch → Hiển thị kết quả rỗng.
+* **A2.** Không đủ quyền → Từ chối truy cập.
+
+### Related FR
+
+* FR79–FR81
+
+---
+
+# 12.4. Management Use Cases
+
+## UC28 — Xem báo cáo hoạt động
+
+| Thuộc tính        | Nội dung                                    |
+| ----------------- | ------------------------------------------- |
+| **Use Case ID**   | UC28                                        |
+| **Use Case Name** | Xem báo cáo hoạt động                       |
+| **Primary Actor** | Management                                  |
+| **Goal**          | Theo dõi các chỉ số hoạt động của hệ thống. |
+| **Preconditions** | Management có quyền truy cập báo cáo.       |
+| **Trigger**       | Management mở chức năng báo cáo.            |
+
+### Main Success Scenario
+
+1. Management truy cập báo cáo.
+2. Hệ thống tổng hợp dữ liệu.
+3. Hệ thống hiển thị các chỉ số hoạt động.
+4. Management xem và phân tích báo cáo.
+
+### Báo cáo có thể bao gồm
+
+* Số lượng chuyến.
+* Tỷ lệ hoàn thành.
+* Tỷ lệ hủy.
+* Hiệu quả hoạt động của tài xế.
+
+### Alternative / Exception Flows
+
+* **A1.** Không có dữ liệu → Hiển thị báo cáo không có dữ liệu.
+* **A2.** Không thể tổng hợp dữ liệu → Thông báo lỗi.
+
+### Related FR
+
+* FR86, FR88–FR90
+
+---
+
+## UC29 — Xem chỉ số kinh doanh
+
+| Thuộc tính        | Nội dung                                                        |
+| ----------------- | --------------------------------------------------------------- |
+| **Use Case ID**   | UC29                                                            |
+| **Use Case Name** | Xem chỉ số kinh doanh                                           |
+| **Primary Actor** | Management                                                      |
+| **Goal**          | Theo dõi doanh thu và các chỉ số phục vụ quyết định kinh doanh. |
+| **Preconditions** | Management có quyền truy cập báo cáo kinh doanh.                |
+| **Trigger**       | Management mở báo cáo kinh doanh.                               |
+
+### Main Success Scenario
+
+1. Management mở báo cáo kinh doanh.
+2. Hệ thống tổng hợp dữ liệu.
+3. Hệ thống hiển thị doanh thu và các chỉ số liên quan.
+4. Management xem và đánh giá kết quả hoạt động.
+
+### Alternative / Exception Flows
+
+* **A1.** Không có dữ liệu → Hiển thị trạng thái không có dữ liệu.
+* **A2.** Dữ liệu không thể tổng hợp → Thông báo lỗi.
+
+### Related FR
+
+* FR86, FR87, FR88, FR89, FR90
+
+---
+
+# 12.5. External System Use Cases
+
+## UC30 — Xử lý thanh toán điện tử
+
+| Thuộc tính           | Nội dung                                                   |
+| -------------------- | ---------------------------------------------------------- |
+| **Use Case ID**      | UC30                                                       |
+| **Use Case Name**    | Xử lý thanh toán điện tử                                   |
+| **Primary Actor**    | Payment Provider                                           |
+| **Supporting Actor** | Customer / CAB                                             |
+| **Goal**             | Xử lý giao dịch thanh toán điện tử và trả kết quả cho CAB. |
+| **Preconditions**    | CAB đã gửi yêu cầu thanh toán hợp lệ.                      |
+| **Trigger**          | CAB yêu cầu Payment Provider xử lý giao dịch.              |
+
+### Main Success Scenario
+
+1. CAB gửi yêu cầu thanh toán.
+2. Payment Provider tiếp nhận yêu cầu.
+3. Payment Provider xử lý giao dịch.
+4. Payment Provider xác định kết quả.
+5. Payment Provider trả kết quả cho CAB.
+6. CAB ghi nhận trạng thái giao dịch.
+
+### Alternative / Exception Flows
+
+* **A1.** Giao dịch thất bại → Provider trả trạng thái thất bại.
+* **A2.** Provider không phản hồi → CAB ghi nhận trạng thái phù hợp theo chính
+  sách.
+* **A3.** Giao dịch bị từ chối → CAB thông báo kết quả cho Customer.
+
+### Related FR
+
+* FR48, FR49, FR51–FR54
+
+---
+
+## UC31 — Gửi thông báo
+
+| Thuộc tính           | Nội dung                                   |
+| -------------------- | ------------------------------------------ |
+| **Use Case ID**      | UC31                                       |
+| **Use Case Name**    | Gửi thông báo                              |
+| **Primary Actor**    | Notification Provider                      |
+| **Supporting Actor** | CAB                                        |
+| **Goal**             | Gửi thông báo đến Customer hoặc Driver.    |
+| **Preconditions**    | CAB đã tạo thông báo cần gửi.              |
+| **Trigger**          | CAB gửi yêu cầu đến Notification Provider. |
+
+### Main Success Scenario
+
+1. CAB tạo Notification.
+2. CAB gửi yêu cầu đến Notification Provider.
+3. Provider tiếp nhận yêu cầu.
+4. Provider gửi thông báo đến người nhận.
+5. Provider trả kết quả gửi.
+6. CAB ghi nhận trạng thái gửi.
+
+### Alternative / Exception Flows
+
+* **A1.** Provider không thể gửi → CAB ghi nhận trạng thái thất bại.
+* **A2.** Provider gặp lỗi → Các chức năng nghiệp vụ khác của CAB vẫn tiếp tục
+  hoạt động.
+
+### Business Rules
+
+* BRULE18
+* BRULE19
+* BRULE23
+
+### Related FR
+
+* FR55–FR61
+
+---
+
+# 12.6. Use Case Relationship Summary
+
+Các Use Case chính có quan hệ nghiệp vụ với nhau như sau:
+
+```text
+                         CUSTOMER
+                            │
+                            ▼
+                    UC04 Đặt chuyến xe
+                            │
+                            ▼
+                  Tìm và phân công tài xế
+                            │
+             ┌──────────────┴──────────────┐
+             │                             │
+             ▼                             ▼
+      UC14 Chấp nhận                 UC15 Từ chối
+             │                             │
+             │                             └──────► Tìm Driver khác
+             ▼
+      UC16 Cập nhật trạng thái
+             │
+             ▼
+       UC05 Theo dõi chuyến
+             │
+             ▼
+        Trip hoàn thành
+             │
+       ┌─────┴──────┐
+       ▼            ▼
+   UC07 Thanh toán  UC08 Đánh giá
+       │
+       ▼
+UC30 Payment Provider
+```
+
+---
+
+# 12.7. Use Case Traceability
+
+| Use Case                              | Business Requirement | Functional Requirements |
+| ------------------------------------- | -------------------- | ----------------------- |
+| **UC01** Đăng ký tài khoản            | BR12                 | FR01–FR02               |
+| **UC02** Đăng nhập                    | BR12, BR20           | FR03–FR04               |
+| **UC03** Quản lý thông tin cá nhân    | BR12                 | FR05–FR06               |
+| **UC04** Đặt chuyến xe                | BR01                 | FR15–FR20               |
+| **UC05** Theo dõi chuyến              | BR04                 | FR35–FR37               |
+| **UC06** Xem lịch sử chuyến           | BR13                 | FR62–FR64               |
+| **UC07** Thanh toán                   | BR09                 | FR45–FR54               |
+| **UC08** Đánh giá tài xế              | BR14                 | FR65–FR66               |
+| **UC09** Nhận thông báo               | BR11                 | FR55–FR59               |
+| **UC10** Đăng nhập Driver             | BR20                 | FR11–FR12               |
+| **UC11** Quản lý hồ sơ Driver         | BR05                 | FR09–FR10               |
+| **UC12** Cập nhật trạng thái sẵn sàng | BR05                 | FR13–FR14               |
+| **UC13** Nhận yêu cầu chuyến          | BR02                 | FR22–FR25, FR29–FR30    |
+| **UC14** Chấp nhận chuyến             | BR02                 | FR31, FR33–FR34         |
+| **UC15** Từ chối chuyến               | BR03                 | FR26, FR32              |
+| **UC16** Cập nhật trạng thái chuyến   | BR06                 | FR37–FR40               |
+| **UC17** Cập nhật vị trí              | BR07                 | FR21, FR35–FR36         |
+| **UC18** Xem lịch sử chuyến           | BR13                 | **Cần bổ sung FR**      |
+| **UC19** Nhận thông báo               | BR11                 | FR60–FR61               |
+| **UC20** Đăng nhập quản trị           | BR18, BR20           | FR82–FR83               |
+| **UC21** Quản lý Customer             | BR15                 | FR67–FR69               |
+| **UC22** Quản lý Driver               | BR15                 | FR70–FR72               |
+| **UC23** Quản lý Vehicle              | BR15                 | FR73                    |
+| **UC24** Quản lý Trip                 | BR15                 | FR75–FR77               |
+| **UC25** Theo dõi chuyến đang diễn ra | BR16                 | FR75–FR77               |
+| **UC26** Xử lý chuyến bị lỗi          | BR16                 | FR78                    |
+| **UC27** Tra cứu giao dịch            | BR17                 | FR79–FR81               |
+| **UC28** Xem báo cáo hoạt động        | BR19                 | FR86, FR88–FR90         |
+| **UC29** Xem chỉ số kinh doanh        | BR19                 | FR87–FR90               |
+| **UC30** Xử lý thanh toán điện tử     | BR09                 | FR48–FR51               |
+| **UC31** Gửi thông báo                | BR11                 | FR55–FR61               |
+
+---
+
+# 12.8. Các điểm cần xác nhận trước khi chuyển sang bước tiếp theo
+
+Sau khi đặc tả Use Case, vẫn còn một số điểm **không nên tự quyết định**:
+
+| ID       | Vấn đề          | Cần xác nhận                                                                 |
+| -------- | --------------- | ---------------------------------------------------------------------------- |
+| **UQ01** | Đăng ký Driver  | Driver tự đăng ký hay chỉ Operator tạo tài khoản? Hay hỗ trợ cả hai?         |
+| **UQ02** | Login           | Cơ chế đăng nhập của Customer, Driver và Operator có giống nhau không?       |
+| **UQ03** | Driver Matching | Tiêu chí chính xác để lựa chọn Driver là gì?                                 |
+| **UQ04** | Driver timeout  | Sau bao lâu không phản hồi thì chuyển sang Driver khác?                      |
+| **UQ05** | Matching        | Hệ thống gửi cho từng Driver tuần tự hay nhiều Driver cùng lúc?              |
+| **UQ06** | Trip status     | Có được phép quay ngược trạng thái hay chỉ đi theo một chiều?                |
+| **UQ07** | Fare            | Công thức tính cước cụ thể là gì?                                            |
+| **UQ08** | Payment         | Thanh toán tiền mặt được xác nhận bởi Driver, Customer hay Operator?         |
+| **UQ09** | Payment retry   | Cho phép thử lại thanh toán bao nhiêu lần?                                   |
+| **UQ10** | Cancellation    | Customer và Driver có được hủy chuyến không? Quy trình thế nào?              |
+| **UQ11** | Location        | Tần suất cập nhật vị trí Driver là bao nhiêu?                                |
+| **UQ12** | Notification    | Những kênh thông báo nào được triển khai trong phiên bản đầu tiên?           |
+| **UQ13** | Review          | Có giới hạn thời gian để Customer đánh giá không?                            |
+| **UQ14** | Vehicle         | Một Driver được quản lý bao nhiêu Vehicle?                                   |
+| **UQ15** | Operator        | Operator có những Role nào và quyền của từng Role ra sao?                    |
+| **UQ16** | Reporting       | Báo cáo cần lọc theo thời gian, khu vực, loại xe hay Driver không?           |
+| **UQ17** | Data retention  | Dữ liệu Trip, Payment, Location và Audit Log được lưu bao lâu?               |
+| **UQ18** | Network failure | Khi Customer/Driver mất mạng thì trạng thái và giao dịch được xử lý thế nào? |
+
+---
+
+# 12.9. Kiểm tra tính đầy đủ của Use Case Model
+
+Trước khi chuyển sang các bước thiết kế tiếp theo, cần kiểm tra:
+
+* Mỗi Actor đều có Use Case phù hợp.
+* Mỗi Use Case đều có mục tiêu nghiệp vụ rõ ràng.
+* Mỗi Use Case có thể truy ngược về BR/FR.
+* Main Flow không chứa các Business Rule chưa được xác nhận.
+* Alternative Flow bao phủ các trường hợp lỗi quan trọng.
+* Các External System được xác định rõ.
+* Các Open Question được tách riêng, không biến thành giả định.
+* Các Use Case có thể dùng làm cơ sở xây dựng Sequence Diagram.
+* Các Use Case có thể dùng để xây dựng Acceptance Criteria và Test Case.
+
+> **Lưu ý quan trọng:** Use Case Specification không nên biến thành tài liệu
+> thiết kế kỹ thuật. Các chi tiết như REST API, database query, microservice,
+> Kafka, Redis, Docker... nên được xác định ở các bước System Design/Technical
+> Design, không đưa vào Main Flow của Use Case nếu khách hàng chưa yêu cầu.
+
+---
+
+# 12.10. Recommended Next Step
+
+Sau bước 12, quy trình phân tích có thể tiếp tục theo hướng:
+
+```text
+Business Problem
+       ↓
+Business Goals
+       ↓
+Scope
+       ↓
+Business Requirements
+       ↓
+Functional Requirements
+       ↓
+Business Rules
+       ↓
+Data Modeling
+       ↓
+Non-Functional Requirements
+       ↓
+Use Case Modeling
+       ↓
+Use Case Specification
+       ↓
+Activity Diagram
+       ↓
+Sequence Diagram
+       ↓
+System / Component Design
+       ↓
+Database Design
+       ↓
+Acceptance Criteria
+       ↓
+Test Cases
+```
+
+Đặc biệt, **UC04 → Driver Matching → UC14/UC15 → UC16 → UC07** là chuỗi
+nghiệp vụ quan trọng nhất của CAB. Nên ưu tiên lấy chuỗi này để xây dựng
+**Activity Diagram và Sequence Diagram đầu tiên**, thay vì vẽ toàn bộ 31 UC
+một cách dàn trải.
