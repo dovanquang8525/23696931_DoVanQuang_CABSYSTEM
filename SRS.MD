@@ -598,3 +598,116 @@ Phạm vi hệ thống CAB trong giai đoạn hiện tại được giới hạn
               PAYMENT
                  │
           EXTERNAL PROVIDER
+
+##Cần xác thực lại với khách hàng các yêu cầu trên để chuyển sang bước tiếp theo
+
+## 5. Business Requirements
+
+Business Requirements (BR) mô tả các nhu cầu nghiệp vụ mà hệ thống CAB cần
+đáp ứng để giải quyết Business Problem và đạt được các Business Goals đã
+xác định.
+
+### 5.1. Danh sách Business Requirements
+
+| Mã BR | Tên Business Requirement | Diễn giải |
+|---|---|---|
+| **BR01** | **Đặt chuyến xe** | Hệ thống phải hỗ trợ khách hàng tạo yêu cầu đặt xe bằng cách nhập điểm đón, điểm đến và lựa chọn loại xe. |
+| **BR02** | **Tìm và phân công tài xế** | Hệ thống phải tự động xác định và phân công tài xế phù hợp dựa trên vị trí, trạng thái sẵn sàng và các tiêu chí vận hành. |
+| **BR03** | **Xử lý từ chối hoặc không phản hồi của tài xế** | Hệ thống phải tiếp tục tìm tài xế khác khi tài xế được đề xuất không phản hồi hoặc từ chối chuyến mà không yêu cầu khách hàng tạo lại yêu cầu. |
+| **BR04** | **Theo dõi trạng thái chuyến xe** | Hệ thống phải cho phép khách hàng theo dõi trạng thái của yêu cầu và chuyến đi từ khi tìm tài xế đến khi chuyến hoàn thành. |
+| **BR05** | **Quản lý thông tin tài xế** | Hệ thống phải hỗ trợ quản lý hồ sơ tài xế, thông tin phương tiện và trạng thái hoạt động của tài xế. |
+| **BR06** | **Quản lý thực hiện chuyến** | Hệ thống phải hỗ trợ tài xế cập nhật các trạng thái trong quá trình thực hiện chuyến, bao gồm đến điểm đón, đón khách, đang di chuyển và hoàn thành chuyến. |
+| **BR07** | **Quản lý vị trí tài xế** | Hệ thống phải lưu thông tin vị trí của tài xế để hỗ trợ tìm tài xế gần khách hàng và cải thiện khả năng dự kiến thời gian đến. |
+| **BR08** | **Tính cước chuyến đi** | Hệ thống phải xác định số tiền khách hàng phải trả sau khi chuyến đi hoàn thành dựa trên loại dịch vụ và thông tin chuyến đi. |
+| **BR09** | **Thanh toán chuyến đi** | Hệ thống phải hỗ trợ thanh toán bằng tiền mặt và phương thức thanh toán điện tử thông qua nhà cung cấp thanh toán bên ngoài. |
+| **BR10** | **Xử lý thanh toán thất bại** | Hệ thống phải thông báo cho khách hàng khi thanh toán điện tử thất bại và hỗ trợ xử lý lại theo chính sách của doanh nghiệp. |
+| **BR11** | **Quản lý thông báo** | Hệ thống phải cung cấp thông báo cho khách hàng và tài xế tại các thời điểm quan trọng trong quá trình đặt và thực hiện chuyến. |
+| **BR12** | **Quản lý khách hàng** | Hệ thống phải hỗ trợ đăng ký tài khoản, đăng nhập và cập nhật thông tin cá nhân của khách hàng. |
+| **BR13** | **Quản lý lịch sử chuyến đi** | Hệ thống phải cho phép khách hàng xem lại lịch sử chuyến đi và số tiền phải trả. |
+| **BR14** | **Đánh giá tài xế** | Hệ thống phải cho phép khách hàng đánh giá tài xế sau khi chuyến đi hoàn thành. |
+| **BR15** | **Quản lý vận hành** | Hệ thống phải cung cấp giao diện quản trị để nhân viên vận hành quản lý khách hàng, tài xế, phương tiện và chuyến đi. |
+| **BR16** | **Theo dõi và xử lý sự cố** | Hệ thống phải hỗ trợ nhân viên vận hành theo dõi các chuyến đang diễn ra, kiểm tra trạng thái tài xế và xử lý các trường hợp chuyến bị lỗi. |
+| **BR17** | **Tra cứu giao dịch** | Hệ thống phải cho phép nhân viên vận hành tra cứu lịch sử giao dịch. |
+| **BR18** | **Phân quyền quản trị** | Hệ thống phải kiểm soát quyền truy cập để nhân viên thông thường không thể thực hiện các thao tác quản trị nhạy cảm. |
+| **BR19** | **Báo cáo hoạt động và kinh doanh** | Hệ thống phải cung cấp báo cáo về số lượng chuyến, doanh thu, tỷ lệ chuyến hoàn thành, tỷ lệ hủy và hiệu quả hoạt động của tài xế. |
+| **BR20** | **Xác thực người dùng** | Hệ thống phải xác thực khách hàng và tài xế trước khi cho phép sử dụng các chức năng yêu cầu tài khoản. |
+| **BR21** | **Bảo vệ dữ liệu** | Hệ thống phải bảo vệ thông tin cá nhân, thông tin phương tiện, dữ liệu vị trí và dữ liệu giao dịch. |
+| **BR22** | **Lưu vết hoạt động** | Hệ thống phải lưu vết các thao tác quan trọng để phục vụ kiểm tra và xử lý sự cố. |
+| **BR23** | **Khả năng mở rộng hệ thống** | Hệ thống phải cho phép các thành phần mở rộng độc lập khi tải tăng và hạn chế việc lỗi ở một thành phần làm ảnh hưởng đến toàn bộ hệ thống. |
+| **BR24** | **Triển khai chức năng từng phần** | Hệ thống phải cho phép các chức năng mới được triển khai từng phần và hạn chế ảnh hưởng đến các chức năng đang hoạt động. |
+| **BR25** | **Khả năng mở rộng dịch vụ** | Hệ thống phải có khả năng hỗ trợ bổ sung loại dịch vụ, phương thức thanh toán, nhà cung cấp thông báo hoặc thay đổi một số thành phần kỹ thuật trong tương lai. |
+
+### 5.2. Business Requirements theo nhóm nghiệp vụ
+
+Các Business Requirements có thể được nhóm theo các quy trình nghiệp vụ chính:
+
+#### Customer & Booking
+
+- **BR01** — Đặt chuyến xe
+- **BR04** — Theo dõi trạng thái chuyến xe
+- **BR12** — Quản lý khách hàng
+- **BR13** — Quản lý lịch sử chuyến đi
+- **BR14** — Đánh giá tài xế
+
+#### Driver & Trip
+
+- **BR05** — Quản lý thông tin tài xế
+- **BR06** — Quản lý thực hiện chuyến
+- **BR07** — Quản lý vị trí tài xế
+
+#### Driver Matching
+
+- **BR02** — Tìm và phân công tài xế
+- **BR03** — Xử lý từ chối hoặc không phản hồi của tài xế
+
+#### Fare & Payment
+
+- **BR08** — Tính cước chuyến đi
+- **BR09** — Thanh toán chuyến đi
+- **BR10** — Xử lý thanh toán thất bại
+
+#### Notification
+
+- **BR11** — Quản lý thông báo
+
+#### Operation & Administration
+
+- **BR15** — Quản lý vận hành
+- **BR16** — Theo dõi và xử lý sự cố
+- **BR17** — Tra cứu giao dịch
+- **BR18** — Phân quyền quản trị
+
+#### Reporting
+
+- **BR19** — Báo cáo hoạt động và kinh doanh
+
+#### Security
+
+- **BR20** — Xác thực người dùng
+- **BR21** — Bảo vệ dữ liệu
+- **BR22** — Lưu vết hoạt động
+
+#### Scalability & Future Development
+
+- **BR23** — Khả năng mở rộng hệ thống
+- **BR24** — Triển khai chức năng từng phần
+- **BR25** — Khả năng mở rộng dịch vụ
+
+### 5.3. Business Requirement Traceability
+
+Các Business Requirements cần liên kết ngược với Business Goals để đảm bảo
+mỗi yêu cầu đều phục vụ một mục tiêu kinh doanh cụ thể.
+
+| Business Goal | Business Requirements liên quan |
+|---|---|
+| **BG01 — Giảm thời gian tìm và phân công tài xế** | BR02, BR03, BR07 |
+| **BG02 — Hỗ trợ và quản lý thanh toán** | BR08, BR09, BR10, BR17 |
+| **BG03 — Cải thiện khả năng theo dõi chuyến đi** | BR04, BR06, BR07, BR11 |
+| **BG04 — Nâng cao hiệu quả vận hành** | BR05, BR15, BR16, BR17, BR18 |
+| **BG05 — Cải thiện khả năng giao tiếp và thông báo** | BR11 |
+| **BG06 — Nâng cao khả năng quản trị và ra quyết định** | BR19 |
+| **BG07 — Đảm bảo khả năng mở rộng của hệ thống** | BR23, BR24 |
+| **BG08 — Đảm bảo tính bảo mật và khả năng kiểm soát hệ thống** | BR18, BR20, BR21, BR22 |
+| **BG09 — Nâng cao trải nghiệm khách hàng sau chuyến đi** | BR13, BR14 |
+| **BG10 — Tăng khả năng phát triển dịch vụ trong tương lai** | BR25 |
+
