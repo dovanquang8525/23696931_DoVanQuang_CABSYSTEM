@@ -336,3 +336,265 @@ lại toàn bộ hệ thống khi có nhu cầu kinh doanh mới.
 > trong yêu cầu khách hàng. Tài liệu chưa cung cấp thứ tự ưu tiên chính thức
 > từ phía doanh nghiệp, vì vậy cần xác nhận lại với stakeholder trong các bước
 > phân tích tiếp theo.
+
+## 4. Scope
+
+### 4.1. Scope Definition
+
+Phạm vi của CAB System tập trung vào việc xây dựng một nền tảng đặt xe trực tuyến
+hỗ trợ toàn bộ quy trình nghiệp vụ chính:
+
+**Đặt xe → Tìm tài xế → Phân công tài xế → Thực hiện chuyến → Tính cước →
+Thanh toán → Thông báo → Đánh giá → Quản trị và báo cáo**
+
+Phạm vi được xác định dựa trên yêu cầu của khách hàng và thời gian xây dựng,
+triển khai sản phẩm dự kiến là **7 tuần**.
+
+---
+
+### 4.2. In Scope
+
+Các chức năng sau nằm trong phạm vi xây dựng của hệ thống CAB:
+
+#### 4.2.1. Quản lý khách hàng
+
+- Đăng ký tài khoản.
+- Đăng nhập.
+- Cập nhật thông tin cá nhân.
+- Nhập điểm đón và điểm đến.
+- Lựa chọn loại xe.
+- Gửi yêu cầu đặt xe.
+- Theo dõi trạng thái chuyến đi.
+- Xem lịch sử chuyến đi.
+- Xem số tiền phải trả.
+- Đánh giá tài xế sau khi hoàn thành chuyến.
+
+#### 4.2.2. Quản lý tài xế
+
+- Đăng ký tài khoản hoặc được nhân viên vận hành tạo tài khoản.
+- Cập nhật hồ sơ tài xế.
+- Quản lý thông tin phương tiện.
+- Cập nhật trạng thái hoạt động.
+- Chuyển sang trạng thái sẵn sàng nhận chuyến.
+- Nhận thông báo về chuyến mới.
+- Chấp nhận hoặc từ chối chuyến.
+- Cập nhật trạng thái chuyến:
+  - Đã đến điểm đón.
+  - Đã đón khách.
+  - Đang di chuyển.
+  - Hoàn thành chuyến.
+- Lưu thông tin vị trí của tài xế.
+
+#### 4.2.3. Quản lý đặt xe và phân công tài xế
+
+- Tiếp nhận yêu cầu đặt xe.
+- Xác định tài xế phù hợp.
+- Xem xét vị trí của tài xế.
+- Xem xét trạng thái sẵn sàng của tài xế.
+- Áp dụng các tiêu chí vận hành để lựa chọn tài xế.
+- Ưu tiên tài xế phù hợp và gần khách hàng.
+- Gửi yêu cầu đến tài xế.
+- Xử lý trường hợp tài xế không phản hồi.
+- Xử lý trường hợp tài xế từ chối.
+- Tiếp tục tìm tài xế khác mà không yêu cầu khách hàng tạo lại yêu cầu.
+- Thông báo cho khách hàng khi không tìm được tài xế.
+
+#### 4.2.4. Quản lý chuyến đi
+
+- Quản lý vòng đời của chuyến đi.
+- Cập nhật trạng thái chuyến.
+- Theo dõi chuyến đang diễn ra.
+- Lưu thông tin chuyến đi.
+- Liên kết khách hàng, tài xế và phương tiện với chuyến đi.
+- Lưu lịch sử chuyến đi.
+
+#### 4.2.5. Tính cước
+
+- Xác định số tiền khách hàng phải trả sau khi chuyến hoàn thành.
+- Tính cước dựa trên loại dịch vụ và thông tin chuyến đi.
+
+> **Note:** Chi tiết công thức tính cước chưa được khách hàng chốt và phải
+> được BA làm rõ trước khi triển khai.
+
+#### 4.2.6. Thanh toán
+
+- Hỗ trợ thanh toán bằng tiền mặt.
+- Hỗ trợ thanh toán điện tử.
+- Tích hợp với nhà cung cấp thanh toán bên ngoài.
+- Không lưu trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán.
+- Ghi nhận kết quả giao dịch.
+- Thông báo kết quả thanh toán.
+- Xử lý lại giao dịch thanh toán điện tử thất bại theo chính sách doanh nghiệp.
+
+#### 4.2.7. Thông báo
+
+- Thông báo khi yêu cầu đặt xe được tiếp nhận.
+- Thông báo khi tài xế nhận chuyến.
+- Thông báo khi tài xế đến điểm đón.
+- Thông báo khi chuyến hoàn thành.
+- Thông báo kết quả thanh toán.
+- Thông báo cho tài xế về chuyến mới.
+- Thông báo cho tài xế về thay đổi liên quan đến chuyến đang thực hiện.
+- Thiết kế khả năng mở rộng thêm các kênh thông báo trong tương lai.
+
+#### 4.2.8. Quản trị và vận hành
+
+- Quản lý khách hàng.
+- Quản lý tài xế.
+- Quản lý phương tiện.
+- Quản lý chuyến đi.
+- Theo dõi các chuyến đang diễn ra.
+- Kiểm tra trạng thái tài xế.
+- Xử lý các trường hợp chuyến bị lỗi.
+- Tra cứu lịch sử giao dịch.
+- Phân quyền các chức năng quản trị.
+
+#### 4.2.9. Báo cáo
+
+Hệ thống cần hỗ trợ báo cáo:
+
+- Số lượng chuyến.
+- Doanh thu.
+- Tỷ lệ chuyến hoàn thành.
+- Tỷ lệ hủy.
+- Hiệu quả hoạt động của tài xế.
+
+#### 4.2.10. Bảo mật và kiểm soát truy cập
+
+- Xác thực khách hàng và tài xế.
+- Kiểm soát quyền truy cập chức năng quản trị.
+- Bảo vệ thông tin cá nhân.
+- Bảo vệ thông tin phương tiện.
+- Bảo vệ dữ liệu vị trí.
+- Bảo vệ dữ liệu giao dịch.
+- Lưu vết các thao tác quan trọng.
+
+---
+
+### 4.3. Out of Scope
+
+Các nội dung sau **không nên tự đưa vào phạm vi triển khai hiện tại** vì
+tài liệu khách hàng chưa yêu cầu hoặc chưa cung cấp đủ thông tin để xác định
+yêu cầu cụ thể:
+
+- Tự phát triển hệ thống thanh toán riêng thay cho nhà cung cấp bên ngoài.
+- Lưu trữ trực tiếp thông tin thẻ hoặc thông tin tài khoản thanh toán nhạy cảm.
+- Tự xây dựng hệ thống cung cấp dịch vụ thông báo thay cho các nhà cung cấp
+  bên ngoài.
+- Tự xác định công thức tính cước khi khách hàng chưa chốt quy tắc.
+- Tự xác định tiêu chí ưu tiên tài xế khi chưa được khách hàng xác nhận.
+- Tự xác định thời gian tài xế phải phản hồi.
+- Tự xác định chính sách hủy chuyến.
+- Tự quyết định thời gian lưu trữ dữ liệu.
+- Tự quyết định cách xử lý mất kết nối mạng khi chưa có chính sách nghiệp vụ.
+- Các loại dịch vụ mới chưa được yêu cầu trong giai đoạn hiện tại.
+- Các phương thức thanh toán mới chưa được xác định.
+- Các kênh thông báo mới chưa được xác định cụ thể.
+- Các thành phần kỹ thuật mới không phục vụ trực tiếp phạm vi CAB hiện tại.
+
+> **Important:** Out of Scope ở đây không có nghĩa là các chức năng trên sẽ
+> không bao giờ được xây dựng. Một số nội dung được đưa vào **Future Scope**
+> hoặc **Open Questions** thay vì loại bỏ vĩnh viễn.
+
+---
+
+### 4.4. Future Scope
+
+Các khả năng được khách hàng định hướng cho tương lai:
+
+- Bổ sung các loại dịch vụ mới.
+- Bổ sung phương thức thanh toán mới.
+- Bổ sung nhà cung cấp thông báo.
+- Thay đổi các thành phần kỹ thuật.
+- Mở rộng hệ thống khi số lượng khách hàng và tài xế tăng.
+- Triển khai thêm các chức năng mà không ảnh hưởng lớn đến hệ thống hiện tại.
+
+Mục tiêu của kiến trúc hiện tại là tạo nền tảng đủ linh hoạt để các khả năng
+trên có thể được bổ sung mà không cần xây dựng lại toàn bộ ứng dụng.
+
+---
+
+### 4.5. Module của hệ thống
+
+Dựa trên phạm vi nghiệp vụ, hệ thống CAB có thể được chia thành các module
+cơ bản sau:
+
+| Module | Nội dung chính | Phạm vi |
+|---|---|---|
+| **M01 - Customer Management** | Tài khoản, thông tin cá nhân, lịch sử chuyến, đánh giá | In Scope |
+| **M02 - Driver Management** | Hồ sơ tài xế, phương tiện, trạng thái hoạt động | In Scope |
+| **M03 - Booking Management** | Tạo và quản lý yêu cầu đặt xe | In Scope |
+| **M04 - Driver Matching** | Tìm kiếm và phân công tài xế | In Scope |
+| **M05 - Trip Management** | Quản lý trạng thái và vòng đời chuyến | In Scope |
+| **M06 - Fare Management** | Tính cước chuyến đi | In Scope |
+| **M07 - Payment Management** | Thanh toán tiền mặt và điện tử | In Scope |
+| **M08 - Notification** | Gửi thông báo cho khách hàng và tài xế | In Scope |
+| **M09 - Operation/Admin** | Quản trị và hỗ trợ vận hành | In Scope |
+| **M10 - Reporting** | Báo cáo hoạt động và kinh doanh | In Scope |
+| **M11 - Authentication & Authorization** | Xác thực và phân quyền | In Scope |
+| **M12 - Audit & Logging** | Lưu vết thao tác quan trọng | In Scope |
+| **M13 - External Payment Integration** | Tích hợp nhà cung cấp thanh toán | In Scope |
+| **M14 - Notification Provider Integration** | Tích hợp nhà cung cấp thông báo | In Scope |
+
+---
+
+### 4.6. MBB Scope Prioritization
+
+Để kiểm soát phạm vi trong thời gian triển khai **7 tuần**, các hạng mục được
+phân loại thành:
+
+- **Must Build (MB):** Bắt buộc phải có để hệ thống đáp ứng quy trình nghiệp vụ
+  cốt lõi.
+- **Better Build (BB):** Nên xây dựng nếu nguồn lực và thời gian cho phép.
+- **Beyond Build (B):** Không triển khai trong giai đoạn hiện tại, có thể xem
+  xét trong tương lai.
+
+| ID | Module / Requirement | MBB | Lý do |
+|---|---|---|---|
+| **M01** | Customer Management | **MB** | Khách hàng là người tạo và sử dụng yêu cầu đặt xe. |
+| **M02** | Driver Management | **MB** | Cần quản lý tài xế để thực hiện và phân công chuyến. |
+| **M03** | Booking Management | **MB** | Là điểm bắt đầu của toàn bộ quy trình đặt xe. |
+| **M04** | Driver Matching | **MB** | Là chức năng nghiệp vụ cốt lõi và giải quyết trực tiếp vấn đề phân công thủ công. |
+| **M05** | Trip Management | **MB** | Cần quản lý vòng đời chuyến từ nhận chuyến đến hoàn thành. |
+| **M06** | Fare Management | **MB** | Cần xác định số tiền khách hàng phải trả sau chuyến. |
+| **M07** | Payment Management | **MB** | Thanh toán là một phần của quy trình nghiệp vụ cốt lõi. |
+| **M08** | Notification | **MB** | Khách hàng và tài xế cần nhận thông báo trong các trạng thái quan trọng. |
+| **M09** | Operation/Admin | **MB** | Nhân viên vận hành cần quản lý và xử lý các tình huống trong hệ thống. |
+| **M10** | Reporting | **BB** | Quan trọng cho quản trị nhưng không trực tiếp tạo ra quy trình đặt xe. |
+| **M11** | Authentication & Authorization | **MB** | Là yêu cầu bắt buộc về xác thực và kiểm soát quyền truy cập. |
+| **M12** | Audit & Logging | **MB** | Yêu cầu lưu vết các thao tác quan trọng để kiểm tra sự cố. |
+| **M13** | Payment Provider Integration | **MB** | Cần thiết để hỗ trợ thanh toán điện tử theo yêu cầu. |
+| **M14** | Notification Provider Integration | **MB** | Cần thiết để triển khai cơ chế thông báo. |
+| **M15** | Dịch vụ/loại xe mới | **B** | Chưa được yêu cầu cụ thể trong giai đoạn hiện tại. |
+| **M16** | Phương thức thanh toán mới | **B** | Khách hàng chỉ yêu cầu tiền mặt và thanh toán điện tử hiện tại. |
+| **M17** | Nhà cung cấp thông báo mới | **B** | Là khả năng mở rộng trong tương lai. |
+| **M18** | Các thay đổi kỹ thuật không phục vụ yêu cầu hiện tại | **B** | Không thuộc nhu cầu nghiệp vụ của giai đoạn hiện tại. |
+
+---
+
+### 4.7. Scope Boundary
+
+Phạm vi hệ thống CAB trong giai đoạn hiện tại được giới hạn như sau:
+
+```text
+                    CAB SYSTEM
+                         │
+        ┌────────────────┼────────────────┐
+        │                │                │
+    CUSTOMER          DRIVER          OPERATION
+        │                │                │
+        └────────────────┼────────────────┘
+                         │
+                    BOOKING
+                         │
+                  DRIVER MATCHING
+                         │
+                       TRIP
+                         │
+                 ┌───────┴───────┐
+                 │               │
+              FARE           NOTIFICATION
+                 │
+              PAYMENT
+                 │
+          EXTERNAL PROVIDER
