@@ -1017,8 +1017,144 @@ Khi xây dựng Functional Requirement, áp dụng các nguyên tắc:
 8. FR phải đủ cụ thể để ở bước tiếp theo có thể xây dựng Use Case,
    Acceptance Criteria và Test Case.
 
-> **Lưu ý quan trọng:** Tài liệu khách hàng yêu cầu Business Analyst phải xác
-> định rõ phạm vi, tác nhân, quy trình nghiệp vụ, yêu cầu chức năng, yêu cầu
-> phi chức năng, quy tắc nghiệp vụ, trường hợp ngoại lệ và các điểm chưa rõ.
-> Vì vậy, việc đánh dấu các FR chưa đủ dữ liệu là cần thiết, thay vì tự suy
-> diễn thêm yêu cầu. :contentReference[oaicite:1]{index=1}
+## 8. Business Rules
+
+Business Rules là các quy tắc và ràng buộc nghiệp vụ mà hệ thống CAB phải
+tuân thủ trong quá trình xử lý các nghiệp vụ.
+
+Các Business Rules được xây dựng dựa trên Business Requirements và Business
+Processes đã xác định ở các bước trước.
+
+---
+
+### 8.1. Danh sách Business Rules
+
+| Mã Rule | Business Rule | Diễn giải |
+|---|---|---|
+| **BRULE01** | **Yêu cầu đặt xe phải có thông tin chuyến** | Một yêu cầu đặt xe phải có điểm đón, điểm đến và loại xe/dịch vụ trước khi được gửi đến hệ thống. |
+| **BRULE02** | **Khách hàng phải được xác thực** | Khách hàng phải đăng nhập/xác thực trước khi sử dụng các chức năng yêu cầu tài khoản. |
+| **BRULE03** | **Chỉ tài xế sẵn sàng mới được tìm để phân công** | Hệ thống chỉ xem xét các tài xế đang ở trạng thái sẵn sàng nhận chuyến khi tìm tài xế. |
+| **BRULE04** | **Ưu tiên tài xế phù hợp và gần khách hàng** | Khi tìm tài xế, hệ thống phải ưu tiên tài xế phù hợp và gần khách hàng dựa trên các tiêu chí vận hành. |
+| **BRULE05** | **Tài xế phải phản hồi yêu cầu chuyến** | Tài xế được đề xuất phải có khả năng chấp nhận hoặc từ chối chuyến. |
+| **BRULE06** | **Tài xế từ chối hoặc không phản hồi** | Nếu tài xế từ chối hoặc không phản hồi, hệ thống phải tiếp tục tìm tài xế khác mà không yêu cầu khách hàng tạo lại yêu cầu. |
+| **BRULE07** | **Không tìm được tài xế** | Nếu không còn tài xế phù hợp, hệ thống phải thông báo rõ ràng cho khách hàng. |
+| **BRULE08** | **Chỉ tài xế phù hợp mới được nhận chuyến** | Chuyến đi chỉ được phân công cho tài xế đáp ứng các điều kiện lựa chọn của hệ thống. |
+| **BRULE09** | **Tài xế phải cập nhật trạng thái chuyến** | Trong quá trình thực hiện chuyến, tài xế phải cập nhật các trạng thái theo quy trình nghiệp vụ. |
+| **BRULE10** | **Trạng thái chuyến phải theo đúng vòng đời** | Chuyến đi phải được xử lý theo các trạng thái nghiệp vụ từ nhận chuyến, đến điểm đón, đón khách, di chuyển và hoàn thành. |
+| **BRULE11** | **Chỉ chuyến hoàn thành mới được tính cước cuối cùng** | Hệ thống xác định số tiền khách hàng phải trả sau khi chuyến đi hoàn thành. |
+| **BRULE12** | **Cước phải dựa trên thông tin chuyến** | Số tiền phải trả được xác định dựa trên loại dịch vụ và thông tin chuyến đi. |
+| **BRULE13** | **Hỗ trợ hai nhóm phương thức thanh toán** | Khách hàng có thể thanh toán bằng tiền mặt hoặc phương thức thanh toán điện tử. |
+| **BRULE14** | **Không lưu dữ liệu thanh toán nhạy cảm** | Hệ thống CAB không được lưu trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán. |
+| **BRULE15** | **Thanh toán điện tử phải thông qua nhà cung cấp bên ngoài** | Giao dịch thanh toán điện tử phải được xử lý thông qua nhà cung cấp thanh toán bên ngoài. |
+| **BRULE16** | **Thanh toán thất bại phải được thông báo** | Khi thanh toán điện tử thất bại, hệ thống phải thông báo cho khách hàng. |
+| **BRULE17** | **Thanh toán thất bại được xử lý lại theo chính sách** | Khi giao dịch thất bại, việc xử lý lại phải tuân theo chính sách của doanh nghiệp. |
+| **BRULE18** | **Thông báo theo sự kiện nghiệp vụ** | Hệ thống phải gửi thông báo khi xảy ra các sự kiện quan trọng như nhận yêu cầu, tài xế nhận chuyến, tài xế đến điểm đón, hoàn thành chuyến và có kết quả thanh toán. |
+| **BRULE19** | **Tài xế nhận thông báo về chuyến mới** | Tài xế phải nhận được thông báo khi có chuyến mới phù hợp. |
+| **BRULE20** | **Chức năng quản trị phải được phân quyền** | Nhân viên chỉ được thực hiện các thao tác quản trị phù hợp với quyền được cấp. |
+| **BRULE21** | **Dữ liệu quan trọng phải được bảo vệ** | Thông tin cá nhân, phương tiện, vị trí và giao dịch phải được bảo vệ. |
+| **BRULE22** | **Thao tác quan trọng phải được lưu vết** | Các thao tác quan trọng trong hệ thống phải được ghi nhận để phục vụ kiểm tra và xử lý sự cố. |
+| **BRULE23** | **Lỗi thanh toán/thông báo không được làm dừng toàn hệ thống** | Một lỗi xảy ra tại chức năng thanh toán hoặc thông báo không được làm cho toàn bộ hệ thống đặt xe ngừng hoạt động. |
+| **BRULE24** | **Chức năng mới không được gây ảnh hưởng lớn đến chức năng đang hoạt động** | Các chức năng mới phải có khả năng được triển khai từng phần và hạn chế ảnh hưởng đến các chức năng hiện tại. |
+
+---
+
+### 8.2. Business Rules theo nghiệp vụ
+
+#### 8.2.1. Booking Rules
+
+| Rule | Quy định |
+|---|---|
+| **BRULE01** | Yêu cầu phải có điểm đón, điểm đến và loại xe/dịch vụ. |
+| **BRULE02** | Khách hàng phải được xác thực khi sử dụng chức năng yêu cầu tài khoản. |
+
+#### 8.2.2. Driver Matching Rules
+
+| Rule | Quy định |
+|---|---|
+| **BRULE03** | Chỉ tài xế đang sẵn sàng nhận chuyến mới được xem xét. |
+| **BRULE04** | Hệ thống ưu tiên tài xế phù hợp và gần khách hàng. |
+| **BRULE05** | Tài xế có thể chấp nhận hoặc từ chối chuyến. |
+| **BRULE06** | Tài xế từ chối hoặc không phản hồi thì hệ thống tiếp tục tìm tài xế khác. |
+| **BRULE07** | Không tìm được tài xế thì phải thông báo cho khách hàng. |
+
+#### 8.2.3. Trip Rules
+
+| Rule | Quy định |
+|---|---|
+| **BRULE08** | Chuyến chỉ được phân công cho tài xế đáp ứng điều kiện phù hợp. |
+| **BRULE09** | Tài xế phải cập nhật trạng thái trong quá trình thực hiện chuyến. |
+| **BRULE10** | Chuyến phải tuân theo vòng đời trạng thái được định nghĩa. |
+
+#### 8.2.4. Fare & Payment Rules
+
+| Rule | Quy định |
+|---|---|
+| **BRULE11** | Chỉ sau khi chuyến hoàn thành mới xác định số tiền phải trả cuối cùng. |
+| **BRULE12** | Cước dựa trên loại dịch vụ và thông tin chuyến. |
+| **BRULE13** | Hỗ trợ tiền mặt và thanh toán điện tử. |
+| **BRULE14** | Không lưu trực tiếp dữ liệu thanh toán nhạy cảm trong CAB. |
+| **BRULE15** | Thanh toán điện tử được xử lý thông qua nhà cung cấp bên ngoài. |
+| **BRULE16** | Thanh toán thất bại phải được thông báo cho khách hàng. |
+| **BRULE17** | Xử lý lại thanh toán thất bại theo chính sách doanh nghiệp. |
+
+#### 8.2.5. Notification Rules
+
+| Rule | Quy định |
+|---|---|
+| **BRULE18** | Khách hàng phải nhận thông báo tại các sự kiện quan trọng. |
+| **BRULE19** | Tài xế phải nhận thông báo về chuyến mới và các thay đổi liên quan đến chuyến đang thực hiện. |
+
+#### 8.2.6. Administration & Security Rules
+
+| Rule | Quy định |
+|---|---|
+| **BRULE20** | Chức năng quản trị phải được kiểm soát bằng quyền truy cập. |
+| **BRULE21** | Dữ liệu cá nhân, phương tiện, vị trí và giao dịch phải được bảo vệ. |
+| **BRULE22** | Các thao tác quan trọng phải được lưu vết. |
+
+#### 8.2.7. System Availability & Scalability Rules
+
+| Rule | Quy định |
+|---|---|
+| **BRULE23** | Lỗi tại một thành phần như thanh toán hoặc thông báo không được làm toàn hệ thống ngừng hoạt động. |
+| **BRULE24** | Chức năng mới phải có khả năng triển khai từng phần và hạn chế ảnh hưởng đến chức năng đang hoạt động. |
+
+---
+
+## 8.3. Exceptions
+
+Exception mô tả các trường hợp nghiệp vụ không diễn ra theo luồng bình
+thường và cách hệ thống cần phản ứng.
+
+| Mã Exception | Trường hợp | Cách xử lý |
+|---|---|---|
+| **EX01** | Không tìm thấy tài xế phù hợp | Hệ thống thông báo rõ ràng cho khách hàng. |
+| **EX02** | Tài xế từ chối chuyến | Hệ thống tiếp tục tìm tài xế khác. |
+| **EX03** | Tài xế không phản hồi | Hệ thống tiếp tục tìm tài xế khác. |
+| **EX04** | Thanh toán điện tử thất bại | Thông báo cho khách hàng và cho phép xử lý lại theo chính sách doanh nghiệp. |
+| **EX05** | Thành phần thông báo gặp lỗi | Lỗi thông báo không được làm toàn bộ hệ thống đặt xe ngừng hoạt động. |
+| **EX06** | Thành phần thanh toán gặp lỗi | Hệ thống đặt xe vẫn phải duy trì hoạt động ở mức phù hợp, đồng thời xử lý trạng thái thanh toán theo chính sách. |
+| **EX07** | Người dùng không có quyền thực hiện thao tác quản trị | Hệ thống từ chối thao tác. |
+| **EX08** | Phát sinh lỗi trong chuyến đi | Nhân viên vận hành có thể kiểm tra và xử lý trường hợp chuyến bị lỗi. |
+
+---
+
+## 8.4. Business Rules chưa được xác định
+
+Các quy tắc dưới đây **không được tự xác định ở giai đoạn hiện tại** vì tài
+liệu khách hàng chưa cung cấp đủ thông tin.
+
+| ID | Business Rule chưa xác định | Trạng thái |
+|---|---|---|
+| **TBR01** | Thời gian tài xế phải phản hồi trước khi chuyển sang tài xế khác | TBD |
+| **TBR02** | Công thức tính cước cụ thể | TBD |
+| **TBR03** | Thứ tự và trọng số của các tiêu chí ưu tiên tài xế | TBD |
+| **TBR04** | Chính sách hủy chuyến | TBD |
+| **TBR05** | Cách xử lý khi mất kết nối mạng | TBD |
+| **TBR06** | Thời gian lưu trữ dữ liệu | TBD |
+| **TBR07** | Số lần cho phép thử lại thanh toán thất bại | TBD |
+| **TBR08** | Quy trình xử lý và đối soát thanh toán tiền mặt | TBD |
+
+> **Note:** Các `TBD` phải được BA xác nhận với stakeholder trước khi chuyển
+> thành Business Rule chính thức. Không nên tự đưa ra giá trị cụ thể vì điều
+> đó có thể làm thay đổi nghiệp vụ thực tế của doanh nghiệp.
