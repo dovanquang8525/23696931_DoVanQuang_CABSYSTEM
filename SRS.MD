@@ -1155,6 +1155,458 @@ liệu khách hàng chưa cung cấp đủ thông tin.
 | **TBR07** | Số lần cho phép thử lại thanh toán thất bại | TBD |
 | **TBR08** | Quy trình xử lý và đối soát thanh toán tiền mặt | TBD |
 
-> **Note:** Các `TBD` phải được BA xác nhận với stakeholder trước khi chuyển
-> thành Business Rule chính thức. Không nên tự đưa ra giá trị cụ thể vì điều
-> đó có thể làm thay đổi nghiệp vụ thực tế của doanh nghiệp.
+## 9. Data Modeling
+
+Data Modeling được thực hiện nhằm xác định các thực thể (Entity), thuộc tính
+(Attribute) và mối quan hệ (Relationship) giữa các thực thể dựa trên các
+Business Requirements và Business Processes đã xác định.
+
+Mục tiêu của bước này là tạo cơ sở để xây dựng mô hình **Entity Relationship
+Diagram (ERD)** cho hệ thống CAB.
+
+---
+
+### 9.1. Xác định các Entity
+
+Dựa trên yêu cầu nghiệp vụ, hệ thống CAB có các Entity chính sau:
+
+| Mã Entity | Entity | Diễn giải |
+|---|---|---|
+| **E01** | **Customer** | Lưu thông tin khách hàng sử dụng dịch vụ đặt xe. |
+| **E02** | **Driver** | Lưu thông tin tài xế cung cấp dịch vụ. |
+| **E03** | **Vehicle** | Lưu thông tin phương tiện được tài xế sử dụng. |
+| **E04** | **Booking** | Lưu yêu cầu đặt xe do khách hàng tạo. |
+| **E05** | **Trip** | Lưu thông tin chuyến đi thực tế sau khi booking được phân công cho tài xế. |
+| **E06** | **Location** | Lưu thông tin vị trí phục vụ việc xác định điểm đón, điểm đến và vị trí tài xế. |
+| **E07** | **Fare** | Lưu thông tin cước của chuyến đi. |
+| **E08** | **Payment** | Lưu thông tin và trạng thái thanh toán của chuyến đi. |
+| **E09** | **Notification** | Lưu thông tin các thông báo được gửi đến khách hàng hoặc tài xế. |
+| **E10** | **Review** | Lưu đánh giá của khách hàng đối với tài xế sau chuyến đi. |
+| **E11** | **Transaction** | Lưu thông tin giao dịch phục vụ tra cứu và quản lý vận hành. |
+| **E12** | **Admin/Operator** | Lưu thông tin nhân viên vận hành sử dụng hệ thống quản trị. |
+
+---
+
+### 9.2. Xác định Attributes
+
+#### E01 — Customer
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `customer_id` | Mã khách hàng |
+| `full_name` | Họ tên khách hàng |
+| `phone` | Số điện thoại |
+| `email` | Email |
+| `password` | Thông tin xác thực |
+| `status` | Trạng thái tài khoản |
+| `created_at` | Thời điểm tạo tài khoản |
+
+> Tài liệu yêu cầu khách hàng có thể đăng ký, đăng nhập và cập nhật thông tin
+> cá nhân. :contentReference[oaicite:2]{index=2}
+
+---
+
+#### E02 — Driver
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `driver_id` | Mã tài xế |
+| `full_name` | Họ tên tài xế |
+| `phone` | Số điện thoại |
+| `email` | Email |
+| `password` | Thông tin xác thực |
+| `status` | Trạng thái tài xế |
+| `availability_status` | Trạng thái sẵn sàng nhận chuyến |
+| `created_at` | Thời điểm tạo tài khoản |
+
+Tài xế có thể được đăng ký hoặc được nhân viên vận hành tạo tài khoản, cập
+nhật hồ sơ và trạng thái hoạt động. :contentReference[oaicite:3]{index=3}
+
+---
+
+#### E03 — Vehicle
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `vehicle_id` | Mã phương tiện |
+| `driver_id` | Mã tài xế sở hữu/sử dụng phương tiện |
+| `vehicle_type` | Loại xe |
+| `license_plate` | Biển số xe |
+| `status` | Trạng thái phương tiện |
+
+Tài liệu yêu cầu quản lý thông tin phương tiện của tài xế. :contentReference[oaicite:4]{index=4}
+
+---
+
+#### E04 — Booking
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `booking_id` | Mã yêu cầu đặt xe |
+| `customer_id` | Khách hàng tạo yêu cầu |
+| `pickup_location_id` | Điểm đón |
+| `destination_location_id` | Điểm đến |
+| `vehicle_type` | Loại xe/dịch vụ khách hàng lựa chọn |
+| `status` | Trạng thái yêu cầu |
+| `created_at` | Thời điểm tạo yêu cầu |
+
+Booking đại diện cho yêu cầu đặt xe được khách hàng tạo trước khi hệ thống
+tìm và phân công tài xế. Khách hàng cần nhập điểm đón, điểm đến và lựa chọn
+loại xe. :contentReference[oaicite:5]{index=5}
+
+---
+
+#### E05 — Trip
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `trip_id` | Mã chuyến đi |
+| `booking_id` | Booking tương ứng |
+| `customer_id` | Khách hàng |
+| `driver_id` | Tài xế được phân công |
+| `vehicle_id` | Phương tiện thực hiện chuyến |
+| `status` | Trạng thái chuyến |
+| `start_time` | Thời điểm bắt đầu |
+| `end_time` | Thời điểm kết thúc |
+| `estimated_arrival_time` | Thời gian dự kiến tài xế đến |
+
+Trip đại diện cho chuyến đi thực tế sau khi yêu cầu đặt xe được xử lý và tài
+xế được phân công.
+
+Các trạng thái chuyến được tài liệu đề cập gồm:
+
+- Đã nhận chuyến
+- Đã đến điểm đón
+- Đã đón khách
+- Đang di chuyển
+- Hoàn thành chuyến
+
+:contentReference[oaicite:6]{index=6}
+
+---
+
+#### E06 — Location
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `location_id` | Mã vị trí |
+| `latitude` | Vĩ độ |
+| `longitude` | Kinh độ |
+| `address` | Địa chỉ |
+| `location_type` | Loại vị trí |
+
+`Location` được sử dụng cho:
+
+- Điểm đón.
+- Điểm đến.
+- Vị trí hiện tại của tài xế.
+
+Doanh nghiệp muốn lưu vị trí tài xế để hỗ trợ tìm tài xế gần khách hàng và
+cải thiện khả năng dự kiến thời gian đến. :contentReference[oaicite:7]{index=7}
+
+---
+
+#### E07 — Fare
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `fare_id` | Mã cước |
+| `trip_id` | Mã chuyến |
+| `service_type` | Loại dịch vụ |
+| `amount` | Số tiền phải trả |
+| `created_at` | Thời điểm xác định cước |
+
+Hệ thống cần xác định số tiền khách hàng phải trả sau khi chuyến hoàn thành,
+dựa trên loại dịch vụ và thông tin chuyến đi. :contentReference[oaicite:8]{index=8}
+
+> **TBD:** Công thức tính cước cụ thể chưa được khách hàng chốt.
+
+---
+
+#### E08 — Payment
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `payment_id` | Mã thanh toán |
+| `trip_id` | Mã chuyến |
+| `payment_method` | Phương thức thanh toán |
+| `amount` | Số tiền thanh toán |
+| `status` | Trạng thái thanh toán |
+| `paid_at` | Thời điểm thanh toán |
+
+Các phương thức hiện tại:
+
+- `CASH`
+- `ELECTRONIC`
+
+Hệ thống phải tích hợp với nhà cung cấp thanh toán bên ngoài và không lưu
+trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán. :contentReference[oaicite:9]{index=9}
+
+---
+
+#### E09 — Notification
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `notification_id` | Mã thông báo |
+| `recipient_type` | Loại người nhận |
+| `recipient_id` | Người nhận |
+| `notification_type` | Loại thông báo |
+| `message` | Nội dung |
+| `status` | Trạng thái gửi |
+| `created_at` | Thời điểm tạo |
+
+Các sự kiện cần thông báo gồm:
+
+- Yêu cầu đặt xe được tiếp nhận.
+- Tài xế nhận chuyến.
+- Tài xế đến điểm đón.
+- Chuyến hoàn thành.
+- Thanh toán có kết quả.
+- Tài xế có chuyến mới.
+- Thay đổi liên quan đến chuyến đang thực hiện.
+
+:contentReference[oaicite:10]{index=10}
+
+---
+
+#### E10 — Review
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `review_id` | Mã đánh giá |
+| `trip_id` | Mã chuyến |
+| `customer_id` | Khách hàng đánh giá |
+| `driver_id` | Tài xế được đánh giá |
+| `rating` | Điểm đánh giá |
+| `comment` | Nội dung đánh giá |
+| `created_at` | Thời điểm đánh giá |
+
+Khách hàng có thể đánh giá tài xế sau khi hoàn thành chuyến. :contentReference[oaicite:11]{index=11}
+
+---
+
+#### E11 — Transaction
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `transaction_id` | Mã giao dịch |
+| `payment_id` | Mã thanh toán |
+| `transaction_type` | Loại giao dịch |
+| `amount` | Giá trị giao dịch |
+| `status` | Trạng thái giao dịch |
+| `provider_reference` | Mã tham chiếu từ nhà cung cấp |
+| `created_at` | Thời điểm giao dịch |
+
+Entity này phục vụ việc tra cứu lịch sử giao dịch và quản lý kết quả giao dịch
+thanh toán.
+
+Tài liệu yêu cầu nhân viên vận hành có thể tra cứu lịch sử giao dịch. :contentReference[oaicite:12]{index=12}
+
+---
+
+#### E12 — Admin / Operator
+
+| Attribute | Ý nghĩa |
+|---|---|
+| `operator_id` | Mã nhân viên |
+| `full_name` | Họ tên |
+| `email` | Email |
+| `password` | Thông tin xác thực |
+| `role` | Vai trò/quyền |
+| `status` | Trạng thái tài khoản |
+
+Nhân viên vận hành cần giao diện quản trị để quản lý khách hàng, tài xế,
+phương tiện, chuyến đi và xử lý các trường hợp chuyến bị lỗi. Một số chức năng
+phải được phân quyền. :contentReference[oaicite:13]{index=13}
+
+---
+
+## 9.3. Entity Relationships
+
+Các mối quan hệ nghiệp vụ chính:
+
+| Relationship | Cardinality | Diễn giải |
+|---|---|---|
+| Customer — Booking | 1 : N | Một khách hàng có thể tạo nhiều yêu cầu đặt xe. |
+| Booking — Trip | 1 : 0..1 | Một booking có thể chưa có chuyến hoặc được tạo thành một chuyến sau khi phân công tài xế. |
+| Driver — Vehicle | 1 : N | Một tài xế có thể được liên kết với phương tiện. |
+| Driver — Trip | 1 : N | Một tài xế có thể thực hiện nhiều chuyến. |
+| Customer — Trip | 1 : N | Một khách hàng có thể thực hiện nhiều chuyến. |
+| Vehicle — Trip | 1 : N | Một phương tiện có thể được sử dụng cho nhiều chuyến. |
+| Trip — Fare | 1 : 1 | Một chuyến có một thông tin cước cuối cùng. |
+| Trip — Payment | 1 : 0..1 | Một chuyến có thể chưa thanh toán hoặc có một thông tin thanh toán. |
+| Payment — Transaction | 1 : N | Một payment có thể có các giao dịch/attempt liên quan. |
+| Customer — Review | 1 : N | Một khách hàng có thể tạo nhiều đánh giá. |
+| Driver — Review | 1 : N | Một tài xế có thể nhận nhiều đánh giá. |
+| Trip — Review | 1 : 0..1 | Một chuyến có thể có tối đa một đánh giá từ khách hàng. |
+| Customer — Notification | 1 : N | Khách hàng có thể nhận nhiều thông báo. |
+| Driver — Notification | 1 : N | Tài xế có thể nhận nhiều thông báo. |
+| Location — Booking | 1 : N | Một vị trí có thể được sử dụng làm điểm đón/điểm đến của nhiều booking. |
+| Driver — Location | 1 : N | Một tài xế có thể có nhiều bản ghi vị trí theo thời gian. |
+| Operator — Audit Log | 1 : N | Một nhân viên vận hành có thể tạo nhiều bản ghi thao tác. |
+
+---
+
+## 9.4. ERD — Business Data Model
+
+```mermaid
+erDiagram
+
+    CUSTOMER {
+        int customer_id PK
+        string full_name
+        string phone
+        string email
+        string password
+        string status
+        datetime created_at
+    }
+
+    DRIVER {
+        int driver_id PK
+        string full_name
+        string phone
+        string email
+        string password
+        string status
+        string availability_status
+        datetime created_at
+    }
+
+    VEHICLE {
+        int vehicle_id PK
+        int driver_id FK
+        string vehicle_type
+        string license_plate
+        string status
+    }
+
+    BOOKING {
+        int booking_id PK
+        int customer_id FK
+        int pickup_location_id FK
+        int destination_location_id FK
+        string vehicle_type
+        string status
+        datetime created_at
+    }
+
+    TRIP {
+        int trip_id PK
+        int booking_id FK
+        int customer_id FK
+        int driver_id FK
+        int vehicle_id FK
+        string status
+        datetime start_time
+        datetime end_time
+        datetime estimated_arrival_time
+    }
+
+    LOCATION {
+        int location_id PK
+        decimal latitude
+        decimal longitude
+        string address
+        string location_type
+    }
+
+    DRIVER_LOCATION {
+        int driver_location_id PK
+        int driver_id FK
+        decimal latitude
+        decimal longitude
+        datetime recorded_at
+    }
+
+    FARE {
+        int fare_id PK
+        int trip_id FK
+        string service_type
+        decimal amount
+        datetime created_at
+    }
+
+    PAYMENT {
+        int payment_id PK
+        int trip_id FK
+        string payment_method
+        decimal amount
+        string status
+        datetime paid_at
+    }
+
+    TRANSACTION {
+        int transaction_id PK
+        int payment_id FK
+        string transaction_type
+        decimal amount
+        string status
+        string provider_reference
+        datetime created_at
+    }
+
+    NOTIFICATION {
+        int notification_id PK
+        string recipient_type
+        int recipient_id
+        string notification_type
+        string message
+        string status
+        datetime created_at
+    }
+
+    REVIEW {
+        int review_id PK
+        int trip_id FK
+        int customer_id FK
+        int driver_id FK
+        int rating
+        string comment
+        datetime created_at
+    }
+
+    OPERATOR {
+        int operator_id PK
+        string full_name
+        string email
+        string password
+        string role
+        string status
+    }
+
+    AUDIT_LOG {
+        int audit_log_id PK
+        int operator_id FK
+        string action
+        string entity_type
+        int entity_id
+        datetime created_at
+    }
+
+    CUSTOMER ||--o{ BOOKING : creates
+    BOOKING ||--o| TRIP : generates
+
+    DRIVER ||--o{ VEHICLE : uses
+    DRIVER ||--o{ TRIP : performs
+    CUSTOMER ||--o{ TRIP : takes
+    VEHICLE ||--o{ TRIP : used_for
+
+    BOOKING }o--|| LOCATION : pickup
+    BOOKING }o--|| LOCATION : destination
+
+    DRIVER ||--o{ DRIVER_LOCATION : has
+
+    TRIP ||--|| FARE : has
+    TRIP ||--o| PAYMENT : has
+    PAYMENT ||--o{ TRANSACTION : contains
+
+    CUSTOMER ||--o{ REVIEW : writes
+    DRIVER ||--o{ REVIEW : receives
+    TRIP ||--o| REVIEW : receives
+
+    OPERATOR ||--o{ AUDIT_LOG : creates
+```
+
+## còn 9.5 -> 9.6
