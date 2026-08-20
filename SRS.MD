@@ -598,7 +598,7 @@ Phạm vi hệ thống CAB trong giai đoạn hiện tại được giới hạn
               PAYMENT
                  │
           EXTERNAL PROVIDER
-
+```
 ##Cần xác thực lại với khách hàng các yêu cầu trên để chuyển sang bước tiếp theo
 
 ## 5. Business Requirements
