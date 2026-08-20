@@ -1691,3 +1691,193 @@ Không làm dừng
      ↓
 Hệ thống đặt xe
 ```
+# 11. Use Case Modeling
+
+Use Case Modeling được sử dụng để xác định các Actor tương tác với hệ thống
+và các chức năng mà mỗi Actor có thể thực hiện.
+
+Mỗi Use Case mô tả một mục tiêu nghiệp vụ mà Actor muốn đạt được thông qua
+hệ thống.
+
+---
+
+## 11.1. Xác định Actors
+
+| Mã Actor | Actor | Vai trò |
+|---|---|---|
+| **A01** | **Customer** | Người sử dụng ứng dụng để đặt xe, theo dõi chuyến, thanh toán và đánh giá tài xế. |
+| **A02** | **Driver** | Người cung cấp dịch vụ vận chuyển, nhận chuyến, thực hiện chuyến và cập nhật trạng thái chuyến. |
+| **A03** | **Operator** | Nhân viên vận hành, quản lý khách hàng, tài xế, phương tiện, chuyến đi và xử lý các trường hợp phát sinh. |
+| **A04** | **Management** | Ban lãnh đạo sử dụng báo cáo để theo dõi và đánh giá hoạt động kinh doanh. |
+| **A05** | **Payment Provider** | Hệ thống bên ngoài xử lý các giao dịch thanh toán điện tử. |
+| **A06** | **Notification Provider** | Hệ thống bên ngoài hỗ trợ gửi thông báo đến khách hàng hoặc tài xế. |
+
+---
+
+## 11.2. Xác định Use Cases
+
+### Customer
+
+Customer có các Use Case chính:
+
+| Mã UC | Use Case | Diễn giải |
+|---|---|---|
+| **UC01** | Đăng ký tài khoản | Customer tạo tài khoản để sử dụng hệ thống. |
+| **UC02** | Đăng nhập | Customer đăng nhập vào ứng dụng. |
+| **UC03** | Quản lý thông tin cá nhân | Customer xem và cập nhật thông tin cá nhân. |
+| **UC04** | Đặt chuyến xe | Customer nhập điểm đón, điểm đến, chọn loại xe và gửi yêu cầu đặt xe. |
+| **UC05** | Theo dõi chuyến | Customer theo dõi trạng thái chuyến và thông tin tài xế. |
+| **UC06** | Xem lịch sử chuyến | Customer xem lại các chuyến đã thực hiện. |
+| **UC07** | Thanh toán | Customer thực hiện thanh toán cho chuyến đi bằng tiền mặt hoặc điện tử. |
+| **UC08** | Đánh giá tài xế | Customer đánh giá tài xế sau khi chuyến hoàn thành. |
+| **UC09** | Nhận thông báo | Customer nhận các thông báo liên quan đến yêu cầu và chuyến đi. |
+
+---
+
+### Driver
+
+Driver có các Use Case chính:
+
+| Mã UC | Use Case | Diễn giải |
+|---|---|---|
+| **UC10** | Đăng nhập | Driver đăng nhập vào ứng dụng tài xế. |
+| **UC11** | Quản lý hồ sơ tài xế | Driver xem và cập nhật thông tin hồ sơ. |
+| **UC12** | Cập nhật trạng thái sẵn sàng | Driver chuyển trạng thái sẵn sàng hoặc không sẵn sàng nhận chuyến. |
+| **UC13** | Nhận yêu cầu chuyến | Driver nhận thông tin yêu cầu chuyến từ hệ thống. |
+| **UC14** | Chấp nhận chuyến | Driver chấp nhận yêu cầu chuyến. |
+| **UC15** | Từ chối chuyến | Driver từ chối yêu cầu chuyến. |
+| **UC16** | Cập nhật trạng thái chuyến | Driver cập nhật các trạng thái: đã nhận, đã đến điểm đón, đã đón khách, đang di chuyển và hoàn thành. |
+| **UC17** | Cập nhật vị trí | Hệ thống nhận và cập nhật vị trí hiện tại của Driver. |
+| **UC18** | Xem lịch sử chuyến | Driver xem các chuyến đã thực hiện. |
+| **UC19** | Nhận thông báo | Driver nhận thông báo về chuyến mới và các thay đổi liên quan đến chuyến. |
+
+---
+
+### Operator
+
+Operator có các Use Case chính:
+
+| Mã UC | Use Case | Diễn giải |
+|---|---|---|
+| **UC20** | Đăng nhập quản trị | Operator đăng nhập vào hệ thống quản trị. |
+| **UC21** | Quản lý Customer | Operator xem và quản lý thông tin khách hàng. |
+| **UC22** | Quản lý Driver | Operator xem và quản lý thông tin tài xế. |
+| **UC23** | Quản lý Vehicle | Operator quản lý thông tin phương tiện. |
+| **UC24** | Quản lý Trip | Operator theo dõi và quản lý các chuyến đi. |
+| **UC25** | Theo dõi chuyến đang diễn ra | Operator theo dõi các chuyến đang thực hiện. |
+| **UC26** | Xử lý chuyến bị lỗi | Operator kiểm tra và hỗ trợ xử lý các trường hợp chuyến bị lỗi. |
+| **UC27** | Tra cứu giao dịch | Operator tra cứu lịch sử giao dịch. |
+
+---
+
+### Management
+
+Management có các Use Case:
+
+| Mã UC | Use Case | Diễn giải |
+|---|---|---|
+| **UC28** | Xem báo cáo hoạt động | Management xem các báo cáo về hoạt động của hệ thống. |
+| **UC29** | Xem chỉ số kinh doanh | Management theo dõi số chuyến, doanh thu, tỷ lệ hoàn thành, tỷ lệ hủy và hiệu quả hoạt động của tài xế. |
+
+---
+
+### External Systems
+
+| Mã UC | Use Case | Diễn giải |
+|---|---|---|
+| **UC30** | Xử lý thanh toán điện tử | Payment Provider xử lý giao dịch thanh toán điện tử. |
+| **UC31** | Gửi thông báo | Notification Provider hỗ trợ gửi thông báo. |
+
+---
+
+# 11.3. Use Case Diagram
+
+```mermaid
+flowchart LR
+
+    Customer((Customer))
+    Driver((Driver))
+    Operator((Operator))
+    Management((Management))
+    Payment((Payment Provider))
+    Notification((Notification Provider))
+
+    subgraph CAB["CAB System"]
+
+        UC01["UC01<br/>Đăng ký tài khoản"]
+        UC02["UC02<br/>Đăng nhập"]
+        UC03["UC03<br/>Quản lý thông tin cá nhân"]
+        UC04["UC04<br/>Đặt chuyến xe"]
+        UC05["UC05<br/>Theo dõi chuyến"]
+        UC06["UC06<br/>Xem lịch sử chuyến"]
+        UC07["UC07<br/>Thanh toán"]
+        UC08["UC08<br/>Đánh giá tài xế"]
+        UC09["UC09<br/>Nhận thông báo"]
+
+        UC10["UC10<br/>Đăng nhập"]
+        UC11["UC11<br/>Quản lý hồ sơ tài xế"]
+        UC12["UC12<br/>Cập nhật trạng thái sẵn sàng"]
+        UC13["UC13<br/>Nhận yêu cầu chuyến"]
+        UC14["UC14<br/>Chấp nhận chuyến"]
+        UC15["UC15<br/>Từ chối chuyến"]
+        UC16["UC16<br/>Cập nhật trạng thái chuyến"]
+        UC17["UC17<br/>Cập nhật vị trí"]
+        UC18["UC18<br/>Xem lịch sử chuyến"]
+        UC19["UC19<br/>Nhận thông báo"]
+
+        UC20["UC20<br/>Đăng nhập quản trị"]
+        UC21["UC21<br/>Quản lý Customer"]
+        UC22["UC22<br/>Quản lý Driver"]
+        UC23["UC23<br/>Quản lý Vehicle"]
+        UC24["UC24<br/>Quản lý Trip"]
+        UC25["UC25<br/>Theo dõi chuyến đang diễn ra"]
+        UC26["UC26<br/>Xử lý chuyến bị lỗi"]
+        UC27["UC27<br/>Tra cứu giao dịch"]
+
+        UC28["UC28<br/>Xem báo cáo hoạt động"]
+        UC29["UC29<br/>Xem chỉ số kinh doanh"]
+
+        UC30["UC30<br/>Xử lý thanh toán điện tử"]
+        UC31["UC31<br/>Gửi thông báo"]
+    end
+
+    Customer --- UC01
+    Customer --- UC02
+    Customer --- UC03
+    Customer --- UC04
+    Customer --- UC05
+    Customer --- UC06
+    Customer --- UC07
+    Customer --- UC08
+    Customer --- UC09
+
+    Driver --- UC10
+    Driver --- UC11
+    Driver --- UC12
+    Driver --- UC13
+    Driver --- UC14
+    Driver --- UC15
+    Driver --- UC16
+    Driver --- UC17
+    Driver --- UC18
+    Driver --- UC19
+
+    Operator --- UC20
+    Operator --- UC21
+    Operator --- UC22
+    Operator --- UC23
+    Operator --- UC24
+    Operator --- UC25
+    Operator --- UC26
+    Operator --- UC27
+
+    Management --- UC28
+    Management --- UC29
+
+    Payment --- UC30
+    Notification --- UC31
+
+    UC07 --- UC30
+    UC09 --- UC31
+    UC19 --- UC31
+```
