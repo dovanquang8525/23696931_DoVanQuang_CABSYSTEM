@@ -1,0 +1,148 @@
+openapi: 3.0.3
+
+info:
+  title: FR07 - Đăng ký tài khoản tài xế
+  description: Hệ thống cho phép tài xế đăng ký tài khoản.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081/api/v1
+
+tags:
+  - name: Driver Registration
+    description: Quản lý đăng ký tài khoản tài xế
+
+paths:
+
+  /driver-registrations:
+
+    get:
+      tags:
+        - Driver Registration
+      summary: Lấy danh sách đăng ký tài khoản tài xế
+      operationId: getDriverRegistrations
+      responses:
+        '200':
+          description: Lấy danh sách thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DriverRegistration'
+
+    post:
+      tags:
+        - Driver Registration
+      summary: Đăng ký tài khoản tài xế
+      operationId: createDriverRegistration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverRegistrationRequest'
+      responses:
+        '201':
+          description: Đăng ký tài khoản thành công
+        '400':
+          description: Dữ liệu đăng ký không hợp lệ
+        '409':
+          description: Tài khoản đã tồn tại
+
+  /driver-registrations/{registrationId}:
+
+    get:
+      tags:
+        - Driver Registration
+      summary: Lấy thông tin đăng ký theo ID
+      operationId: getDriverRegistrationById
+      parameters:
+        - $ref: '#/components/parameters/RegistrationId'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverRegistration'
+        '404':
+          description: Không tìm thấy đăng ký
+
+    put:
+      tags:
+        - Driver Registration
+      summary: Cập nhật thông tin đăng ký
+      operationId: updateDriverRegistration
+      parameters:
+        - $ref: '#/components/parameters/RegistrationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverRegistrationRequest'
+      responses:
+        '200':
+          description: Cập nhật thành công
+        '404':
+          description: Không tìm thấy đăng ký
+
+    delete:
+      tags:
+        - Driver Registration
+      summary: Xóa đăng ký tài khoản tài xế
+      operationId: deleteDriverRegistration
+      parameters:
+        - $ref: '#/components/parameters/RegistrationId'
+      responses:
+        '204':
+          description: Xóa thành công
+        '404':
+          description: Không tìm thấy đăng ký
+
+components:
+
+  parameters:
+
+    RegistrationId:
+      name: registrationId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: REGD001
+
+  schemas:
+
+    DriverRegistrationRequest:
+      type: object
+      required:
+        - fullName
+        - phone
+        - email
+        - password
+      properties:
+        fullName:
+          type: string
+          example: Nguyễn Văn A
+        phone:
+          type: string
+          example: "0901234567"
+        email:
+          type: string
+          format: email
+          example: nguyenvana@gmail.com
+        password:
+          type: string
+          format: password
+          example: Password@123
+
+    DriverRegistration:
+      allOf:
+        - $ref: '#/components/schemas/DriverRegistrationRequest'
+        - type: object
+          properties:
+            registrationId:
+              type: string
+              example: REGD001
