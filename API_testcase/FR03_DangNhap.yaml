@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  title: FR03 - Đăng nhập
+  description: Khách hàng đăng nhập vào tài khoản.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081/api/v1
+
+tags:
+  - name: LoginSession
+    description: API cho FR03 - Đăng nhập
+
+paths:
+  /login-sessions:
+    get:
+      tags: [LoginSession]
+      summary: Lấy danh sách login-session
+      operationId: getLoginSessions
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoginSession'
+
+    post:
+      tags: [LoginSession]
+      summary: Đăng nhập
+      description: Khách hàng đăng nhập vào tài khoản.
+      operationId: createLoginSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginSessionRequest'
+      responses:
+        '201':
+          description: Thực hiện thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSession'
+        '400':
+          description: Dữ liệu không hợp lệ
+
+  /login-sessions/{loginId}:
+    get:
+      tags: [LoginSession]
+      summary: Lấy login-session theo ID
+      operationId: getLoginSessionById
+      parameters:
+        - $ref: '#/components/parameters/LoginSessionId'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSession'
+        '404':
+          description: Không tìm thấy dữ liệu
+
+    put:
+      tags: [LoginSession]
+      summary: Cập nhật login-session
+      operationId: updateLoginSession
+      parameters:
+        - $ref: '#/components/parameters/LoginSessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginSessionRequest'
+      responses:
+        '200':
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSession'
+        '400':
+          description: Dữ liệu không hợp lệ
+        '404':
+          description: Không tìm thấy dữ liệu
+
+    delete:
+      tags: [LoginSession]
+      summary: Xóa login-session
+      operationId: deleteLoginSession
+      parameters:
+        - $ref: '#/components/parameters/LoginSessionId'
+      responses:
+        '204':
+          description: Xóa thành công
+        '404':
+          description: Không tìm thấy dữ liệu
+
+components:
+  parameters:
+    LoginSessionId:
+      name: loginId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: LOG001
+
+  schemas:
+    LoginSessionRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          example: Nguyễn Văn A
+        email:
+          type: string
+          format: email
+          example: nguyenvana@example.com
+        phone:
+          type: string
+          example: "0901234567"
+        password:
+          type: string
+          format: password
+          example: Password@123
+        status:
+          type: string
+          example: ACTIVE
+
+    LoginSession:
+      allOf:
+        - $ref: '#/components/schemas/LoginSessionRequest'
+        - type: object
+          properties:
+            loginId:
+              type: string
+              example: LOG001
