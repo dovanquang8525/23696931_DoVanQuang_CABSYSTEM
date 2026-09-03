@@ -1,0 +1,154 @@
+openapi: 3.0.3
+
+info:
+  title: FR10 - Quản lý thông tin phương tiện
+  description: Hệ thống lưu trữ và cập nhật thông tin phương tiện của tài xế.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081/api/v1
+
+tags:
+  - name: Vehicle
+    description: Quản lý phương tiện
+
+paths:
+
+  /vehicles:
+
+    get:
+      tags:
+        - Vehicle
+      summary: Lấy danh sách phương tiện
+      operationId: getVehicles
+      responses:
+        '200':
+          description: Lấy danh sách thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vehicle'
+
+    post:
+      tags:
+        - Vehicle
+      summary: Thêm phương tiện
+      operationId: createVehicle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+      responses:
+        '201':
+          description: Thêm phương tiện thành công
+        '400':
+          description: Dữ liệu không hợp lệ
+        '409':
+          description: Phương tiện đã tồn tại
+
+  /vehicles/{vehicleId}:
+
+    get:
+      tags:
+        - Vehicle
+      summary: Lấy thông tin phương tiện theo ID
+      operationId: getVehicleById
+      parameters:
+        - $ref: '#/components/parameters/VehicleId'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+        '404':
+          description: Không tìm thấy phương tiện
+
+    put:
+      tags:
+        - Vehicle
+      summary: Cập nhật thông tin phương tiện
+      operationId: updateVehicle
+      parameters:
+        - $ref: '#/components/parameters/VehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+      responses:
+        '200':
+          description: Cập nhật thành công
+        '404':
+          description: Không tìm thấy phương tiện
+
+    delete:
+      tags:
+        - Vehicle
+      summary: Xóa phương tiện
+      operationId: deleteVehicle
+      parameters:
+        - $ref: '#/components/parameters/VehicleId'
+      responses:
+        '204':
+          description: Xóa thành công
+        '404':
+          description: Không tìm thấy phương tiện
+
+components:
+
+  parameters:
+
+    VehicleId:
+      name: vehicleId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: VH001
+
+  schemas:
+
+    VehicleRequest:
+      type: object
+      required:
+        - driverId
+        - vehicleType
+        - licensePlate
+      properties:
+        driverId:
+          type: string
+          example: DRV001
+        vehicleType:
+          type: string
+          enum:
+            - MOTORBIKE
+            - CAR
+          example: MOTORBIKE
+        brand:
+          type: string
+          example: Honda
+        model:
+          type: string
+          example: Vision
+        licensePlate:
+          type: string
+          example: "59A1-12345"
+        color:
+          type: string
+          example: Đen
+
+    Vehicle:
+      allOf:
+        - $ref: '#/components/schemas/VehicleRequest'
+        - type: object
+          properties:
+            vehicleId:
+              type: string
+              example: VH001
