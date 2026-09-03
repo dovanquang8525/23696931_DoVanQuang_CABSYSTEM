@@ -1,0 +1,150 @@
+openapi: 3.0.3
+
+info:
+  title: FR08 - Tạo tài khoản tài xế
+  description: Hệ thống cho phép nhân viên vận hành tạo tài khoản cho tài xế.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081/api/v1
+
+tags:
+  - name: Driver Account
+    description: Quản lý tài khoản tài xế
+
+paths:
+
+  /driver-accounts:
+
+    get:
+      tags:
+        - Driver Account
+      summary: Lấy danh sách tài khoản tài xế
+      operationId: getDriverAccounts
+      responses:
+        '200':
+          description: Lấy danh sách thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DriverAccount'
+
+    post:
+      tags:
+        - Driver Account
+      summary: Tạo tài khoản tài xế
+      operationId: createDriverAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverAccountRequest'
+      responses:
+        '201':
+          description: Tạo tài khoản thành công
+        '400':
+          description: Dữ liệu không hợp lệ
+        '409':
+          description: Tài khoản đã tồn tại
+
+  /driver-accounts/{driverId}:
+
+    get:
+      tags:
+        - Driver Account
+      summary: Lấy tài khoản tài xế theo ID
+      operationId: getDriverAccountById
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverAccount'
+        '404':
+          description: Không tìm thấy tài khoản
+
+    put:
+      tags:
+        - Driver Account
+      summary: Cập nhật tài khoản tài xế
+      operationId: updateDriverAccount
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverAccountRequest'
+      responses:
+        '200':
+          description: Cập nhật thành công
+        '404':
+          description: Không tìm thấy tài khoản
+
+    delete:
+      tags:
+        - Driver Account
+      summary: Xóa tài khoản tài xế
+      operationId: deleteDriverAccount
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      responses:
+        '204':
+          description: Xóa thành công
+        '404':
+          description: Không tìm thấy tài khoản
+
+components:
+
+  parameters:
+
+    DriverId:
+      name: driverId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: DRV001
+
+  schemas:
+
+    DriverAccountRequest:
+      type: object
+      required:
+        - fullName
+        - phone
+        - email
+      properties:
+        fullName:
+          type: string
+          example: Nguyễn Văn A
+        phone:
+          type: string
+          example: "0901234567"
+        email:
+          type: string
+          format: email
+          example: taixe@gmail.com
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - LOCKED
+          example: ACTIVE
+
+    DriverAccount:
+      allOf:
+        - $ref: '#/components/schemas/DriverAccountRequest'
+        - type: object
+          properties:
+            driverId:
+              type: string
+              example: DRV001
