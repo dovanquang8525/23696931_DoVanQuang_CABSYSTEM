@@ -1,1 +1,250 @@
 
+openapi: 3.0.3
+
+info:
+  title: FR01 - Đăng ký tài khoản khách hàng
+  description: |
+    API thực hiện FR01 - Đăng ký tài khoản khách hàng.
+
+    Bộ API CRUD cho tài nguyên Customer:
+    - GET: Lấy danh sách khách hàng
+    - POST: Đăng ký tài khoản khách hàng
+    - GET /{customerId}: Lấy thông tin một khách hàng theo ID
+    - PUT /{customerId}: Cập nhật tài khoản khách hàng
+    - DELETE /{customerId}: Xóa tài khoản khách hàng
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local Server
+
+tags:
+  - name: Customer
+    description: Quản lý tài khoản khách hàng
+
+paths:
+
+  /customers:
+    get:
+      tags:
+        - Customer
+      summary: Lấy danh sách khách hàng
+      description: Lấy danh sách các tài khoản khách hàng.
+      operationId: getCustomers
+      responses:
+        '200':
+          description: Lấy danh sách khách hàng thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+              example:
+                - customerId: CUS001
+                  fullName: Nguyễn Văn A
+                  email: nguyenvana@example.com
+                  phone: "0901234567"
+                  status: ACTIVE
+                - customerId: CUS002
+                  fullName: Trần Thị B
+                  email: tranthib@example.com
+                  phone: "0912345678"
+                  status: ACTIVE
+
+    post:
+      tags:
+        - Customer
+      summary: Đăng ký tài khoản khách hàng
+      description: FR01 - Khách hàng đăng ký một tài khoản mới.
+      operationId: createCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomerRequest'
+            example:
+              fullName: Nguyễn Văn A
+              email: nguyenvana@example.com
+              phone: "0901234567"
+              password: "Password@123"
+      responses:
+        '201':
+          description: Đăng ký tài khoản thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              example:
+                customerId: CUS001
+                fullName: Nguyễn Văn A
+                email: nguyenvana@example.com
+                phone: "0901234567"
+                status: ACTIVE
+        '400':
+          description: Dữ liệu đăng ký không hợp lệ
+        '409':
+          description: Email hoặc số điện thoại đã tồn tại
+
+  /customers/{customerId}:
+    get:
+      tags:
+        - Customer
+      summary: Lấy thông tin khách hàng theo ID
+      description: Lấy thông tin của một tài khoản khách hàng theo mã khách hàng.
+      operationId: getCustomerById
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Lấy thông tin khách hàng thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              example:
+                customerId: CUS001
+                fullName: Nguyễn Văn A
+                email: nguyenvana@example.com
+                phone: "0901234567"
+                status: ACTIVE
+        '404':
+          description: Không tìm thấy khách hàng
+
+    put:
+      tags:
+        - Customer
+      summary: Cập nhật tài khoản khách hàng
+      description: Cập nhật thông tin tài khoản của khách hàng.
+      operationId: updateCustomer
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomerRequest'
+            example:
+              fullName: Nguyễn Văn B
+              email: nguyenvanb@example.com
+              phone: "0909999999"
+      responses:
+        '200':
+          description: Cập nhật tài khoản thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Dữ liệu cập nhật không hợp lệ
+        '404':
+          description: Không tìm thấy khách hàng
+        '409':
+          description: Email hoặc số điện thoại đã được sử dụng
+
+    delete:
+      tags:
+        - Customer
+      summary: Xóa tài khoản khách hàng
+      description: Xóa tài khoản khách hàng theo mã khách hàng.
+      operationId: deleteCustomer
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '204':
+          description: Xóa tài khoản thành công
+        '404':
+          description: Không tìm thấy khách hàng
+
+components:
+
+  parameters:
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      description: Mã khách hàng
+      schema:
+        type: string
+      example: CUS001
+
+  schemas:
+
+    Customer:
+      type: object
+      properties:
+        customerId:
+          type: string
+          description: Mã khách hàng
+          example: CUS001
+        fullName:
+          type: string
+          description: Họ và tên khách hàng
+          example: Nguyễn Văn A
+        email:
+          type: string
+          format: email
+          description: Email khách hàng
+          example: nguyenvana@example.com
+        phone:
+          type: string
+          description: Số điện thoại khách hàng
+          example: "0901234567"
+        status:
+          type: string
+          description: Trạng thái tài khoản
+          enum:
+            - ACTIVE
+            - INACTIVE
+          example: ACTIVE
+
+    CreateCustomerRequest:
+      type: object
+      required:
+        - fullName
+        - email
+        - phone
+        - password
+      properties:
+        fullName:
+          type: string
+          description: Họ và tên khách hàng
+          example: Nguyễn Văn A
+        email:
+          type: string
+          format: email
+          description: Email đăng ký
+          example: nguyenvana@example.com
+        phone:
+          type: string
+          description: Số điện thoại đăng ký
+          example: "0901234567"
+        password:
+          type: string
+          format: password
+          description: Mật khẩu tài khoản
+          minLength: 8
+          example: "Password@123"
+
+    UpdateCustomerRequest:
+      type: object
+      required:
+        - fullName
+        - email
+        - phone
+      properties:
+        fullName:
+          type: string
+          description: Họ và tên mới
+          example: Nguyễn Văn B
+        email:
+          type: string
+          format: email
+          description: Email mới
+          example: nguyenvanb@example.com
+        phone:
+          type: string
+          description: Số điện thoại mới
+          example: "0909999999"
