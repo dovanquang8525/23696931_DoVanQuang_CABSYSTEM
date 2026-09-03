@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  title: FR02 - Nhập thông tin đăng ký
+  description: Khách hàng nhập các thông tin cần thiết khi đăng ký.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081/api/v1
+
+tags:
+  - name: RegistrationInfo
+    description: API cho FR02 - Nhập thông tin đăng ký
+
+paths:
+  /registration-infos:
+    get:
+      tags: [RegistrationInfo]
+      summary: Lấy danh sách registration-info
+      operationId: getRegistrationInfos
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegistrationInfo'
+
+    post:
+      tags: [RegistrationInfo]
+      summary: Nhập thông tin đăng ký
+      description: Khách hàng nhập các thông tin cần thiết khi đăng ký.
+      operationId: createRegistrationInfo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationInfoRequest'
+      responses:
+        '201':
+          description: Thực hiện thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationInfo'
+        '400':
+          description: Dữ liệu không hợp lệ
+
+  /registration-infos/{registrationId}:
+    get:
+      tags: [RegistrationInfo]
+      summary: Lấy registration-info theo ID
+      operationId: getRegistrationInfoById
+      parameters:
+        - $ref: '#/components/parameters/RegistrationInfoId'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationInfo'
+        '404':
+          description: Không tìm thấy dữ liệu
+
+    put:
+      tags: [RegistrationInfo]
+      summary: Cập nhật registration-info
+      operationId: updateRegistrationInfo
+      parameters:
+        - $ref: '#/components/parameters/RegistrationInfoId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationInfoRequest'
+      responses:
+        '200':
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationInfo'
+        '400':
+          description: Dữ liệu không hợp lệ
+        '404':
+          description: Không tìm thấy dữ liệu
+
+    delete:
+      tags: [RegistrationInfo]
+      summary: Xóa registration-info
+      operationId: deleteRegistrationInfo
+      parameters:
+        - $ref: '#/components/parameters/RegistrationInfoId'
+      responses:
+        '204':
+          description: Xóa thành công
+        '404':
+          description: Không tìm thấy dữ liệu
+
+components:
+  parameters:
+    RegistrationInfoId:
+      name: registrationId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: REG001
+
+  schemas:
+    RegistrationInfoRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          example: Nguyễn Văn A
+        email:
+          type: string
+          format: email
+          example: nguyenvana@example.com
+        phone:
+          type: string
+          example: "0901234567"
+        password:
+          type: string
+          format: password
+          example: Password@123
+        status:
+          type: string
+          example: ACTIVE
+
+    RegistrationInfo:
+      allOf:
+        - $ref: '#/components/schemas/RegistrationInfoRequest'
+        - type: object
+          properties:
+            registrationId:
+              type: string
+              example: REG001
