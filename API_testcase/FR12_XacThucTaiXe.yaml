@@ -1,0 +1,158 @@
+openapi: 3.0.3
+
+info:
+  title: FR12 - Xác thực tài xế
+  description: Hệ thống phải xác thực tài xế trước khi sử dụng các chức năng yêu cầu tài khoản.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081/api/v1
+
+tags:
+  - name: Driver Verification
+    description: Xác thực tài xế
+
+paths:
+
+  /driver-verifications:
+
+    get:
+      tags:
+        - Driver Verification
+      summary: Lấy danh sách yêu cầu xác thực
+      operationId: getDriverVerifications
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DriverVerification'
+
+    post:
+      tags:
+        - Driver Verification
+      summary: Xác thực tài xế
+      operationId: createDriverVerification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationRequest'
+            example:
+              driverId: DRV001
+              verificationCode: "123456"
+      responses:
+        '200':
+          description: Xác thực thành công
+        '400':
+          description: Mã xác thực không hợp lệ
+
+  /driver-verifications/{verificationId}:
+
+    get:
+      tags:
+        - Driver Verification
+      summary: Lấy thông tin xác thực theo ID
+      operationId: getDriverVerificationById
+      parameters:
+        - $ref: '#/components/parameters/VerificationId'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverVerification'
+        '404':
+          description: Không tìm thấy thông tin xác thực
+
+    put:
+      tags:
+        - Driver Verification
+      summary: Cập nhật trạng thái xác thực
+      operationId: updateDriverVerification
+      parameters:
+        - $ref: '#/components/parameters/VerificationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationUpdateRequest'
+      responses:
+        '200':
+          description: Cập nhật thành công
+        '404':
+          description: Không tìm thấy thông tin xác thực
+
+    delete:
+      tags:
+        - Driver Verification
+      summary: Xóa thông tin xác thực
+      operationId: deleteDriverVerification
+      parameters:
+        - $ref: '#/components/parameters/VerificationId'
+      responses:
+        '204':
+          description: Xóa thành công
+        '404':
+          description: Không tìm thấy thông tin xác thực
+
+components:
+
+  parameters:
+
+    VerificationId:
+      name: verificationId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: VERD001
+
+  schemas:
+
+    VerificationRequest:
+      type: object
+      required:
+        - driverId
+        - verificationCode
+      properties:
+        driverId:
+          type: string
+          example: DRV001
+        verificationCode:
+          type: string
+          example: "123456"
+
+    VerificationUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - PENDING
+            - VERIFIED
+            - FAILED
+          example: VERIFIED
+
+    DriverVerification:
+      type: object
+      properties:
+        verificationId:
+          type: string
+          example: VERD001
+        driverId:
+          type: string
+          example: DRV001
+        status:
+          type: string
+          enum:
+            - PENDING
+            - VERIFIED
+            - FAILED
+          example: VERIFIED
