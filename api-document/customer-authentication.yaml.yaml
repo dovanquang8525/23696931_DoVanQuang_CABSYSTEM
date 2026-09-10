@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  title: FR04 - Xác thực khách hàng
+  description: Xác thực khách hàng trước khi sử dụng các chức năng yêu cầu tài khoản.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081/api/v1
+
+tags:
+  - name: Verification
+    description: API cho FR04 - Xác thực khách hàng
+
+paths:
+  /verifications:
+    get:
+      tags: [Verification]
+      summary: Lấy danh sách verification
+      operationId: getVerifications
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Verification'
+
+    post:
+      tags: [Verification]
+      summary: Xác thực khách hàng
+      description: Xác thực khách hàng trước khi sử dụng các chức năng yêu cầu tài khoản.
+      operationId: createVerification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationRequest'
+      responses:
+        '201':
+          description: Thực hiện thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verification'
+        '400':
+          description: Dữ liệu không hợp lệ
+
+  /verifications/{verificationId}:
+    get:
+      tags: [Verification]
+      summary: Lấy verification theo ID
+      operationId: getVerificationById
+      parameters:
+        - $ref: '#/components/parameters/VerificationId'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verification'
+        '404':
+          description: Không tìm thấy dữ liệu
+
+    put:
+      tags: [Verification]
+      summary: Cập nhật verification
+      operationId: updateVerification
+      parameters:
+        - $ref: '#/components/parameters/VerificationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationRequest'
+      responses:
+        '200':
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verification'
+        '400':
+          description: Dữ liệu không hợp lệ
+        '404':
+          description: Không tìm thấy dữ liệu
+
+    delete:
+      tags: [Verification]
+      summary: Xóa verification
+      operationId: deleteVerification
+      parameters:
+        - $ref: '#/components/parameters/VerificationId'
+      responses:
+        '204':
+          description: Xóa thành công
+        '404':
+          description: Không tìm thấy dữ liệu
+
+components:
+  parameters:
+    VerificationId:
+      name: verificationId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: VER001
+
+  schemas:
+    VerificationRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          example: Nguyễn Văn A
+        email:
+          type: string
+          format: email
+          example: nguyenvana@example.com
+        phone:
+          type: string
+          example: "0901234567"
+        password:
+          type: string
+          format: password
+          example: Password@123
+        status:
+          type: string
+          example: ACTIVE
+
+    Verification:
+      allOf:
+        - $ref: '#/components/schemas/VerificationRequest'
+        - type: object
+          properties:
+            verificationId:
+              type: string
+              example: VER001

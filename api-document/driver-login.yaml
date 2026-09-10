@@ -1,0 +1,167 @@
+openapi: 3.0.3
+
+info:
+  title: FR11 - Đăng nhập tài xế
+  description: Hệ thống cho phép tài xế đăng nhập vào hệ thống.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081/api/v1
+
+tags:
+  - name: Driver Login
+    description: Quản lý đăng nhập tài xế
+
+paths:
+
+  /driver-logins:
+
+    get:
+      tags:
+        - Driver Login
+      summary: Lấy danh sách phiên đăng nhập
+      operationId: getDriverLogins
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DriverLogin'
+
+    post:
+      tags:
+        - Driver Login
+      summary: Đăng nhập tài xế
+      operationId: createDriverLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: taixe@gmail.com
+              password: Password@123
+      responses:
+        '200':
+          description: Đăng nhập thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverLogin'
+        '401':
+          description: Email hoặc mật khẩu không chính xác
+
+  /driver-logins/{loginId}:
+
+    get:
+      tags:
+        - Driver Login
+      summary: Lấy phiên đăng nhập theo ID
+      operationId: getDriverLoginById
+      parameters:
+        - $ref: '#/components/parameters/LoginId'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverLogin'
+        '404':
+          description: Không tìm thấy phiên đăng nhập
+
+    put:
+      tags:
+        - Driver Login
+      summary: Cập nhật phiên đăng nhập
+      operationId: updateDriverLogin
+      parameters:
+        - $ref: '#/components/parameters/LoginId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginUpdateRequest'
+      responses:
+        '200':
+          description: Cập nhật thành công
+        '404':
+          description: Không tìm thấy phiên đăng nhập
+
+    delete:
+      tags:
+        - Driver Login
+      summary: Đăng xuất tài xế
+      operationId: deleteDriverLogin
+      parameters:
+        - $ref: '#/components/parameters/LoginId'
+      responses:
+        '204':
+          description: Đăng xuất thành công
+        '404':
+          description: Không tìm thấy phiên đăng nhập
+
+components:
+
+  parameters:
+
+    LoginId:
+      name: loginId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: LOGIN001
+
+  schemas:
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: taixe@gmail.com
+        password:
+          type: string
+          format: password
+          example: Password@123
+
+    LoginUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - EXPIRED
+            - LOGGED_OUT
+          example: LOGGED_OUT
+
+    DriverLogin:
+      type: object
+      properties:
+        loginId:
+          type: string
+          example: LOGIN001
+        driverId:
+          type: string
+          example: DRV001
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - EXPIRED
+            - LOGGED_OUT
+          example: ACTIVE
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiJ9...

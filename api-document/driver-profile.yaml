@@ -1,0 +1,138 @@
+openapi: 3.0.3
+
+info:
+  title: FR09 - Quản lý hồ sơ tài xế
+  description: Hệ thống cho phép tài xế cập nhật và quản lý thông tin hồ sơ.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8081/api/v1
+
+tags:
+  - name: Driver Profile
+    description: Quản lý hồ sơ tài xế
+
+paths:
+
+  /driver-profiles:
+
+    get:
+      tags:
+        - Driver Profile
+      summary: Lấy danh sách hồ sơ tài xế
+      operationId: getDriverProfiles
+      responses:
+        '200':
+          description: Lấy danh sách thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DriverProfile'
+
+    post:
+      tags:
+        - Driver Profile
+      summary: Tạo hồ sơ tài xế
+      operationId: createDriverProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverProfileRequest'
+      responses:
+        '201':
+          description: Tạo hồ sơ thành công
+
+  /driver-profiles/{driverId}:
+
+    get:
+      tags:
+        - Driver Profile
+      summary: Xem hồ sơ tài xế theo ID
+      operationId: getDriverProfileById
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverProfile'
+        '404':
+          description: Không tìm thấy hồ sơ
+
+    put:
+      tags:
+        - Driver Profile
+      summary: Cập nhật hồ sơ tài xế
+      operationId: updateDriverProfile
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverProfileRequest'
+      responses:
+        '200':
+          description: Cập nhật hồ sơ thành công
+        '404':
+          description: Không tìm thấy hồ sơ
+
+    delete:
+      tags:
+        - Driver Profile
+      summary: Xóa hồ sơ tài xế
+      operationId: deleteDriverProfile
+      parameters:
+        - $ref: '#/components/parameters/DriverId'
+      responses:
+        '204':
+          description: Xóa hồ sơ thành công
+        '404':
+          description: Không tìm thấy hồ sơ
+
+components:
+
+  parameters:
+
+    DriverId:
+      name: driverId
+      in: path
+      required: true
+      schema:
+        type: string
+      example: DRV001
+
+  schemas:
+
+    DriverProfileRequest:
+      type: object
+      required:
+        - fullName
+        - phone
+        - licenseNumber
+      properties:
+        fullName:
+          type: string
+          example: Nguyễn Văn A
+        phone:
+          type: string
+          example: "0901234567"
+        licenseNumber:
+          type: string
+          example: "012345678901"
+
+    DriverProfile:
+      allOf:
+        - $ref: '#/components/schemas/DriverProfileRequest'
+        - type: object
+          properties:
+            driverId:
+              type: string
+              example: DRV001
