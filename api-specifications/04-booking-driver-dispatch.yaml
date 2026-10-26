@@ -1,0 +1,925 @@
+openapi: 3.0.3
+info:
+    title: CAB — Booking & Driver Dispatch
+    version: 2.0.0-draft
+    description: API vào của quy trình đặt xe. Workflow nền lọc/xếp/mời tài xế, timeout/từ
+        chối thì tìm tiếp; xác nhận phân công nguyên tử. Booking là tên nghiệp vụ, chưa
+        phải thực thể Booking mới; SRS dùng Trip. Trip Management sở hữu vòng đời Trip,
+        dispatch sở hữu lời mời/candidate policy, phối hợp qua giao diện nội bộ. Nhóm
+        tài liệu/module đề xuất; không xác nhận bounded context hay microservice độc lập.
+servers:
+    - url: http://localhost:3000/api/v1
+      description: URL local đề xuất; thay bằng máy chủ thực tế khi có backend.
+security:
+    - BearerAuth: []
+x-source: 02-srs.md
+x-primary-fr-ids:
+    - FR09
+    - FR10
+    - FR11
+    - FR12
+    - FR13
+    - FR14
+    - FR15
+    - FR16
+x-related-fr-ids:
+    - FR09
+    - FR10
+    - FR11
+    - FR12
+    - FR13
+    - FR14
+    - FR15
+    - FR16
+    - FR30
+    - FR40
+    - FR41
+x-ac-ids:
+    - AC16
+    - AC17
+    - AC18
+    - AC19
+    - AC20
+    - AC21
+    - AC22
+    - AC23
+    - AC24
+    - AC25
+    - AC26
+    - AC27
+    - AC28
+    - AC48
+    - AC51
+    - AC62
+    - AC63
+    - AC69
+x-ac-criteria:
+    AC16: Vị trí không đáp ứng điều kiện về độ mới được xử lý theo chính sách; không
+        được mặc nhiên dùng như vị trí hiện tại hợp lệ.
+    AC17: Với điểm đón, điểm đến và loại xe hợp lệ, hệ thống ghi nhận yêu cầu đặt xe
+        và hiển thị trạng thái đang tìm tài xế.
+    AC18: Khi thông tin đặt xe không hợp lệ, hệ thống không đưa yêu cầu vào tìm tài
+        xế và thông báo trường cần sửa.
+    AC19: Khi gửi lại cùng một thao tác tạo yêu cầu do lỗi kết nối, hệ thống không tạo
+        nhiều yêu cầu trùng cho thao tác đó.
+    AC20: Danh sách tài xế được xét chỉ gồm người sẵn sàng, phù hợp loại xe và đáp ứng
+        các điều kiện vận hành đã thống nhất.
+    AC21: Thứ tự mời tài xế tuân thủ chính sách ưu tiên đã thống nhất, có xét khoảng
+        cách đến điểm đón.
+    AC22: Lời mời được gửi đến đúng tài xế được chọn, có thông tin chuyến cần thiết
+        và thời hạn phản hồi.
+    AC23: Phản hồi chấp nhận hoặc từ chối của đúng tài xế được ghi nhận khi lời mời
+        còn hiệu lực.
+    AC24: Phản hồi sau khi lời mời hết hiệu lực không được dùng để xác nhận phân công.
+    AC25: Phân công chỉ thành công khi yêu cầu còn hiệu lực, lời mời hợp lệ và tài xế
+        chưa bận chuyến khác.
+    AC26: Khi có thao tác đồng thời, mỗi chuyến chỉ được phân công một tài xế và mỗi
+        tài xế không được nhận hai chuyến đang thực hiện.
+    AC27: Khi tài xế từ chối, hết hạn hoặc không còn đủ điều kiện, hệ thống tìm tài
+        xế khác trong cùng yêu cầu; khách hàng không phải đặt lại.
+    AC28: Khi không còn tài xế phù hợp hoặc đạt giới hạn tìm kiếm, hệ thống kết thúc
+        tìm và thông báo không tìm được tài xế; không ghi nhận thành khách hàng hủy.
+    AC48: Khách hàng nhận thông báo tại các mốc tiếp nhận yêu cầu, phân công, đến điểm
+        đón và hoàn thành; thông báo hủy được gửi đến bên liên quan.
+    AC51: Lỗi gửi thông báo không làm đảo ngược hoặc mất kết quả đặt xe, cập nhật chuyến
+        hay thanh toán đã lưu.
+    AC62: Người chưa xác thực, phiên không hợp lệ hoặc không đủ quyền không được truy
+        cập chức năng và dữ liệu bị hạn chế, kể cả khi gọi trực tiếp API.
+    AC63: Thao tác thuộc danh sách lưu vết có bản ghi gồm người hoặc hệ thống thực hiện,
+        hành động, đối tượng, thời điểm và kết quả.
+    AC69: Phiên hết hạn hoặc bị thu hồi không truy cập được chức năng bảo vệ; quyền
+        được kiểm tra tại máy chủ.
+paths:
+    /trips:
+        post:
+            tags:
+                - Booking & Driver Dispatch
+            summary: Đặt xe và kích hoạt tìm tài xế
+            operationId: tripCreate
+            description: "Trả chuyến SEARCHING ngay sau khi lưu, không chờ tài xế. Workflow
+                tự động lọc/xếp tài xế, gửi lời mời, xử lý timeout/từ chối, tìm thay thế và
+                kết thúc NO_DRIVER; không đánh dấu CANCELLED khi không tìm được xe. Notification
+                qua outbox/retry độc lập (đề xuất thiết kế).
+
+
+                Quyền: CUSTOMER. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR09
+                - FR10
+                - FR11
+                - FR12
+                - FR15
+                - FR16
+                - FR30
+                - FR40
+                - FR41
+            x-ac-ids:
+                - AC16
+                - AC17
+                - AC18
+                - AC19
+                - AC20
+                - AC21
+                - AC22
+                - AC27
+                - AC28
+                - AC48
+                - AC51
+                - AC62
+                - AC63
+                - AC69
+            x-roles:
+                - CUSTOMER
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "201":
+                    description: Đặt xe và kích hoạt tìm tài xế — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Trip"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "409":
+                    description: CONFLICT — trùng định danh, trạng thái, thao tác đồng thời,
+                        replay khác payload hoặc khoản đã thanh toán
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "422":
+                    description: BUSINESS_RULE_VIOLATION — không đáp ứng điều kiện nghiệp vụ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            x-idempotency:
+                scope: actor + method + resource + key
+                payloadConflictStatus: 409
+                replay: Return original result; do not repeat business effects.
+            parameters:
+                - name: Idempotency-Key
+                  in: header
+                  required: true
+                  schema:
+                      type: string
+                      minLength: 1
+                  description: Một khóa cho một thao tác, gắn actor + endpoint + hash payload.
+                      Gửi lại cùng payload trả kết quả cũ; đổi payload cùng khóa trả 409. Thời
+                      gian lưu khóa cần chốt.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/TripCreate"
+            x-server-side-effects:
+                - FR10
+                - FR11
+                - FR12
+                - FR15
+                - FR16
+                - FR30
+                - FR41
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC04
+                - UC05
+                - UC06
+                - UC13
+                - UC14
+    /drivers/me/invitations:
+        get:
+            tags:
+                - Booking & Driver Dispatch
+            summary: Xem lời mời nhận chuyến
+            operationId: driverInvitationList
+            description: "Quyền: DRIVER. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR12
+                - FR13
+                - FR40
+            x-ac-ids:
+                - AC22
+                - AC23
+                - AC24
+                - AC62
+                - AC69
+            x-roles:
+                - DRIVER
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Xem lời mời nhận chuyến — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/InvitationPage"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: pageSize
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 20
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: invitationStatus
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+            x-server-side-effects:
+                - FR12
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC04
+                - UC13
+    /drivers/me/invitations/{invitationId}/responses:
+        post:
+            tags:
+                - Booking & Driver Dispatch
+            summary: Chấp nhận hoặc từ chối lời mời
+            operationId: driverInvitationRespond
+            description: "ACCEPT: kiểm tra và phân công nguyên tử, chỉ một tài xế/chuyến
+                và một chuyến chưa kết thúc/tài xế. DECLINE: tiếp tục tìm trong cùng tripId.
+                Lời mời hết hạn/đã bị vô hiệu trả 409; worker timeout thực hiện FR15/FR16
+                mà không cần client gọi.
+
+
+                Quyền: DRIVER. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR13
+                - FR14
+                - FR15
+                - FR16
+                - FR30
+                - FR40
+                - FR41
+            x-ac-ids:
+                - AC23
+                - AC24
+                - AC25
+                - AC26
+                - AC27
+                - AC28
+                - AC48
+                - AC51
+                - AC62
+                - AC63
+                - AC69
+            x-roles:
+                - DRIVER
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Chấp nhận hoặc từ chối lời mời — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/InvitationResult"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "409":
+                    description: CONFLICT — trùng định danh, trạng thái, thao tác đồng thời,
+                        replay khác payload hoặc khoản đã thanh toán
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "422":
+                    description: BUSINESS_RULE_VIOLATION — không đáp ứng điều kiện nghiệp vụ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            x-idempotency:
+                scope: actor + method + resource + key
+                payloadConflictStatus: 409
+                replay: Return original result; do not repeat business effects.
+            parameters:
+                - name: invitationId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                - name: Idempotency-Key
+                  in: header
+                  required: true
+                  schema:
+                      type: string
+                      minLength: 1
+                  description: Một khóa cho một thao tác, gắn actor + endpoint + hash payload.
+                      Gửi lại cùng payload trả kết quả cũ; đổi payload cùng khóa trả 409. Thời
+                      gian lưu khóa cần chốt.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/InvitationResponse"
+            x-server-side-effects:
+                - FR14
+                - FR15
+                - FR16
+                - FR30
+                - FR41
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC04
+                - UC05
+                - UC06
+                - UC13
+                - UC14
+components:
+    securitySchemes:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            description: Đề xuất bearer session token; máy chủ kiểm tra phiên hết hạn/thu
+                hồi và quyền ở từng API.
+        ProviderSignature:
+            type: apiKey
+            in: header
+            name: X-Provider-Signature
+            description: Tên header/chữ ký là đề xuất adapter, phải chốt theo provider.
+                Xác minh raw body và timestamp; không dùng JWT khách hàng.
+    schemas:
+        Address:
+            type: object
+            additionalProperties: false
+            properties:
+                address: &id001
+                    type: string
+                    minLength: 1
+                latitude:
+                    type: number
+                    minimum: -90
+                    maximum: 90
+                longitude:
+                    type: number
+                    minimum: -180
+                    maximum: 180
+            required:
+                - address
+                - latitude
+                - longitude
+        DriverLocation:
+            type: object
+            additionalProperties: false
+            properties:
+                latitude:
+                    type: number
+                    minimum: -90
+                    maximum: 90
+                longitude:
+                    type: number
+                    minimum: -180
+                    maximum: 180
+                observedAt:
+                    type: string
+                    format: date-time
+                receivedAt:
+                    type: string
+                    format: date-time
+                freshness:
+                    type: string
+                    enum:
+                        - FRESH
+                        - STALE
+                        - UNKNOWN
+            required:
+                - latitude
+                - longitude
+                - observedAt
+                - receivedAt
+                - freshness
+        DriverProfile:
+            type: object
+            additionalProperties: false
+            properties:
+                driverId:
+                    type: string
+                    format: uuid
+                userId:
+                    type: string
+                    format: uuid
+                licenseNumber:
+                    type: string
+                    minLength: 1
+                    nullable: true
+                availabilityStatus:
+                    type: string
+                    enum:
+                        - AVAILABLE
+                        - UNAVAILABLE
+                isBusy:
+                    type: boolean
+                location:
+                    $ref: "#/components/schemas/DriverLocation"
+            required:
+                - driverId
+                - userId
+                - availabilityStatus
+                - isBusy
+        Error:
+            type: object
+            additionalProperties: false
+            properties:
+                code: *id001
+                message: *id001
+                requestId: *id001
+                fieldErrors:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            field: *id001
+                            message: *id001
+                        required:
+                            - field
+                            - message
+            required:
+                - code
+                - message
+                - requestId
+        Invitation:
+            type: object
+            additionalProperties: false
+            properties:
+                invitationId:
+                    type: string
+                    format: uuid
+                tripId:
+                    type: string
+                    format: uuid
+                driverId:
+                    type: string
+                    format: uuid
+                pickup:
+                    $ref: "#/components/schemas/Address"
+                destination:
+                    $ref: "#/components/schemas/Address"
+                requestedVehicleTypeId:
+                    type: string
+                    format: uuid
+                invitationStatus:
+                    type: string
+                    enum:
+                        - PENDING
+                        - ACCEPTED
+                        - DECLINED
+                        - EXPIRED
+                        - INVALIDATED
+                sentAt:
+                    type: string
+                    format: date-time
+                expiresAt:
+                    type: string
+                    format: date-time
+                respondedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+            required:
+                - invitationId
+                - tripId
+                - driverId
+                - pickup
+                - destination
+                - requestedVehicleTypeId
+                - invitationStatus
+                - sentAt
+                - expiresAt
+        InvitationPage:
+            type: object
+            additionalProperties: false
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Invitation"
+                page:
+                    type: integer
+                    minimum: 1
+                pageSize:
+                    type: integer
+                    minimum: 1
+                    maximum: 100
+                totalItems:
+                    type: integer
+                    minimum: 0
+            required:
+                - items
+                - page
+                - pageSize
+                - totalItems
+        InvitationResponse:
+            type: object
+            additionalProperties: false
+            properties:
+                decision:
+                    type: string
+                    enum:
+                        - ACCEPT
+                        - DECLINE
+            required:
+                - decision
+        InvitationResult:
+            type: object
+            additionalProperties: false
+            properties:
+                invitation:
+                    $ref: "#/components/schemas/Invitation"
+                trip:
+                    $ref: "#/components/schemas/Trip"
+            required:
+                - invitation
+                - trip
+        Trip:
+            type: object
+            additionalProperties: false
+            properties:
+                tripId:
+                    type: string
+                    format: uuid
+                customerId:
+                    type: string
+                    format: uuid
+                requestedVehicleTypeId:
+                    type: string
+                    format: uuid
+                pickup:
+                    $ref: "#/components/schemas/Address"
+                destination:
+                    $ref: "#/components/schemas/Address"
+                tripStatus:
+                    type: string
+                    enum:
+                        - SEARCHING
+                        - ASSIGNED
+                        - ARRIVED
+                        - PICKED_UP
+                        - IN_PROGRESS
+                        - COMPLETED
+                        - CANCELLED
+                        - NO_DRIVER
+                assignedDriverId:
+                    type: string
+                    format: uuid
+                    nullable: true
+                assignedVehicleId:
+                    type: string
+                    format: uuid
+                    nullable: true
+                driver:
+                    $ref: "#/components/schemas/DriverProfile"
+                vehicle:
+                    $ref: "#/components/schemas/Vehicle"
+                distanceKm:
+                    type: number
+                    minimum: 0
+                    nullable: true
+                fareAmount:
+                    type: number
+                    minimum: 0
+                    description: VND; quy tắc làm tròn do chính sách cước đã xác nhận quyết
+                        định.
+                    nullable: true
+                fareStatus:
+                    type: string
+                    enum:
+                        - NOT_CALCULATED
+                        - CALCULATED
+                        - NEEDS_ATTENTION
+                paymentStatus:
+                    type: string
+                    enum:
+                        - UNPAID
+                        - PENDING
+                        - SUCCEEDED
+                        - FAILED
+                cancellationFee:
+                    type: number
+                    minimum: 0
+                    description: VND; quy tắc làm tròn do chính sách cước đã xác nhận quyết
+                        định.
+                    nullable: true
+                cancellationReason:
+                    type: string
+                    minLength: 1
+                    nullable: true
+                cancelledByUserId:
+                    type: string
+                    format: uuid
+                    nullable: true
+                createdAt:
+                    type: string
+                    format: date-time
+                assignedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                arrivedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                pickedUpAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                startedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                completedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                cancelledAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                updatedAt:
+                    type: string
+                    format: date-time
+                dataFreshness:
+                    type: string
+                    enum:
+                        - FRESH
+                        - STALE
+                        - UNKNOWN
+            required:
+                - tripId
+                - customerId
+                - pickup
+                - destination
+                - requestedVehicleTypeId
+                - tripStatus
+                - fareStatus
+                - paymentStatus
+                - createdAt
+                - updatedAt
+                - dataFreshness
+        TripCreate:
+            type: object
+            additionalProperties: false
+            properties:
+                pickup:
+                    $ref: "#/components/schemas/Address"
+                destination:
+                    $ref: "#/components/schemas/Address"
+                requestedVehicleTypeId:
+                    type: string
+                    format: uuid
+            required:
+                - pickup
+                - destination
+                - requestedVehicleTypeId
+        Vehicle:
+            type: object
+            additionalProperties: false
+            properties:
+                vehicleId:
+                    type: string
+                    format: uuid
+                driverId:
+                    type: string
+                    format: uuid
+                vehicleTypeId:
+                    type: string
+                    format: uuid
+                plateNumber: *id001
+                model: *id001
+                vehicleStatus:
+                    type: string
+                    enum:
+                        - ACTIVE
+                        - INACTIVE
+            required:
+                - vehicleId
+                - driverId
+                - vehicleTypeId
+                - plateNumber
+                - model
+                - vehicleStatus

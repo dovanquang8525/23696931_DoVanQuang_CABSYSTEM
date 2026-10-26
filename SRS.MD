@@ -1,3695 +1,2595 @@
-# Software Requirements Specification (SRS)
+# CAB System — Đặc tả yêu cầu hệ thống
 
-## 1. Business Analysis
+# 1. Bối cảnh kinh doanh và vấn đề kinh doanh
 
-### 1.1. Business Context
+## 1.1. Cơ sở phân tích
 
-#### 1.1.1. Bối cảnh doanh nghiệp
+| Nội dung                       | Thông tin                                                                                                         |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Tài liệu nguồn                 | [Customer-Requirement.docx](sandbox:/workspace/scratch/102ec265fda2/project_sources/03-Customer-Requirement.docx) |
+| Doanh nghiệp                   | Công ty ABC, cung cấp dịch vụ đặt xe trực tuyến                                                                   |
+| Hệ thống đề xuất               | CAB System                                                                                                        |
+| Thời gian dự án trong tài liệu | 7 tuần                                                                                                            |
+| Mục đích phân tích             | Làm rõ hoạt động hiện tại, vấn đề cần giải quyết và nhu cầu xây dựng hệ thống mới                                 |
 
-Công ty ABC là doanh nghiệp cung cấp dịch vụ đặt xe trực tuyến. Hiện tại,
-khách hàng có thể yêu cầu xe thông qua tổng đài hoặc một ứng dụng đơn giản.
+## 1.2. Bối cảnh kinh doanh — Business Context
 
-Tuy nhiên, hệ thống hiện tại còn nhiều hạn chế:
+### 1.2.1. Hoạt động của doanh nghiệp
 
-- Việc phân công tài xế chủ yếu được thực hiện thủ công.
-- Khách hàng khó theo dõi trạng thái chuyến đi.
-- Thông tin thanh toán chưa được quản lý tập trung.
-- Bộ phận vận hành gặp khó khăn khi muốn mở rộng hệ thống.
+Công ty ABC cung cấp dịch vụ kết nối khách hàng có nhu cầu di chuyển với tài xế. Hoạt động cung cấp dịch vụ cần sự phối hợp giữa khách hàng, tài xế và nhân viên vận hành, từ lúc tiếp nhận yêu cầu đến khi chuyến đi kết thúc và thanh toán được ghi nhận.
 
-Ban lãnh đạo mong muốn xây dựng một nền tảng CAB mới có khả năng phục vụ
-số lượng lớn khách hàng và tài xế, đồng thời có thể phát triển thêm các
-tính năng trong tương lai.
+Hiện tại, khách hàng yêu cầu xe qua tổng đài hoặc một ứng dụng đơn giản. Việc phân công tài xế chủ yếu được thực hiện thủ công. Khách hàng khó theo dõi trạng thái chuyến, thông tin thanh toán chưa được quản lý tập trung và bộ phận vận hành gặp khó khăn khi muốn mở rộng hệ thống.
 
-### 1.2. Business Problem
+### 1.2.2. Các bên tham gia hoạt động
 
-#### 1.2.1. Vấn đề kinh doanh cốt lõi
+| Bên tham gia            | Vai trò và nhu cầu chính                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| Khách hàng              | Đặt xe, theo dõi chuyến, thanh toán, xem lịch sử và đánh giá tài xế                               |
+| Tài xế                  | Quản lý hồ sơ và phương tiện, bật/tắt nhận chuyến, phản hồi lời mời và cập nhật tiến trình chuyến |
+| Nhân viên vận hành      | Quản lý dữ liệu, theo dõi hoạt động và hỗ trợ xử lý sự cố theo quyền                              |
+| Ban lãnh đạo            | Quyết định định hướng phát triển và theo dõi kết quả kinh doanh                                   |
+| Nhà cung cấp thanh toán | Xử lý giao dịch điện tử bên ngoài CAB và cung cấp kết quả giao dịch                               |
 
-Công ty ABC đang gặp khó khăn trong việc quản lý và mở rộng dịch vụ đặt xe
-do quy trình phân công tài xế còn phụ thuộc nhiều vào xử lý thủ công,
-khả năng theo dõi chuyến và quản lý thanh toán còn hạn chế, hoạt động vận hành
-chưa được tập trung và hệ thống hiện tại thiếu khả năng mở rộng linh hoạt.
+Nhà cung cấp thông báo hoặc bản đồ có thể tham gia khi hệ thống tích hợp dịch vụ bên ngoài; tài liệu chưa xác định nhà cung cấp cụ thể.
 
-Điều này ảnh hưởng đến:
+### 1.2.3. Nhu cầu đối với hệ thống mới
 
-- Trải nghiệm của khách hàng.
-- Hiệu quả vận hành.
-- Khả năng kiểm soát hoạt động.
-- Khả năng mở rộng quy mô dịch vụ.
-- Khả năng phát triển các tính năng mới trong tương lai.
+Doanh nghiệp muốn CAB System hỗ trợ quy trình phục vụ thống nhất:
 
-#### 1.2.2. Các vấn đề cụ thể
+1. Người dùng đăng ký, đăng nhập và quản lý thông tin.
+2. Khách hàng gửi yêu cầu đặt xe.
+3. Hệ thống tìm tài xế phù hợp và gửi lời mời nhận chuyến.
+4. Hệ thống tiếp tục tìm người khác nếu tài xế từ chối hoặc không phản hồi.
+5. Tài xế thực hiện chuyến và cập nhật các mốc trạng thái.
+6. Hệ thống tính cước, ghi nhận thanh toán và thông báo kết quả.
+7. Khách hàng xem lịch sử và đánh giá sau chuyến.
 
-| # | Business Problem | Tác động |
-|---|---|---|
-| 1 | Phân công tài xế chủ yếu thủ công | Khó mở rộng và giảm hiệu quả vận hành |
-| 2 | Khách hàng khó theo dõi chuyến đi | Trải nghiệm khách hàng không minh bạch |
-| 3 | Thanh toán chưa được quản lý tập trung | Khó kiểm soát giao dịch |
-| 4 | Khó mở rộng hệ thống | Hạn chế khả năng tăng quy mô dịch vụ |
-| 5 | Vận hành khó theo dõi và xử lý sự cố | Tăng khó khăn trong quản lý |
-| 6 | Hệ thống thông báo thiếu tính linh hoạt | Khó mở rộng thêm các kênh thông báo |
-| 7 | Thiếu dữ liệu quản trị đầy đủ | Khó đánh giá hiệu quả kinh doanh |
+Doanh nghiệp cũng kỳ vọng hệ thống bảo vệ dữ liệu, kiểm soát quyền truy cập và hạn chế ảnh hưởng của lỗi thanh toán hoặc thông báo đến hoạt động đặt xe.
 
-### 1.3. As-Is vs To-Be
+## 1.3. Vấn đề kinh doanh — Business Problem
 
-| As-Is (Hiện tại) | To-Be (Mong muốn) |
-|---|---|
-| Phân công tài xế chủ yếu thủ công | Tự động tìm và ưu tiên tài xế phù hợp |
-| Khó theo dõi trạng thái chuyến | Khách hàng theo dõi được trạng thái chuyến |
-| Thanh toán chưa tập trung | Quản lý quy trình thanh toán tập trung |
-| Vận hành khó kiểm soát | Có giao diện quản trị tập trung |
-| Khó mở rộng hệ thống | Các thành phần có thể mở rộng độc lập |
-| Thông báo chưa linh hoạt | Có khả năng mở rộng nhiều kênh thông báo |
-| Dữ liệu quản trị chưa đầy đủ | Có báo cáo phục vụ quản trị |
+### 1.3.1. Phát biểu vấn đề tổng quát
 
-### 1.4. Business Objectives
+**Công ty ABC thiếu một hệ thống hỗ trợ xuyên suốt quy trình đặt xe, phân công tài xế, theo dõi chuyến và quản lý thanh toán.** Việc phân công chủ yếu thủ công cùng thông tin chuyến và thanh toán chưa được quản lý hiệu quả gây khó khăn cho quá trình phục vụ khách hàng và điều hành hoạt động.
 
-Các mục tiêu kinh doanh được xác định từ yêu cầu của khách hàng:
+### 1.3.2. Các vấn đề cụ thể
 
-- Xây dựng nền tảng đặt xe có khả năng phục vụ số lượng lớn khách hàng và
-  tài xế.
-- Số hóa quy trình từ đặt xe đến hoàn thành chuyến.
-- Tự động hóa việc tìm và phân công tài xế.
-- Cải thiện khả năng theo dõi chuyến đi.
-- Quản lý tập trung thông tin chuyến đi và thanh toán.
-- Hỗ trợ nhân viên vận hành quản lý và xử lý sự cố.
-- Cung cấp dữ liệu và báo cáo cho ban lãnh đạo.
-- Đảm bảo kiến trúc đủ linh hoạt để phát triển các dịch vụ và tính năng mới.
+| Mã   | Vấn đề được tài liệu xác nhận                      | Đối tượng bị ảnh hưởng                       | Tác động có thể phát sinh — phân tích                                                       | Nhu cầu giải quyết                                                                       |
+| ---- | -------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| BP01 | Phân công tài xế chủ yếu thủ công                  | Khách hàng, tài xế, nhân viên vận hành       | Có thể kéo dài thời gian tìm xe và tăng công việc điều phối khi yêu cầu tăng                | Tự động tìm tài xế phù hợp; tiếp tục mời người khác khi bị từ chối hoặc hết hạn phản hồi |
+| BP02 | Khách hàng khó theo dõi trạng thái chuyến          | Khách hàng, nhân viên vận hành               | Khách hàng thiếu thông tin để biết tiến trình phục vụ và có thể phải liên hệ hỏi trạng thái | Cung cấp trạng thái yêu cầu, thông tin tài xế, tiến trình chuyến và thông báo            |
+| BP03 | Thông tin thanh toán chưa được quản lý tập trung   | Khách hàng, nhân viên vận hành, ban lãnh đạo | Có thể khó đối chiếu khoản phải trả, kết quả giao dịch và các lần thanh toán thất bại       | Gắn cước và kết quả thanh toán với từng chuyến; kiểm soát xử lý lại và ghi nhận trùng    |
+| BP04 | Bộ phận vận hành gặp khó khăn khi mở rộng hệ thống | Nhân viên vận hành, ban lãnh đạo             | Có thể hạn chế khả năng phục vụ thêm người dùng hoặc bổ sung chức năng                      | Tổ chức trách nhiệm các thành phần rõ ràng và xác định giới hạn triển khai               |
 
-## 2. Stakeholder Analysis
+### 1.3.3. Những kết luận chưa đủ căn cứ
 
-### 2.1. Stakeholder
+Tài liệu chưa cung cấp số liệu về thời gian chờ xe, lượng người dùng, tỷ lệ hủy, số giao dịch lỗi hoặc mức tải. Vì vậy:
 
-| Stakeholder | Vai trò |
-|---|---|
-| **Khách hàng** | Đăng ký tài khoản, đăng nhập, cập nhật thông tin cá nhân, đặt xe, theo dõi chuyến đi, xem lịch sử chuyến, thanh toán và đánh giá tài xế. |
-| **Tài xế** | Đăng ký hoặc được tạo tài khoản, quản lý hồ sơ và phương tiện, cập nhật trạng thái hoạt động, nhận/từ chối chuyến và cập nhật trạng thái chuyến đi. |
-| **Nhân viên vận hành** | Quản lý khách hàng, tài xế, phương tiện và chuyến đi; theo dõi các chuyến đang diễn ra, trạng thái tài xế, xử lý sự cố và tra cứu lịch sử giao dịch. |
-| **Ban lãnh đạo** | Theo dõi và sử dụng các báo cáo về số lượng chuyến, doanh thu, tỷ lệ hoàn thành, tỷ lệ hủy và hiệu quả hoạt động của tài xế. |
-| **Nhà cung cấp thanh toán** | Cung cấp dịch vụ thanh toán điện tử bên ngoài cho hệ thống CAB. |
-| **Nhà cung cấp thông báo** | Cung cấp các kênh thông báo cho khách hàng và tài xế, đồng thời có khả năng mở rộng thêm các kênh trong tương lai. |
+- Chưa thể đặt mục tiêu cải thiện bằng phần trăm từ hiện trạng.
+- Không có căn cứ kết luận doanh nghiệp đã thất thoát tiền, mất khách hàng hoặc giảm doanh thu.
+- Khó khăn mở rộng chưa chứng minh nguyên nhân nằm hoàn toàn ở kiến trúc phần mềm.
+- Kỳ vọng chịu tải lớn và hoạt động ổn định chưa phải chỉ tiêu nghiệm thu định lượng.
+
+## 1.4. Định hướng cho phiên bản cơ bản
+
+Phiên bản cơ bản tập trung vào quy trình **đặt xe → nhận chuyến → thực hiện chuyến → tính cước → thanh toán → đánh giá**, với ba vai trò `CUSTOMER`, `DRIVER`, `ADMIN`.
+
+Thanh toán điện tử được giả lập bằng payment mock. Vị trí và thông báo được triển khai ở mức đủ để minh họa và kiểm thử nghiệp vụ. Các lựa chọn này là giới hạn của bản demo, không phải nội dung khách hàng đã yêu cầu trong tài liệu gốc.
+
+Report, support case, audit query và cam kết vận hành thương mại được ghi nhận ngoài phạm vi cơ bản. Bảo mật, phân quyền, bảo vệ dữ liệu và log kỹ thuật cần thiết vẫn thuộc phạm vi thực hiện.
+
+## 1.5. Thông tin cần đối chiếu khi viết các phần tiếp theo
+
+Công thức cước, thời hạn phản hồi, giới hạn tìm tài xế, điều kiện hủy, phí hủy và chính sách retry thanh toán chưa có giá trị cụ thể trong tài liệu khách hàng.
+
+Khi viết các phần tiếp theo, cần sử dụng bảng quy tắc demo đã chốt ở Giai đoạn 2 và ghi rõ nguồn của từng quy tắc. Các thông số demo phải được xác định cụ thể trước khi dùng làm cơ sở cho AC và TestCase.
+
+## 2. Các bên liên quan — Stakeholders
+
+**Cần phân biệt stakeholder với vai trò đăng nhập:** ban lãnh đạo và nhà cung cấp vẫn là stakeholder dù không có tài khoản trong bản demo. Mức ảnh hưởng thấp trong ma trận cũng không có nghĩa stakeholder ít quan trọng.
+
+### 2.1. Danh sách stakeholders
+
+| Tên stakeholder                                | Vai trò                                                                                                                                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Khách hàng — Customer                          | Đặt xe, theo dõi chuyến, thanh toán, xem lịch sử và đánh giá tài xế; cung cấp phản hồi về trải nghiệm sử dụng.                                                     |
+| Tài xế — Driver                                | Cung cấp hồ sơ và thông tin xe, bật/tắt nhận chuyến, chấp nhận hoặc từ chối lời mời và cập nhật tiến trình chuyến.                                                 |
+| Nhân viên vận hành — Operations Staff          | Quản lý dữ liệu và theo dõi hoạt động theo quyền. Trong bản demo, vai trò `ADMIN` đại diện cho các chức năng quản trị cơ bản, gồm duyệt hoặc từ chối hồ sơ tài xế. |
+| Ban lãnh đạo Công ty ABC — Leadership          | Quyết định mục tiêu, ưu tiên và phạm vi dự án. Nhu cầu báo cáo được ghi nhận nhưng nằm ngoài phạm vi bản demo cơ bản.                                              |
+| Nhà cung cấp thanh toán — Payment Provider     | Xử lý thanh toán điện tử và trả kết quả giao dịch. Trong bản demo, bên này được thay bằng payment mock.                                                            |
+| Nhà cung cấp thông báo — Notification Provider | Cung cấp kênh gửi thông báo nếu có tích hợp bên ngoài. Đây là stakeholder dự kiến; bản demo sử dụng thông báo nội bộ.                                              |
 
 ### 2.2. Stakeholder Matrix
 
-Ma trận stakeholder được xây dựng dựa trên hai tiêu chí:
+Ma trận đánh giá stakeholder **đối với dự án**, sử dụng hai trục:
 
-- **Influence:** Mức độ ảnh hưởng hoặc quyền quyết định đối với hệ thống.
-- **Interest:** Mức độ quan tâm và mức độ liên quan của stakeholder đối với hệ thống.
+- **Interest — Mức độ quan tâm:** mức độ quan tâm hoặc chịu tác động bởi kết quả dự án.
+- **Influence — Mức độ ảnh hưởng:** khả năng tác động đến quyết định, phạm vi và yêu cầu dự án.
+
+Các vị trí dưới đây là đánh giá định tính được đề xuất, không phải số liệu đo lường. Payment mock và thông báo nội bộ làm giảm ảnh hưởng của nhà cung cấp bên ngoài trong phạm vi demo.
 
 ```mermaid
 quadrantChart
-    title Stakeholder Matrix - CAB System
-    x-axis Low Interest --> High Interest
-    y-axis Low Influence --> High Influence
+    title Stakeholder Matrix
+    x-axis "Quan tâm thấp" --> "Quan tâm cao"
+    y-axis "Ảnh hưởng thấp" --> "Ảnh hưởng cao"
+    quadrant-1 "Phối hợp chặt chẽ"
+    quadrant-2 "Duy trì sự hài lòng"
+    quadrant-3 "Theo dõi"
+    quadrant-4 "Thường xuyên lấy phản hồi"
 
-    quadrant-1 "Keep Satisfied"
-    quadrant-2 "Manage Closely"
-    quadrant-3 "Monitor"
-    quadrant-4 "Keep Informed"
-
-    "Ban lãnh đạo": [0.75, 0.90]
-    "Nhân viên vận hành": [0.90, 0.80]
-
-    "Nhà cung cấp thanh toán": [0.50, 0.75]
-    "Nhà cung cấp thông báo": [0.40, 0.65]
-
-    "Khách hàng": [0.85, 0.35]
-    "Tài xế": [0.80, 0.30]
+    "Ban lãnh đạo": [0.85, 0.95]
+    "Nhân viên vận hành": [0.80, 0.75]
+    "Khách hàng": [0.95, 0.35]
+    "Tài xế": [0.85, 0.40]
+    "Nhà cung cấp thanh toán": [0.30, 0.25]
+    "Nhà cung cấp thông báo": [0.20, 0.15]
 ```
-## 3. Business Goals
 
-Business Goals (BG) được xác định dựa trên các vấn đề kinh doanh và kỳ vọng
-của Công ty ABC. Mỗi Business Goal mô tả một kết quả mà doanh nghiệp mong
-muốn đạt được, trong khi hệ thống sẽ cung cấp các chức năng và khả năng cần
-thiết để hỗ trợ đạt được mục tiêu đó.
-
-### 3.1. Danh sách Business Goals
-
-| ID | Business Goal | Mục đích / System Support |
-|---|---|---|
-| **BG01** | **Giảm thời gian tìm và phân công tài xế** | Hệ thống tự động xác định và ưu tiên tài xế phù hợp dựa trên vị trí, trạng thái sẵn sàng và các tiêu chí vận hành. |
-| **BG02** | **Hỗ trợ và quản lý thanh toán** | Cho phép khách hàng thanh toán bằng tiền mặt hoặc phương thức điện tử; tích hợp với nhà cung cấp thanh toán bên ngoài và không lưu thông tin thanh toán nhạy cảm trực tiếp trong hệ thống CAB. |
-| **BG03** | **Cải thiện khả năng theo dõi chuyến đi** | Cho phép khách hàng biết trạng thái yêu cầu, tài xế đã nhận chuyến, thời gian dự kiến tài xế đến và trạng thái hiện tại của chuyến đi. |
-| **BG04** | **Nâng cao hiệu quả vận hành** | Cung cấp giao diện quản trị để nhân viên vận hành quản lý khách hàng, tài xế, phương tiện và chuyến đi; theo dõi chuyến đang diễn ra và xử lý các trường hợp chuyến bị lỗi. |
-| **BG05** | **Cải thiện khả năng giao tiếp và thông báo** | Gửi thông báo cho khách hàng và tài xế tại các thời điểm quan trọng trong vòng đời chuyến đi và cho phép mở rộng thêm các kênh thông báo trong tương lai. |
-| **BG06** | **Nâng cao khả năng quản trị và ra quyết định** | Cung cấp dữ liệu và báo cáo về số lượng chuyến, doanh thu, tỷ lệ chuyến hoàn thành, tỷ lệ hủy và hiệu quả hoạt động của tài xế. |
-| **BG07** | **Đảm bảo khả năng mở rộng của hệ thống** | Cho phép các thành phần của hệ thống mở rộng độc lập khi tải tăng và cho phép triển khai chức năng mới từng phần mà hạn chế ảnh hưởng đến các chức năng đang hoạt động. |
-| **BG08** | **Đảm bảo tính bảo mật và khả năng kiểm soát hệ thống** | Xác thực người dùng, kiểm soát quyền truy cập các chức năng quản trị, bảo vệ dữ liệu cá nhân, dữ liệu phương tiện, vị trí và giao dịch; lưu vết các thao tác quan trọng. |
-| **BG09** | **Nâng cao trải nghiệm khách hàng sau chuyến đi** | Cho phép khách hàng xem lịch sử chuyến đi, số tiền phải trả và đánh giá tài xế sau khi chuyến hoàn thành. |
-| **BG10** | **Tăng khả năng phát triển dịch vụ trong tương lai** | Xây dựng nền tảng đủ linh hoạt để bổ sung loại dịch vụ, phương thức thanh toán, nhà cung cấp thông báo hoặc thay đổi thành phần kỹ thuật mà không phải xây dựng lại toàn bộ ứng dụng. |
-
-### 3.2. Chi tiết Business Goals
-
-#### BG01 — Giảm thời gian tìm và phân công tài xế
-
-**Business Goal:**
-
-Giảm thời gian cần thiết để tìm và phân công tài xế phù hợp cho một yêu cầu
-đặt xe.
-
-**System Support:**
-
-- Tự động xác định các tài xế phù hợp.
-- Ưu tiên tài xế gần khách hàng.
-- Xem xét trạng thái sẵn sàng của tài xế.
-- Xem xét các tiêu chí vận hành khác.
-- Tự động tiếp tục tìm tài xế khác khi tài xế được đề xuất không phản hồi
-  hoặc từ chối.
-- Thông báo cho khách hàng khi không tìm được tài xế.
-
----
-
-#### BG02 — Hỗ trợ và quản lý thanh toán
-
-**Business Goal:**
-
-Đảm bảo khách hàng có thể thanh toán chuyến đi bằng các phương thức phù hợp
-và doanh nghiệp có thể quản lý kết quả thanh toán.
-
-**System Support:**
-
-- Tính số tiền khách hàng phải trả sau khi chuyến hoàn thành.
-- Hỗ trợ thanh toán bằng tiền mặt.
-- Hỗ trợ thanh toán điện tử.
-- Tích hợp với nhà cung cấp thanh toán bên ngoài.
-- Không lưu trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán.
-- Thông báo kết quả thanh toán cho khách hàng.
-- Cho phép xử lý lại khi thanh toán điện tử thất bại theo chính sách doanh nghiệp.
-
----
-
-#### BG03 — Cải thiện khả năng theo dõi chuyến đi
-
-**Business Goal:**
-
-Tăng tính minh bạch của quá trình đặt và thực hiện chuyến đối với khách hàng.
-
-**System Support:**
-
-- Hiển thị trạng thái đang tìm tài xế.
-- Hiển thị tài xế đã nhận chuyến.
-- Hiển thị thời gian dự kiến tài xế đến.
-- Theo dõi trạng thái hiện tại của chuyến.
-- Thông báo các thay đổi quan trọng trong quá trình thực hiện chuyến.
-
----
-
-#### BG04 — Nâng cao hiệu quả vận hành
-
-**Business Goal:**
-
-Giúp nhân viên vận hành có khả năng theo dõi, quản lý và xử lý hoạt động
-đặt xe từ một hệ thống tập trung.
-
-**System Support:**
-
-- Quản lý khách hàng.
-- Quản lý tài xế.
-- Quản lý phương tiện.
-- Quản lý chuyến đi.
-- Theo dõi các chuyến đang diễn ra.
-- Kiểm tra trạng thái tài xế.
-- Xử lý các trường hợp chuyến bị lỗi.
-- Tra cứu lịch sử giao dịch.
-- Phân quyền các chức năng quản trị.
-
----
-
-#### BG05 — Cải thiện khả năng giao tiếp và thông báo
-
-**Business Goal:**
-
-Đảm bảo khách hàng và tài xế nhận được thông tin kịp thời trong quá trình
-đặt và thực hiện chuyến.
-
-**System Support:**
-
-- Thông báo khi yêu cầu đặt xe được tiếp nhận.
-- Thông báo khi tài xế nhận chuyến.
-- Thông báo khi tài xế đến điểm đón.
-- Thông báo khi chuyến hoàn thành.
-- Thông báo kết quả thanh toán.
-- Thông báo cho tài xế về chuyến mới hoặc thay đổi liên quan đến chuyến đang
-  thực hiện.
-- Hỗ trợ mở rộng thêm các kênh thông báo trong tương lai.
-
----
-
-#### BG06 — Nâng cao khả năng quản trị và ra quyết định
-
-**Business Goal:**
-
-Cung cấp dữ liệu cần thiết để ban lãnh đạo theo dõi và đánh giá hiệu quả
-kinh doanh và vận hành.
-
-**System Support:**
-
-- Báo cáo số lượng chuyến.
-- Báo cáo doanh thu.
-- Báo cáo tỷ lệ chuyến hoàn thành.
-- Báo cáo tỷ lệ hủy.
-- Báo cáo hiệu quả hoạt động của tài xế.
-
----
-
-#### BG07 — Đảm bảo khả năng mở rộng của hệ thống
-
-**Business Goal:**
-
-Đảm bảo hệ thống có thể tiếp tục hoạt động khi số lượng khách hàng, tài xế
-và tải hệ thống tăng lên.
-
-**System Support:**
-
-- Cho phép các thành phần mở rộng độc lập khi tải tăng.
-- Hạn chế việc một lỗi tại thanh toán hoặc thông báo làm toàn bộ hệ thống
-  đặt xe ngừng hoạt động.
-- Cho phép triển khai chức năng mới từng phần.
-- Hạn chế ảnh hưởng của chức năng mới đến các chức năng đang hoạt động.
-
----
-
-#### BG08 — Đảm bảo tính bảo mật và khả năng kiểm soát hệ thống
-
-**Business Goal:**
-
-Bảo vệ dữ liệu và đảm bảo các thao tác trong hệ thống được thực hiện bởi
-đúng đối tượng có quyền.
-
-**System Support:**
-
-- Xác thực khách hàng và tài xế trước khi sử dụng chức năng yêu cầu tài khoản.
-- Kiểm soát quyền truy cập các chức năng quản trị.
-- Bảo vệ thông tin cá nhân.
-- Bảo vệ thông tin phương tiện.
-- Bảo vệ dữ liệu vị trí.
-- Bảo vệ dữ liệu giao dịch.
-- Lưu vết các thao tác quan trọng để phục vụ kiểm tra khi có sự cố.
-
----
-
-#### BG09 — Nâng cao trải nghiệm khách hàng sau chuyến đi
-
-**Business Goal:**
-
-Cải thiện trải nghiệm khách hàng sau khi hoàn thành chuyến và tạo cơ sở để
-doanh nghiệp thu thập phản hồi về chất lượng tài xế.
-
-**System Support:**
-
-- Cho phép xem lịch sử chuyến đi.
-- Cho phép xem số tiền phải trả.
-- Cho phép đánh giá tài xế sau khi chuyến hoàn thành.
-
----
-
-#### BG10 — Tăng khả năng phát triển dịch vụ trong tương lai
-
-**Business Goal:**
-
-Xây dựng nền tảng CAB có khả năng phát triển lâu dài mà không phải xây dựng
-lại toàn bộ hệ thống khi có nhu cầu kinh doanh mới.
-
-**System Support:**
-
-- Có khả năng bổ sung loại dịch vụ mới.
-- Có khả năng bổ sung phương thức thanh toán mới.
-- Có khả năng bổ sung nhà cung cấp thông báo mới.
-- Có khả năng thay đổi một số thành phần kỹ thuật.
-- Hạn chế ảnh hưởng đến các thành phần đang hoạt động khi mở rộng hệ thống.
-
-### 3.3. Business Goal Summary
-
-| ID | Business Goal | Priority |
-|---|---|---|
-| **BG01** | Giảm thời gian tìm và phân công tài xế | High |
-| **BG02** | Hỗ trợ và quản lý thanh toán | High |
-| **BG03** | Cải thiện khả năng theo dõi chuyến đi | High |
-| **BG04** | Nâng cao hiệu quả vận hành | High |
-| **BG05** | Cải thiện khả năng giao tiếp và thông báo | High |
-| **BG06** | Nâng cao khả năng quản trị và ra quyết định | Medium |
-| **BG07** | Đảm bảo khả năng mở rộng của hệ thống | High |
-| **BG08** | Đảm bảo tính bảo mật và khả năng kiểm soát hệ thống | High |
-| **BG09** | Nâng cao trải nghiệm khách hàng sau chuyến đi | Medium |
-| **BG10** | Tăng khả năng phát triển dịch vụ trong tương lai | High |
-
-> **Note:** Priority là đánh giá ban đầu dựa trên mức độ quan trọng thể hiện
-> trong yêu cầu khách hàng. Tài liệu chưa cung cấp thứ tự ưu tiên chính thức
-> từ phía doanh nghiệp, vì vậy cần xác nhận lại với stakeholder trong các bước
-> phân tích tiếp theo.
-
-## 4. Scope
-
-### 4.1. Scope Definition
-
-Phạm vi của CAB System tập trung vào việc xây dựng một nền tảng đặt xe trực tuyến
-hỗ trợ toàn bộ quy trình nghiệp vụ chính:
-
-**Đặt xe → Tìm tài xế → Phân công tài xế → Thực hiện chuyến → Tính cước →
-Thanh toán → Thông báo → Đánh giá → Quản trị và báo cáo**
-
-Phạm vi được xác định dựa trên yêu cầu của khách hàng và thời gian xây dựng,
-triển khai sản phẩm dự kiến là **7 tuần**.
-
----
-
-### 4.2. In Scope
-
-Các chức năng sau nằm trong phạm vi xây dựng của hệ thống CAB:
-
-#### 4.2.1. Quản lý khách hàng
-
-- Đăng ký tài khoản.
-- Đăng nhập.
-- Cập nhật thông tin cá nhân.
-- Nhập điểm đón và điểm đến.
-- Lựa chọn loại xe.
-- Gửi yêu cầu đặt xe.
-- Theo dõi trạng thái chuyến đi.
-- Xem lịch sử chuyến đi.
-- Xem số tiền phải trả.
-- Đánh giá tài xế sau khi hoàn thành chuyến.
-
-#### 4.2.2. Quản lý tài xế
-
-- Đăng ký tài khoản hoặc được nhân viên vận hành tạo tài khoản.
-- Cập nhật hồ sơ tài xế.
-- Quản lý thông tin phương tiện.
-- Cập nhật trạng thái hoạt động.
-- Chuyển sang trạng thái sẵn sàng nhận chuyến.
-- Nhận thông báo về chuyến mới.
-- Chấp nhận hoặc từ chối chuyến.
-- Cập nhật trạng thái chuyến:
-  - Đã đến điểm đón.
-  - Đã đón khách.
-  - Đang di chuyển.
-  - Hoàn thành chuyến.
-- Lưu thông tin vị trí của tài xế.
-
-#### 4.2.3. Quản lý đặt xe và phân công tài xế
-
-- Tiếp nhận yêu cầu đặt xe.
-- Xác định tài xế phù hợp.
-- Xem xét vị trí của tài xế.
-- Xem xét trạng thái sẵn sàng của tài xế.
-- Áp dụng các tiêu chí vận hành để lựa chọn tài xế.
-- Ưu tiên tài xế phù hợp và gần khách hàng.
-- Gửi yêu cầu đến tài xế.
-- Xử lý trường hợp tài xế không phản hồi.
-- Xử lý trường hợp tài xế từ chối.
-- Tiếp tục tìm tài xế khác mà không yêu cầu khách hàng tạo lại yêu cầu.
-- Thông báo cho khách hàng khi không tìm được tài xế.
-
-#### 4.2.4. Quản lý chuyến đi
-
-- Quản lý vòng đời của chuyến đi.
-- Cập nhật trạng thái chuyến.
-- Theo dõi chuyến đang diễn ra.
-- Lưu thông tin chuyến đi.
-- Liên kết khách hàng, tài xế và phương tiện với chuyến đi.
-- Lưu lịch sử chuyến đi.
-
-#### 4.2.5. Tính cước
-
-- Xác định số tiền khách hàng phải trả sau khi chuyến hoàn thành.
-- Tính cước dựa trên loại dịch vụ và thông tin chuyến đi.
-
-> **Note:** Chi tiết công thức tính cước chưa được khách hàng chốt và phải
-> được BA làm rõ trước khi triển khai.
-
-#### 4.2.6. Thanh toán
-
-- Hỗ trợ thanh toán bằng tiền mặt.
-- Hỗ trợ thanh toán điện tử.
-- Tích hợp với nhà cung cấp thanh toán bên ngoài.
-- Không lưu trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán.
-- Ghi nhận kết quả giao dịch.
-- Thông báo kết quả thanh toán.
-- Xử lý lại giao dịch thanh toán điện tử thất bại theo chính sách doanh nghiệp.
-
-#### 4.2.7. Thông báo
-
-- Thông báo khi yêu cầu đặt xe được tiếp nhận.
-- Thông báo khi tài xế nhận chuyến.
-- Thông báo khi tài xế đến điểm đón.
-- Thông báo khi chuyến hoàn thành.
-- Thông báo kết quả thanh toán.
-- Thông báo cho tài xế về chuyến mới.
-- Thông báo cho tài xế về thay đổi liên quan đến chuyến đang thực hiện.
-- Thiết kế khả năng mở rộng thêm các kênh thông báo trong tương lai.
-
-#### 4.2.8. Quản trị và vận hành
-
-- Quản lý khách hàng.
-- Quản lý tài xế.
-- Quản lý phương tiện.
-- Quản lý chuyến đi.
-- Theo dõi các chuyến đang diễn ra.
-- Kiểm tra trạng thái tài xế.
-- Xử lý các trường hợp chuyến bị lỗi.
-- Tra cứu lịch sử giao dịch.
-- Phân quyền các chức năng quản trị.
-
-#### 4.2.9. Báo cáo
-
-Hệ thống cần hỗ trợ báo cáo:
-
-- Số lượng chuyến.
-- Doanh thu.
-- Tỷ lệ chuyến hoàn thành.
-- Tỷ lệ hủy.
-- Hiệu quả hoạt động của tài xế.
-
-#### 4.2.10. Bảo mật và kiểm soát truy cập
-
-- Xác thực khách hàng và tài xế.
-- Kiểm soát quyền truy cập chức năng quản trị.
-- Bảo vệ thông tin cá nhân.
-- Bảo vệ thông tin phương tiện.
-- Bảo vệ dữ liệu vị trí.
-- Bảo vệ dữ liệu giao dịch.
-- Lưu vết các thao tác quan trọng.
-
----
-
-### 4.3. Out of Scope
-
-Các nội dung sau **không nên tự đưa vào phạm vi triển khai hiện tại** vì
-tài liệu khách hàng chưa yêu cầu hoặc chưa cung cấp đủ thông tin để xác định
-yêu cầu cụ thể:
-
-- Tự phát triển hệ thống thanh toán riêng thay cho nhà cung cấp bên ngoài.
-- Lưu trữ trực tiếp thông tin thẻ hoặc thông tin tài khoản thanh toán nhạy cảm.
-- Tự xây dựng hệ thống cung cấp dịch vụ thông báo thay cho các nhà cung cấp
-  bên ngoài.
-- Tự xác định công thức tính cước khi khách hàng chưa chốt quy tắc.
-- Tự xác định tiêu chí ưu tiên tài xế khi chưa được khách hàng xác nhận.
-- Tự xác định thời gian tài xế phải phản hồi.
-- Tự xác định chính sách hủy chuyến.
-- Tự quyết định thời gian lưu trữ dữ liệu.
-- Tự quyết định cách xử lý mất kết nối mạng khi chưa có chính sách nghiệp vụ.
-- Các loại dịch vụ mới chưa được yêu cầu trong giai đoạn hiện tại.
-- Các phương thức thanh toán mới chưa được xác định.
-- Các kênh thông báo mới chưa được xác định cụ thể.
-- Các thành phần kỹ thuật mới không phục vụ trực tiếp phạm vi CAB hiện tại.
-
-> **Important:** Out of Scope ở đây không có nghĩa là các chức năng trên sẽ
-> không bao giờ được xây dựng. Một số nội dung được đưa vào **Future Scope**
-> hoặc **Open Questions** thay vì loại bỏ vĩnh viễn.
-
----
-
-### 4.4. Future Scope
-
-Các khả năng được khách hàng định hướng cho tương lai:
-
-- Bổ sung các loại dịch vụ mới.
-- Bổ sung phương thức thanh toán mới.
-- Bổ sung nhà cung cấp thông báo.
-- Thay đổi các thành phần kỹ thuật.
-- Mở rộng hệ thống khi số lượng khách hàng và tài xế tăng.
-- Triển khai thêm các chức năng mà không ảnh hưởng lớn đến hệ thống hiện tại.
-
-Mục tiêu của kiến trúc hiện tại là tạo nền tảng đủ linh hoạt để các khả năng
-trên có thể được bổ sung mà không cần xây dựng lại toàn bộ ứng dụng.
-
----
-
-### 4.5. Module của hệ thống
-
-Dựa trên phạm vi nghiệp vụ, hệ thống CAB có thể được chia thành các module
-cơ bản sau:
-
-| Module | Nội dung chính | Phạm vi |
-|---|---|---|
-| **M01 - Customer Management** | Tài khoản, thông tin cá nhân, lịch sử chuyến, đánh giá | In Scope |
-| **M02 - Driver Management** | Hồ sơ tài xế, phương tiện, trạng thái hoạt động | In Scope |
-| **M03 - Booking Management** | Tạo và quản lý yêu cầu đặt xe | In Scope |
-| **M04 - Driver Matching** | Tìm kiếm và phân công tài xế | In Scope |
-| **M05 - Trip Management** | Quản lý trạng thái và vòng đời chuyến | In Scope |
-| **M06 - Fare Management** | Tính cước chuyến đi | In Scope |
-| **M07 - Payment Management** | Thanh toán tiền mặt và điện tử | In Scope |
-| **M08 - Notification** | Gửi thông báo cho khách hàng và tài xế | In Scope |
-| **M09 - Operation/Admin** | Quản trị và hỗ trợ vận hành | In Scope |
-| **M10 - Reporting** | Báo cáo hoạt động và kinh doanh | In Scope |
-| **M11 - Authentication & Authorization** | Xác thực và phân quyền | In Scope |
-| **M12 - Audit & Logging** | Lưu vết thao tác quan trọng | In Scope |
-| **M13 - External Payment Integration** | Tích hợp nhà cung cấp thanh toán | In Scope |
-| **M14 - Notification Provider Integration** | Tích hợp nhà cung cấp thông báo | In Scope |
-
----
-
-### 4.6. MBB Scope Prioritization
-
-Để kiểm soát phạm vi trong thời gian triển khai **7 tuần**, các hạng mục được
-phân loại thành:
-
-- **Must Build (MB):** Bắt buộc phải có để hệ thống đáp ứng quy trình nghiệp vụ
-  cốt lõi.
-- **Better Build (BB):** Nên xây dựng nếu nguồn lực và thời gian cho phép.
-- **Beyond Build (B):** Không triển khai trong giai đoạn hiện tại, có thể xem
-  xét trong tương lai.
-
-| ID | Module / Requirement | MBB | Lý do |
-|---|---|---|---|
-| **M01** | Customer Management | **MB** | Khách hàng là người tạo và sử dụng yêu cầu đặt xe. |
-| **M02** | Driver Management | **MB** | Cần quản lý tài xế để thực hiện và phân công chuyến. |
-| **M03** | Booking Management | **MB** | Là điểm bắt đầu của toàn bộ quy trình đặt xe. |
-| **M04** | Driver Matching | **MB** | Là chức năng nghiệp vụ cốt lõi và giải quyết trực tiếp vấn đề phân công thủ công. |
-| **M05** | Trip Management | **MB** | Cần quản lý vòng đời chuyến từ nhận chuyến đến hoàn thành. |
-| **M06** | Fare Management | **MB** | Cần xác định số tiền khách hàng phải trả sau chuyến. |
-| **M07** | Payment Management | **MB** | Thanh toán là một phần của quy trình nghiệp vụ cốt lõi. |
-| **M08** | Notification | **MB** | Khách hàng và tài xế cần nhận thông báo trong các trạng thái quan trọng. |
-| **M09** | Operation/Admin | **MB** | Nhân viên vận hành cần quản lý và xử lý các tình huống trong hệ thống. |
-| **M10** | Reporting | **BB** | Quan trọng cho quản trị nhưng không trực tiếp tạo ra quy trình đặt xe. |
-| **M11** | Authentication & Authorization | **MB** | Là yêu cầu bắt buộc về xác thực và kiểm soát quyền truy cập. |
-| **M12** | Audit & Logging | **MB** | Yêu cầu lưu vết các thao tác quan trọng để kiểm tra sự cố. |
-| **M13** | Payment Provider Integration | **MB** | Cần thiết để hỗ trợ thanh toán điện tử theo yêu cầu. |
-| **M14** | Notification Provider Integration | **MB** | Cần thiết để triển khai cơ chế thông báo. |
-| **M15** | Dịch vụ/loại xe mới | **B** | Chưa được yêu cầu cụ thể trong giai đoạn hiện tại. |
-| **M16** | Phương thức thanh toán mới | **B** | Khách hàng chỉ yêu cầu tiền mặt và thanh toán điện tử hiện tại. |
-| **M17** | Nhà cung cấp thông báo mới | **B** | Là khả năng mở rộng trong tương lai. |
-| **M18** | Các thay đổi kỹ thuật không phục vụ yêu cầu hiện tại | **B** | Không thuộc nhu cầu nghiệp vụ của giai đoạn hiện tại. |
-
----
-
-### 4.7. Scope Boundary
-
-Phạm vi hệ thống CAB trong giai đoạn hiện tại được giới hạn như sau:
-
-```text
-                    CAB SYSTEM
-                         │
-        ┌────────────────┼────────────────┐
-        │                │                │
-    CUSTOMER          DRIVER          OPERATION
-        │                │                │
-        └────────────────┼────────────────┘
-                         │
-                    BOOKING
-                         │
-                  DRIVER MATCHING
-                         │
-                       TRIP
-                         │
-                 ┌───────┴───────┐
-                 │               │
-              FARE           NOTIFICATION
-                 │
-              PAYMENT
-                 │
-          EXTERNAL PROVIDER
+### 2.3. Cách phối hợp
+
+- **Ban lãnh đạo và nhân viên vận hành:** phối hợp khi xác định phạm vi, quy tắc nghiệp vụ và nghiệm thu.
+- **Khách hàng và tài xế:** thường xuyên lấy phản hồi, kiểm tra các luồng đặt xe, nhận chuyến và thực hiện chuyến.
+- **Nhà cung cấp thanh toán và thông báo:** theo dõi nhu cầu tích hợp; đánh giá lại mức ảnh hưởng khi chuyển từ giả lập sang dịch vụ thực tế.
+
+## 3. Mục tiêu kinh doanh — Business Goals
+
+**“Hỗ trợ thanh toán” là chức năng, chưa thể hiện rõ kết quả kinh doanh.** Mục tiêu tương ứng nên là giúp khách hàng thanh toán thuận tiện và doanh nghiệp quản lý kết quả thanh toán tập trung. Tương tự, tự động tìm tài xế là chức năng hỗ trợ mục tiêu giảm thời gian phân công.
+
+Các mục tiêu dưới đây giữ mã `BG01–BG10` của SRS hiện tại. Tài liệu chưa cung cấp số liệu ban đầu, nên không tự đặt tỷ lệ cải thiện hoặc cam kết thời gian phục vụ.
+
+### 3.1. Danh sách mục tiêu kinh doanh
+
+| Mã       | Mục tiêu kinh doanh                                                   | Mục đích                                                                       | Chức năng hoặc giải pháp hỗ trợ                                                                                                     |
+| -------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **BG01** | Giảm thời gian tìm và phân công tài xế                                | Giảm thao tác điều phối thủ công và thời gian khách hàng chờ tìm xe            | Tự động tìm tài xế đủ điều kiện gần điểm đón, sắp xếp và gửi lời mời nhận chuyến                                                    |
+| **BG02** | Giúp khách hàng thanh toán thuận tiện và quản lý thanh toán tập trung | Cung cấp lựa chọn thanh toán và ghi nhận rõ khoản phải trả, kết quả giao dịch  | Server tính cước; hỗ trợ tiền mặt và thanh toán điện tử giả lập; ghi nhận callback và retry khi thất bại                            |
+| **BG03** | Tăng tính minh bạch của quá trình phục vụ                             | Giúp khách hàng biết yêu cầu đang được xử lý đến đâu                           | Cung cấp trạng thái đặt xe, thông tin tài xế, tiến trình chuyến và thông báo tại các mốc chính                                      |
+| **BG04** | Nâng cao khả năng đáp ứng yêu cầu đặt xe                              | Hạn chế yêu cầu bị gián đoạn chỉ vì tài xế đầu tiên không nhận chuyến          | Mời tài xế tiếp theo khi bị từ chối hoặc timeout; thông báo rõ khi kết thúc tìm kiếm không thành công                               |
+| **BG05** | Nâng cao hiệu quả quản lý và hỗ trợ vận hành                          | Giúp nhân viên quản lý thông tin và kiểm tra tình trạng hoạt động              | Trong bản demo: `ADMIN` tra cứu dữ liệu cần thiết, duyệt hoặc từ chối hồ sơ tài xế; chưa triển khai support case                    |
+| **BG06** | Cải thiện khả năng theo dõi và đánh giá chất lượng dịch vụ            | Cung cấp lịch sử sử dụng và phản hồi của khách hàng sau chuyến                 | Xem lịch sử chuyến; gửi đánh giá từ 1–5 sao và nhận xét                                                                             |
+| **BG07** | Hỗ trợ ban lãnh đạo ra quyết định dựa trên dữ liệu                    | Giúp đánh giá kết quả kinh doanh và hiệu quả hoạt động                         | Theo yêu cầu gốc: báo cáo chuyến, doanh thu, tỷ lệ hoàn thành và hủy; ngoài phạm vi bản demo                                        |
+| **BG08** | Duy trì khả năng cung cấp dịch vụ khi có sự cố hoặc nhu cầu tăng cao  | Hạn chế gián đoạn hoạt động đặt xe                                             | Trong bản demo: kiểm soát lỗi thanh toán và thông báo, cung cấp health check; chưa cam kết chịu tải lớn hoặc độ sẵn sàng thương mại |
+| **BG09** | Giảm rủi ro truy cập trái phép và sử dụng sai dữ liệu                 | Bảo vệ tài khoản, thông tin cá nhân, vị trí và giao dịch                       | Xác thực, phân quyền theo vai trò và quyền sở hữu dữ liệu; bảo vệ mật khẩu, xác minh callback và ghi log kỹ thuật cần thiết         |
+| **BG10** | Tạo điều kiện mở rộng dịch vụ trong tương lai                         | Giúp bổ sung chức năng hoặc thay đổi tích hợp với mức ảnh hưởng được kiểm soát | Phân chia trách nhiệm theo 8 bounded context; trong bản demo, thể hiện ranh giới service và dữ liệu sở hữu                          |
+
+**BG01 và BG04 có ý nghĩa khác nhau:** BG01 tập trung vào tốc độ phân công; BG04 tập trung vào việc tiếp tục tìm tài xế khi lần mời trước không thành công.
+
+### 3.2. Mức đáp ứng trong bản demo
+
+| Mục tiêu  | Mức đáp ứng                                                                                    |
+| --------- | ---------------------------------------------------------------------------------------------- |
+| BG01–BG04 | Ưu tiên quy trình đặt xe, phân công, theo dõi và thanh toán giả lập                            |
+| BG05–BG06 | Quản trị cơ bản, lịch sử chuyến và đánh giá                                                    |
+| BG07      | Ngoài phạm vi; giữ mã để truy xuất yêu cầu gốc                                                 |
+| BG08      | Kiểm tra xử lý lỗi ở mức local; không suy ra khả năng vận hành thương mại                      |
+| BG09      | Bắt buộc thực hiện bảo mật và kiểm soát truy cập cơ bản                                        |
+| BG10      | Thể hiện qua thiết kế 8 bounded context; chưa coi thiết kế là bằng chứng đã mở rộng thành công |
+
+### 3.3. Cơ sở đánh giá
+
+Bản demo được đánh giá bằng các kịch bản kiểm thử cụ thể: tìm đúng tài xế đủ điều kiện, chuyển sang ứng viên tiếp theo, cập nhật đúng trạng thái, tính đúng cước, không ghi nhận thanh toán trùng và từ chối truy cập sai quyền.
+
+Các kết quả này chứng minh chức năng hỗ trợ mục tiêu kinh doanh. **Chúng chưa chứng minh doanh nghiệp thực tế đã giảm thời gian chờ, tăng tỷ lệ nhận chuyến hoặc cải thiện doanh thu.**
+
+## 4. Phạm vi hệ thống — Scope
+
+**Phạm vi cơ bản vẫn phải bao phủ một quy trình đặt xe hoàn chỉnh.** Đơn giản hóa bằng cách giả lập thanh toán, vị trí và thông báo; đồng thời loại các nghiệp vụ phụ chưa cần triển khai.
+
+Phạm vi dưới đây áp dụng cho bản demo học tập, chạy local bằng Docker Compose. Ba vai trò sử dụng hệ thống là `CUSTOMER`, `DRIVER`, `ADMIN`.
+
+### 4.1. Trong phạm vi — In Scope
+
+| Mã   | Nhóm yêu cầu                  | Nội dung thực hiện                                                                                                                                                                                                      |
+| ---- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SC01 | Quản lý tài khoản             | Đăng ký khách hàng và tài xế; đăng nhập, cấp JWT; xem và cập nhật thông tin cá nhân được phép. Không cho tự đăng ký vai trò `ADMIN`.                                                                                    |
+| SC02 | Quản lý tài xế và phương tiện | Xác thực OTP giả lập khi đăng ký tài xế; gửi hồ sơ ở trạng thái `PENDING`; `ADMIN` duyệt hoặc từ chối. Quản lý một xe đang sử dụng cho mỗi tài xế; cập nhật vị trí và online/offline.                                   |
+| SC03 | Đặt xe                        | Khách hàng nhập điểm đón, điểm đến, chọn loại xe và tạo `Booking`; hệ thống ghi nhận trạng thái đang tìm tài xế.                                                                                                        |
+| SC04 | Tìm và phân công tài xế       | Tìm tài xế đủ điều kiện trong bán kính 1 km; ưu tiên khoảng cách; mời tuần tự, có timeout và giới hạn ứng viên. Tiếp tục tìm khi bị từ chối hoặc hết hạn; thông báo khi không tìm được. Danh sách nearby có phân trang. |
+| SC05 | Thực hiện và theo dõi chuyến  | Tài xế chấp nhận hoặc từ chối lời mời; sau phân công, cập nhật đến điểm đón, bắt đầu, vị trí và hoàn thành `Trip` theo đúng trình tự. Khách hàng xem trạng thái và thông tin tài xế của chuyến mình.                    |
+| SC06 | Hủy chuyến                    | Khách hàng hủy trong trạng thái được phép; cung cấp lý do; hệ thống ghi nhận người hủy, thời điểm và phí theo quy tắc demo. Dừng tìm tài xế hoặc giải phóng phân công tương ứng.                                        |
+| SC07 | Tính cước                     | Server tính và lưu cước bằng công thức demo thống nhất; không nhận số tiền do client tự quyết định.                                                                                                                     |
+| SC08 | Thanh toán                    | Hỗ trợ tiền mặt và payment mock; xác nhận tiền mặt đúng quyền; xác minh callback, xử lý thất bại và retry. Gửi lại yêu cầu hoặc callback không làm ghi nhận thanh toán trùng.                                           |
+| SC09 | Thông báo                     | Lưu và cho người nhận tra cứu thông báo nội bộ về lời mời, phân công, đến điểm đón, hoàn thành, hủy, kết quả thanh toán và kết quả duyệt hồ sơ.                                                                         |
+| SC10 | Lịch sử và đánh giá           | Khách hàng xem Booking history có phân trang, chi tiết chuyến và kết quả thanh toán; đánh giá chuyến đã hoàn thành từ 1–5 sao, tối đa một đánh giá mỗi chuyến.                                                          |
+| SC11 | Quản trị cơ bản               | `ADMIN` xem danh sách và chi tiết hồ sơ tài xế, duyệt hoặc từ chối; tra cứu khách hàng, tài xế, phương tiện, booking, trip và payment theo quyền. Không tùy ý sửa kết quả chuyến hoặc thanh toán.                       |
+| SC13 | Bảo mật và log kỹ thuật       | Xác thực, kiểm tra vai trò và quyền sở hữu dữ liệu; bảo vệ mật khẩu và dữ liệu nhạy cảm; kiểm tra input, rate limit, chống xử lý thanh toán trùng; ghi log phục vụ kiểm tra lỗi.                                        |
+
+`SC12 — Báo cáo cơ bản` được chuyển ra ngoài phạm vi, giữ nguyên mã và không dùng lại cho yêu cầu khác.
+
+### 4.2. Các module cơ bản — Bảng MBB
+
+**Module là nhóm chức năng; không bắt buộc tương ứng một–một với microservice.** Giữ mã MBB cũ, còn trách nhiệm triển khai được phân bổ vào 8 service đã thống nhất.
+
+| Mã    | Module                      | Nên thực hiện                                                                    | Chưa thực hiện                                                  |
+| ----- | --------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| MBB01 | Tài khoản và quyền truy cập | Đăng ký, đăng nhập, JWT, OTP giả lập; kiểm tra vai trò và quyền truy cập dữ liệu | Đăng nhập mạng xã hội, quyền tùy biến, tự đăng ký quản trị      |
+| MBB02 | Tài xế và phương tiện       | Hồ sơ chờ duyệt, duyệt/từ chối, thông tin xe, online/offline, vị trí và nearby   | Xác minh giấy tờ tự động, nhận diện khuôn mặt, bảo dưỡng xe     |
+| MBB03 | Đặt xe và chuyến đi         | Tạo booking, xem trạng thái, thực hiện trip, hủy và xem lịch sử                  | Đặt xe định kỳ, nhiều điểm dừng, ghép chuyến                    |
+| MBB04 | Tìm và phân công tài xế     | Lọc điều kiện, bán kính 1 km, ưu tiên khoảng cách, mời tuần tự và xử lý timeout  | Điều phối bằng AI, tối ưu toàn mạng lưới, mời hàng loạt         |
+| MBB05 | Tính cước và thanh toán     | Công thức cước demo, tiền mặt, payment mock, callback, retry và idempotency      | Thu tiền thật, ví nội bộ, hoàn tiền, hoa hồng và chi trả tài xế |
+| MBB06 | Thông báo                   | Thông báo nội bộ đúng người nhận; tra cứu thông báo; ghi nhận lỗi xử lý          | SMS, email hoặc push từ nhà cung cấp thực tế                    |
+| MBB07 | Đánh giá sau chuyến         | Điểm 1–5 sao, nhận xét và kiểm tra điều kiện đánh giá                            | Phân tích cảm xúc, xếp hạng nâng cao, chỉnh sửa đánh giá        |
+| MBB08 | Quản trị cơ bản             | Duyệt hồ sơ và tra cứu dữ liệu cần thiết theo quyền                              | Report, support case, audit query, dashboard phân tích          |
+
+### 4.3. Ràng buộc triển khai bản demo
+
+| Nội dung            | Phạm vi thực hiện                                                                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Service             | `auth_service`, `customer_service`, `driver_service`, `booking_service`, `trip_service`, `payment_service`, `notification_service`, `rating_service` |
+| Phương tiện         | `Vehicle` thuộc `driver_service`; không tạo `vehicle_service` riêng                                                                                  |
+| Dữ liệu             | Mỗi service sở hữu database MongoDB riêng về mặt logic; có thể dùng chung một MongoDB instance khi chạy local                                        |
+| Gateway             | Các API cung cấp cho client đi qua Gateway; không công khai cổng service nội bộ                                                                      |
+| Giao tiếp           | REST cho lời gọi trực tiếp; dùng một message broker, RabbitMQ hoặc Kafka, cho các sự kiện cần xử lý bất đồng bộ                                      |
+| Chạy hệ thống       | Docker Compose, cấu hình bằng biến môi trường, có dữ liệu demo và hướng dẫn chạy lại                                                                 |
+| Kiểm tra tình trạng | Cung cấp `/health`, `/ready`, `/health/services` qua Gateway                                                                                         |
+| Kiểm thử            | Postman kiểm tra nghiệp vụ và bảo mật; chuẩn bị ít nhất 5 tài xế có trạng thái khác nhau và 5 booking để kiểm tra danh sách                          |
+| Vị trí và ETA       | Dùng tọa độ giả lập; khoảng cách và thời gian đến dự kiến phải ghi rõ là ước tính demo                                                               |
+| Tích hợp bên ngoài  | OTP và thanh toán giả lập; thông báo nội bộ; không lưu thông tin thẻ hoặc tài khoản thanh toán nhạy cảm                                              |
+
+### 4.4. Ngoài phạm vi — Out of Scope
+
+| Nội dung                                                                       | Lý do                                               |
+| ------------------------------------------------------------------------------ | --------------------------------------------------- |
+| Report và dashboard kinh doanh                                                 | Không cần cho quy trình demo chính                  |
+| Support case và quy trình xử lý khiếu nại                                      | Làm tăng nghiệp vụ quản trị và trạng thái xử lý     |
+| Audit query và giao diện tra cứu audit                                         | Chưa cần triển khai; vẫn giữ log kỹ thuật cần thiết |
+| Thanh toán và OTP thực tế                                                      | Sử dụng mock để chạy local và kiểm thử chủ động     |
+| Giá tăng theo nhu cầu, khuyến mãi, ví và chi trả tài xế                        | Vượt phạm vi tính cước và thanh toán cơ bản         |
+| Bản đồ dẫn đường, GPS thiết bị và tối ưu tuyến đường thực tế                   | Dùng tọa độ và cách ước tính demo                   |
+| Ứng dụng mobile và giao diện quản trị đầy đủ                                   | Nghiệm thu backend bằng Postman                     |
+| Chịu tải lớn, SLA thương mại, triển khai không gián đoạn và khôi phục thảm họa | Chưa có hạ tầng và bằng chứng kiểm thử tương ứng    |
+
+### 4.5. Ánh xạ các mục thay đổi phạm vi
+
+| ID cũ | Xử lý trong bản mới                                                | Lý do                                               |
+| ----- | ------------------------------------------------------------------ | --------------------------------------------------- |
+| SC08  | Giữ ID; thay tích hợp cổng thanh toán thử nghiệm bằng payment mock | Giữ nghiệp vụ thanh toán, giảm độ phức tạp tích hợp |
+| SC11  | Giữ ID; giới hạn ở quản trị và tra cứu cơ bản                      | Loại phần hỗ trợ sự cố bằng support case            |
+| SC12  | Giữ ID; đánh dấu ngoài phạm vi                                     | Loại báo cáo khỏi bản demo                          |
+| SC13  | Giữ ID; bảo mật và log kỹ thuật vẫn trong phạm vi                  | Audit query được loại riêng; không loại bảo mật     |
+| MBB08 | Giữ ID; đổi tên từ “Quản trị và báo cáo” thành “Quản trị cơ bản”   | Thu hẹp nội dung module                             |
+
+## 5. Yêu cầu nghiệp vụ — Business Requirements
+
+### 5.1. Các yêu cầu trong phạm vi
+
+| Mã BR | Tên BR                                        | Diễn giải                                                                                                                                                                                                                    |
+| ----- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BR01  | Đặt chuyến xe                                 | Khách hàng cung cấp điểm đón, điểm đến và loại xe để tạo yêu cầu đặt xe. Hệ thống ghi nhận yêu cầu và trạng thái đang tìm tài xế.                                                                                            |
+| BR02  | Quản lý tài khoản người dùng                  | Khách hàng và tài xế có thể đăng ký, đăng nhập, xem và cập nhật thông tin cá nhân được phép. Tài khoản `ADMIN` được tạo bằng cơ chế quản trị, không được tự đăng ký công khai.                                               |
+| BR03  | Quản lý tài xế và phương tiện                 | Tài xế xác thực OTP giả lập, cung cấp hồ sơ và thông tin xe. Hồ sơ gửi duyệt có trạng thái `PENDING`; `ADMIN` duyệt hoặc từ chối và hệ thống thông báo kết quả. Mỗi tài xế có một xe đang sử dụng tại một thời điểm.         |
+| BR04  | Quản lý trạng thái và vị trí tài xế           | Tài xế có thể bật/tắt nhận chuyến và cập nhật vị trí. Chỉ tài xế đáp ứng điều kiện về hồ sơ, phương tiện, trạng thái và vị trí mới được xét nhận chuyến.                                                                     |
+| BR05  | Tìm và phân công tài xế                       | Hệ thống tìm tài xế đủ điều kiện trong bán kính 1 km quanh điểm đón, ưu tiên khoảng cách và chỉ phân công sau khi tài xế chấp nhận hợp lệ. Danh sách tài xế nearby có giới hạn và phân trang.                                |
+| BR06  | Tiếp nhận yêu cầu chuyến xe                   | Tài xế nhận lời mời, xem thông tin cần thiết và chấp nhận hoặc từ chối trong thời hạn demo. Mỗi booking chỉ có một lời mời còn hiệu lực tại một thời điểm.                                                                   |
+| BR07  | Tìm tài xế thay thế                           | Khi tài xế từ chối, hết hạn phản hồi hoặc không còn đủ điều kiện, hệ thống mời ứng viên tiếp theo trong cùng booking. Khi hết ứng viên hoặc đạt giới hạn tìm kiếm, hệ thống thông báo không tìm được tài xế.                 |
+| BR08  | Thực hiện chuyến xe                           | Tài xế được phân công cập nhật đến điểm đón, bắt đầu chuyến, vị trí di chuyển và hoàn thành theo đúng trình tự. Một tài xế không được đồng thời thực hiện hai chuyến chưa kết thúc.                                          |
+| BR09  | Theo dõi chuyến xe                            | Khách hàng xem trạng thái booking, thông tin tài xế đã nhận chuyến và tiến trình trip của mình. Thời gian đến dự kiến, nếu hiển thị, được ghi rõ là ước tính demo.                                                           |
+| BR10  | Hủy chuyến xe                                 | Khách hàng hủy booking hoặc trip của mình trong trạng thái được phép và cung cấp lý do. Hệ thống ghi nhận kết quả, áp dụng phí hủy theo quy tắc demo và thông báo cho các bên liên quan.                                     |
+| BR11  | Tính cước chuyến xe                           | Server xác định và lưu cước khi chuyến hoàn thành bằng công thức demo thống nhất. Khách hàng và tài xế không được tự quyết định hoặc sửa số tiền phải trả.                                                                   |
+| BR12  | Thanh toán chuyến xe                          | Khách hàng thanh toán bằng tiền mặt hoặc thanh toán điện tử giả lập. Hệ thống ghi nhận khoản phải trả và kết quả thanh toán theo chuyến; trạng thái thanh toán được quản lý riêng với trạng thái trip.                       |
+| BR13  | Xử lý thanh toán thất bại                     | Khi thanh toán điện tử thất bại, khách hàng được thông báo và có thể retry theo quy tắc demo. Giao dịch đang chờ kết quả không được mặc nhiên coi là thất bại để tạo lần thanh toán mới.                                     |
+| BR14  | Thông báo nghiệp vụ                           | Hệ thống cung cấp thông báo nội bộ cho đúng người nhận tại các mốc đặt xe, lời mời, phân công, đến điểm đón, hoàn thành, hủy, kết quả thanh toán và kết quả duyệt hồ sơ tài xế.                                              |
+| BR15  | Tra cứu lịch sử chuyến xe                     | Khách hàng xem Booking history có giới hạn, phân trang và chi tiết chuyến thuộc tài khoản của mình. `ADMIN` tra cứu lịch sử trong phạm vi quyền được cấp.                                                                    |
+| BR16  | Đánh giá tài xế                               | Khách hàng đánh giá tài xế của chuyến mình đã hoàn thành bằng điểm từ 1–5 sao và nhận xét tùy chọn. Mỗi trip có tối đa một đánh giá; bản demo chưa hỗ trợ chỉnh sửa đánh giá.                                                |
+| BR17  | Quản trị vận hành cơ bản                      | `ADMIN` tra cứu khách hàng, tài xế, phương tiện, booking và trip; kiểm tra trạng thái hoạt động và xử lý duyệt hồ sơ. Không bao gồm support case hoặc tùy ý sửa kết quả chuyến.                                              |
+| BR18  | Tra cứu giao dịch thanh toán                  | `ADMIN` tra cứu các lần thanh toán, số tiền, phương thức, trạng thái và mã tham chiếu theo chuyến. Chức năng tra cứu không cho phép tự đổi giao dịch thành thành công.                                                       |
+| BR20  | Kiểm soát truy cập và bảo vệ dữ liệu          | Người dùng phải được xác thực và chỉ thao tác trong phạm vi vai trò, quyền sở hữu dữ liệu. Hệ thống bảo vệ mật khẩu, thông tin cá nhân, vị trí và giao dịch; không lưu thông tin thẻ hoặc tài khoản thanh toán nhạy cảm.     |
+| BR21  | Ghi nhận thông tin kỹ thuật phục vụ kiểm tra  | Hệ thống ghi log cần thiết để xác định yêu cầu, thành phần và lỗi phát sinh. Log không chứa mật khẩu, token hoặc dữ liệu nhạy cảm dạng rõ; không cung cấp chức năng audit query trong bản demo.                              |
+| BR22  | Hạn chế gián đoạn do lỗi thành phần           | Lỗi payment mock hoặc xử lý thông báo không được làm mất kết quả nghiệp vụ đã lưu hoặc khiến toàn bộ quy trình đặt xe ngừng hoạt động. Mức đáp ứng được kiểm tra trong môi trường local.                                     |
+| BR23  | Hỗ trợ phát triển và thay đổi từng thành phần | Hệ thống phân chia trách nhiệm theo 8 bounded context đã thống nhất, mỗi service sở hữu dữ liệu của mình. Bản demo cho phép chạy và kiểm tra từng thành phần; chưa cam kết mở rộng theo tải hoặc triển khai không gián đoạn. |
+
+### 5.2. Các yêu cầu thay đổi phạm vi
+
+Không đánh số lại để lấp khoảng trống `BR19`. Các ID có nội dung thay đổi vẫn cần được giữ trong bảng truy xuất.
+
+| Mã BR | Tên BR                             | Diễn giải thay đổi                                                                                                                                   |
+| ----- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BR02  | Quản lý tài khoản người dùng       | Giữ nghiệp vụ tài khoản; chức năng nhân viên tạo tài khoản tài xế trong SRS cũ được chuyển ngoài phạm vi demo. Tài xế tự đăng ký và gửi hồ sơ duyệt. |
+| BR19  | Báo cáo hoạt động kinh doanh       | Giữ ID và đánh dấu **ngoài phạm vi**. Không triển khai báo cáo doanh thu, tỷ lệ hoàn thành, tỷ lệ hủy hoặc hiệu quả tài xế.                          |
+| BR17  | Quản lý và hỗ trợ vận hành         | Thu hẹp thành quản trị cơ bản; loại nghiệp vụ tạo và xử lý support case.                                                                             |
+| BR21  | Lưu vết thao tác quan trọng        | Thu hẹp thành log kỹ thuật cần thiết; loại chức năng tra cứu audit và quy trình quản lý audit chuyên biệt.                                           |
+| BR22  | Duy trì hoạt động cung cấp dịch vụ | Giới hạn ở xử lý lỗi và kiểm tra local; loại cam kết phục vụ tải cao hoặc độ sẵn sàng thương mại.                                                    |
+| BR23  | Hỗ trợ mở rộng hệ thống            | Giới hạn ở phân chia trách nhiệm và triển khai từng service; chưa coi kiến trúc microservice là bằng chứng đã đáp ứng mở rộng thực tế.               |
+
+## 6. Quy trình nghiệp vụ — Business Processes
+
+**Cần chỉnh thứ tự trong ví dụ:** khách hàng nhập điểm đón, điểm đến và loại xe **trước khi hệ thống tạo `Booking`**. Tìm thấy tài xế mới chỉ tạo ra ứng viên; chỉ khi tài xế chấp nhận hợp lệ, hệ thống mới xác nhận phân công và tạo `Trip`.
+
+### 6.1. Danh sách quy trình
+
+| Mã    | Quy trình                            | BR liên quan           | Phạm vi                              |
+| ----- | ------------------------------------ | ---------------------- | ------------------------------------ |
+| BPR01 | Đăng ký và quản lý tài khoản         | BR02, BR20             | Trong phạm vi                        |
+| BPR02 | Chuẩn bị tài xế sẵn sàng nhận chuyến | BR03, BR04, BR14, BR17 | Trong phạm vi                        |
+| BPR03 | Đặt xe, tìm và phân công tài xế      | BR01, BR05–BR07, BR14  | Trong phạm vi                        |
+| BPR04 | Thực hiện và theo dõi chuyến xe      | BR08, BR09, BR14       | Trong phạm vi                        |
+| BPR05 | Hủy booking hoặc trip                | BR10, BR14             | Trong phạm vi                        |
+| BPR06 | Tính cước và thanh toán              | BR11–BR14, BR18        | Trong phạm vi                        |
+| BPR07 | Xem lịch sử và đánh giá tài xế       | BR15, BR16             | Trong phạm vi                        |
+| BPR08 | Hỗ trợ xử lý sự cố                   | BR17 cũ                | Ngoài phạm vi nghiệp vụ support case |
+| BPR09 | Theo dõi báo cáo hoạt động           | BR19                   | Ngoài phạm vi                        |
+
+### 6.2. BPR01 — Đăng ký và quản lý tài khoản
+
+**Tác nhân:** Khách hàng, tài xế, `ADMIN`.
+
+**Luồng chính:**
+
+1. Người dùng chọn đăng ký `CUSTOMER` hoặc `DRIVER`.
+2. Người dùng nhập thông tin đăng ký.
+3. Hệ thống kiểm tra thông tin bắt buộc, định dạng, mật khẩu và định danh không trùng.
+4. Với tài xế, hệ thống yêu cầu xác thực số điện thoại bằng OTP giả lập trước khi hoàn tất đăng ký.
+5. Hệ thống tạo tài khoản và lưu mật khẩu đã băm.
+6. Người dùng nhập thông tin đăng nhập.
+7. Hệ thống xác thực và cấp JWT chứa vai trò phù hợp.
+8. Người dùng xem hoặc cập nhật các trường thông tin cá nhân được phép.
+
+**Thay thế và ngoại lệ:**
+
+- Dữ liệu sai hoặc định danh trùng → từ chối tạo tài khoản, thông báo nội dung cần sửa.
+- OTP sai hoặc hết hạn → chưa hoàn tất đăng ký tài xế.
+- Đăng nhập sai hoặc tài khoản không được phép hoạt động → không cấp token.
+- Người dùng gửi vai trò `ADMIN` khi đăng ký công khai → từ chối.
+
+**Kết quả:** Tài khoản hợp lệ được tạo và có thể đăng nhập. Có tài khoản `DRIVER` chưa đồng nghĩa được nhận chuyến.
+
+### 6.3. BPR02 — Chuẩn bị tài xế sẵn sàng nhận chuyến
+
+**Tác nhân:** Tài xế, `ADMIN`.
+
+**Luồng chính:**
+
+1. Tài xế đăng nhập và cung cấp hồ sơ cùng thông tin phương tiện.
+2. Hệ thống kiểm tra dữ liệu và ghi nhận hồ sơ gửi duyệt ở trạng thái `PENDING`.
+3. `ADMIN` mở danh sách chờ duyệt và xem chi tiết hồ sơ.
+4. `ADMIN` duyệt hoặc từ chối; khi từ chối phải cung cấp lý do.
+5. Hệ thống cập nhật kết quả và thông báo cho tài xế.
+6. Tài xế được duyệt cập nhật vị trí và chọn online.
+7. Hệ thống kiểm tra hồ sơ được duyệt, xe đang sử dụng hợp lệ và vị trí đáp ứng quy tắc demo.
+8. Hệ thống ghi nhận online; chỉ xét nhận chuyến khi tài xế không bận.
+
+**Thay thế và ngoại lệ:**
+
+- Hồ sơ thiếu hoặc dữ liệu xe sai → yêu cầu sửa trước khi gửi duyệt.
+- Hồ sơ bị từ chối → tài xế chỉnh sửa và gửi lại, hồ sơ trở về `PENDING`.
+- Chưa đủ điều kiện → không bật online, thông báo lý do.
+- Tài xế chọn offline → ngừng xét nhận chuyến mới; không tự hủy trip đã nhận.
+
+**Kết quả:** Hồ sơ có kết quả duyệt; tài xế đủ điều kiện có thể tham gia tìm và phân công.
+
+### 6.4. BPR03 — Đặt xe, tìm và phân công tài xế
+
+**Tác nhân:** Khách hàng, tài xế.
+
+**Luồng chính:**
+
+1. Khách hàng đã đăng nhập nhập điểm đón, điểm đến và chọn loại xe.
+2. Khách hàng gửi yêu cầu đặt xe.
+3. Hệ thống kiểm tra dữ liệu và điều kiện tạo booking.
+4. Hệ thống tạo `Booking` với trạng thái đang tìm tài xế.
+5. Hệ thống tìm tài xế đủ điều kiện trong bán kính 1 km quanh điểm đón.
+6. Hệ thống sắp xếp ứng viên theo khoảng cách và áp dụng giới hạn ứng viên.
+7. Hệ thống gửi một lời mời có thời hạn cho ứng viên đầu tiên.
+8. Tài xế xem thông tin và chấp nhận.
+9. Hệ thống kiểm tra lại lời mời còn hiệu lực, booking còn đang tìm và tài xế vẫn đủ điều kiện.
+10. Hệ thống xác nhận một phân công, tạo `Trip` và ghi nhận tài xế đang bận.
+11. Hệ thống thông báo cho khách hàng và tài xế.
+
+**Thay thế và ngoại lệ:**
+
+- Tài xế từ chối, timeout hoặc không còn đủ điều kiện → đóng lời mời và mời ứng viên tiếp theo trong cùng booking.
+- Không có ứng viên hoặc hết giới hạn tìm kiếm → kết thúc tìm kiếm không thành công và thông báo khách hàng.
+- Khách hàng hủy hợp lệ → dừng tìm kiếm, vô hiệu lời mời còn lại.
+- Tài xế chấp nhận lời mời hết hạn → từ chối phân công.
+- Các thao tác đồng thời không được tạo hai trip cho cùng booking hoặc gán hai trip đang hoạt động cho một tài xế.
+
+**Kết quả:** Booking được phân công, kết thúc tìm kiếm không thành công hoặc bị hủy. Không tìm được tài xế không được ghi thành khách hàng hủy.
+
+```mermaid
+flowchart TD
+    A["Nhập điểm đón, điểm đến và loại xe"] --> B{"Dữ liệu hợp lệ?"}
+    B -- Không --> C["Thông báo lỗi để sửa"]
+    C --> A
+    B -- Có --> D["Tạo Booking đang tìm tài xế"]
+    D --> E["Lọc và sắp xếp ứng viên trong 1 km"]
+    E --> F{"Còn ứng viên trong giới hạn?"}
+    F -- Không --> G["Kết thúc tìm kiếm và thông báo"]
+    F -- Có --> H["Gửi một lời mời có thời hạn"]
+    H --> I{"Phản hồi lời mời"}
+    I -- "Từ chối hoặc timeout" --> J["Đóng lời mời, xét ứng viên tiếp theo"]
+    J --> F
+    I -- "Chấp nhận" --> K{"Còn đủ điều kiện phân công?"}
+    K -- Không --> J
+    K -- Có --> L["Xác nhận phân công và tạo Trip"]
+    L --> M["Thông báo cho hai bên"]
+    H -. "Khách hàng hủy hợp lệ" .-> N["Dừng tìm kiếm và vô hiệu lời mời"]
 ```
-##Cần xác thực lại với khách hàng các yêu cầu trên để chuyển sang bước tiếp theo
 
-## 5. Business Requirements
+### 6.5. BPR04 — Thực hiện và theo dõi chuyến xe
 
-Business Requirements (BR) mô tả các nhu cầu nghiệp vụ mà hệ thống CAB cần
-đáp ứng để giải quyết Business Problem và đạt được các Business Goals đã
-xác định.
+**Tác nhân:** Tài xế, khách hàng.
 
-### 5.1. Danh sách Business Requirements
-
-| Mã BR | Tên Business Requirement | Diễn giải |
-|---|---|---|
-| **BR01** | **Đặt chuyến xe** | Hệ thống phải hỗ trợ khách hàng tạo yêu cầu đặt xe bằng cách nhập điểm đón, điểm đến và lựa chọn loại xe. |
-| **BR02** | **Tìm và phân công tài xế** | Hệ thống phải tự động xác định và phân công tài xế phù hợp dựa trên vị trí, trạng thái sẵn sàng và các tiêu chí vận hành. |
-| **BR03** | **Xử lý từ chối hoặc không phản hồi của tài xế** | Hệ thống phải tiếp tục tìm tài xế khác khi tài xế được đề xuất không phản hồi hoặc từ chối chuyến mà không yêu cầu khách hàng tạo lại yêu cầu. |
-| **BR04** | **Theo dõi trạng thái chuyến xe** | Hệ thống phải cho phép khách hàng theo dõi trạng thái của yêu cầu và chuyến đi từ khi tìm tài xế đến khi chuyến hoàn thành. |
-| **BR05** | **Quản lý thông tin tài xế** | Hệ thống phải hỗ trợ quản lý hồ sơ tài xế, thông tin phương tiện và trạng thái hoạt động của tài xế. |
-| **BR06** | **Quản lý thực hiện chuyến** | Hệ thống phải hỗ trợ tài xế cập nhật các trạng thái trong quá trình thực hiện chuyến, bao gồm đến điểm đón, đón khách, đang di chuyển và hoàn thành chuyến. |
-| **BR07** | **Quản lý vị trí tài xế** | Hệ thống phải lưu thông tin vị trí của tài xế để hỗ trợ tìm tài xế gần khách hàng và cải thiện khả năng dự kiến thời gian đến. |
-| **BR08** | **Tính cước chuyến đi** | Hệ thống phải xác định số tiền khách hàng phải trả sau khi chuyến đi hoàn thành dựa trên loại dịch vụ và thông tin chuyến đi. |
-| **BR09** | **Thanh toán chuyến đi** | Hệ thống phải hỗ trợ thanh toán bằng tiền mặt và phương thức thanh toán điện tử thông qua nhà cung cấp thanh toán bên ngoài. |
-| **BR10** | **Xử lý thanh toán thất bại** | Hệ thống phải thông báo cho khách hàng khi thanh toán điện tử thất bại và hỗ trợ xử lý lại theo chính sách của doanh nghiệp. |
-| **BR11** | **Quản lý thông báo** | Hệ thống phải cung cấp thông báo cho khách hàng và tài xế tại các thời điểm quan trọng trong quá trình đặt và thực hiện chuyến. |
-| **BR12** | **Quản lý khách hàng** | Hệ thống phải hỗ trợ đăng ký tài khoản, đăng nhập và cập nhật thông tin cá nhân của khách hàng. |
-| **BR13** | **Quản lý lịch sử chuyến đi** | Hệ thống phải cho phép khách hàng xem lại lịch sử chuyến đi và số tiền phải trả. |
-| **BR14** | **Đánh giá tài xế** | Hệ thống phải cho phép khách hàng đánh giá tài xế sau khi chuyến đi hoàn thành. |
-| **BR15** | **Quản lý vận hành** | Hệ thống phải cung cấp giao diện quản trị để nhân viên vận hành quản lý khách hàng, tài xế, phương tiện và chuyến đi. |
-| **BR16** | **Theo dõi và xử lý sự cố** | Hệ thống phải hỗ trợ nhân viên vận hành theo dõi các chuyến đang diễn ra, kiểm tra trạng thái tài xế và xử lý các trường hợp chuyến bị lỗi. |
-| **BR17** | **Tra cứu giao dịch** | Hệ thống phải cho phép nhân viên vận hành tra cứu lịch sử giao dịch. |
-| **BR18** | **Phân quyền quản trị** | Hệ thống phải kiểm soát quyền truy cập để nhân viên thông thường không thể thực hiện các thao tác quản trị nhạy cảm. |
-| **BR19** | **Báo cáo hoạt động và kinh doanh** | Hệ thống phải cung cấp báo cáo về số lượng chuyến, doanh thu, tỷ lệ chuyến hoàn thành, tỷ lệ hủy và hiệu quả hoạt động của tài xế. |
-| **BR20** | **Xác thực người dùng** | Hệ thống phải xác thực khách hàng và tài xế trước khi cho phép sử dụng các chức năng yêu cầu tài khoản. |
-| **BR21** | **Bảo vệ dữ liệu** | Hệ thống phải bảo vệ thông tin cá nhân, thông tin phương tiện, dữ liệu vị trí và dữ liệu giao dịch. |
-| **BR22** | **Lưu vết hoạt động** | Hệ thống phải lưu vết các thao tác quan trọng để phục vụ kiểm tra và xử lý sự cố. |
-| **BR23** | **Khả năng mở rộng hệ thống** | Hệ thống phải cho phép các thành phần mở rộng độc lập khi tải tăng và hạn chế việc lỗi ở một thành phần làm ảnh hưởng đến toàn bộ hệ thống. |
-| **BR24** | **Triển khai chức năng từng phần** | Hệ thống phải cho phép các chức năng mới được triển khai từng phần và hạn chế ảnh hưởng đến các chức năng đang hoạt động. |
-| **BR25** | **Khả năng mở rộng dịch vụ** | Hệ thống phải có khả năng hỗ trợ bổ sung loại dịch vụ, phương thức thanh toán, nhà cung cấp thông báo hoặc thay đổi một số thành phần kỹ thuật trong tương lai. |
-
-### 5.2. Business Requirements theo nhóm nghiệp vụ
-
-Các Business Requirements có thể được nhóm theo các quy trình nghiệp vụ chính:
-
-#### Customer & Booking
-
-- **BR01** — Đặt chuyến xe
-- **BR04** — Theo dõi trạng thái chuyến xe
-- **BR12** — Quản lý khách hàng
-- **BR13** — Quản lý lịch sử chuyến đi
-- **BR14** — Đánh giá tài xế
-
-#### Driver & Trip
-
-- **BR05** — Quản lý thông tin tài xế
-- **BR06** — Quản lý thực hiện chuyến
-- **BR07** — Quản lý vị trí tài xế
-
-#### Driver Matching
-
-- **BR02** — Tìm và phân công tài xế
-- **BR03** — Xử lý từ chối hoặc không phản hồi của tài xế
-
-#### Fare & Payment
-
-- **BR08** — Tính cước chuyến đi
-- **BR09** — Thanh toán chuyến đi
-- **BR10** — Xử lý thanh toán thất bại
-
-#### Notification
-
-- **BR11** — Quản lý thông báo
-
-#### Operation & Administration
-
-- **BR15** — Quản lý vận hành
-- **BR16** — Theo dõi và xử lý sự cố
-- **BR17** — Tra cứu giao dịch
-- **BR18** — Phân quyền quản trị
-
-#### Reporting
-
-- **BR19** — Báo cáo hoạt động và kinh doanh
-
-#### Security
-
-- **BR20** — Xác thực người dùng
-- **BR21** — Bảo vệ dữ liệu
-- **BR22** — Lưu vết hoạt động
-
-#### Scalability & Future Development
-
-- **BR23** — Khả năng mở rộng hệ thống
-- **BR24** — Triển khai chức năng từng phần
-- **BR25** — Khả năng mở rộng dịch vụ
-
-### 5.3. Business Requirement Traceability
-
-Các Business Requirements cần liên kết ngược với Business Goals để đảm bảo
-mỗi yêu cầu đều phục vụ một mục tiêu kinh doanh cụ thể.
-
-| Business Goal | Business Requirements liên quan |
-|---|---|
-| **BG01 — Giảm thời gian tìm và phân công tài xế** | BR02, BR03, BR07 |
-| **BG02 — Hỗ trợ và quản lý thanh toán** | BR08, BR09, BR10, BR17 |
-| **BG03 — Cải thiện khả năng theo dõi chuyến đi** | BR04, BR06, BR07, BR11 |
-| **BG04 — Nâng cao hiệu quả vận hành** | BR05, BR15, BR16, BR17, BR18 |
-| **BG05 — Cải thiện khả năng giao tiếp và thông báo** | BR11 |
-| **BG06 — Nâng cao khả năng quản trị và ra quyết định** | BR19 |
-| **BG07 — Đảm bảo khả năng mở rộng của hệ thống** | BR23, BR24 |
-| **BG08 — Đảm bảo tính bảo mật và khả năng kiểm soát hệ thống** | BR18, BR20, BR21, BR22 |
-| **BG09 — Nâng cao trải nghiệm khách hàng sau chuyến đi** | BR13, BR14 |
-| **BG10 — Tăng khả năng phát triển dịch vụ trong tương lai** | BR25 |
-
-Bước 6: Xây dựng các Business Process
-
-Ở bước này, cần xác định các quy trình nghiệp vụ quan trọng của hệ thống dựa trên hoạt động thực tế của doanh nghiệp. Mỗi Business Process nên thể hiện rõ ai thực hiện → thực hiện gì → điều kiện → kết quả → trường hợp ngoại lệ.
-
-Đối với hệ thống đặt chuyến xe, có thể xây dựng các Business Process chính như sau:
-
-BP01. Đặt chuyến xe
-
-Actor: Customer
-
-Quy trình:
-
-Customer tạo yêu cầu đặt chuyến
-        ↓
-Chọn điểm đón
-        ↓
-Chọn điểm đến
-        ↓
-Hệ thống tính toán/hiển thị thông tin chuyến
-        ↓
-Customer xác nhận đặt chuyến
-        ↓
-Hệ thống tìm tài xế phù hợp
-        ↓
-Có tài xế phù hợp?
-   ┌────┴────┐
-  Có        Không
-   ↓          ↓
-Gửi yêu cầu  Thông báo
-cho tài xế   không tìm thấy tài xế
-   ↓
-Tài xế chấp nhận?
-   ┌────┴────┐
-  Có        Không
-   ↓          ↓
-Xác nhận      Tìm tài xế khác
-chuyến        ↓
-   ↓       Còn tài xế?
-Bắt đầu       ↓
-chuyến     Có → tiếp tục tìm
-           Không → thông báo KH
-
-Kết quả:
-
-Nếu tìm được tài xế và tài xế chấp nhận → chuyến được xác nhận.
-Nếu không tìm được tài xế → thông báo cho Customer.
-Nếu tài xế từ chối → hệ thống tiếp tục tìm tài xế khác.
-BP02. Tìm và phân công tài xế
-
-Actor: System / Driver
-
-Quy trình:
-
-Nhận yêu cầu đặt chuyến
-        ↓
-Xác định các tài xế phù hợp
-        ↓
-Kiểm tra trạng thái tài xế
-        ↓
-Kiểm tra khoảng cách/vị trí
-        ↓
-Gửi yêu cầu nhận chuyến
-        ↓
-Tài xế chấp nhận?
-   ┌────┴────┐
-  Có        Không
-   ↓          ↓
-Phân công     Chọn tài xế
-tài xế        tiếp theo
-   ↓
-Thông báo cho Customer
-
-Kết quả: Một tài xế được phân công cho chuyến hoặc hệ thống xác định không có tài xế phù hợp.
-
-BP03. Tài xế nhận và thực hiện chuyến
-
-Actor: Driver
-
-Driver nhận yêu cầu chuyến
-        ↓
-Chấp nhận chuyến
-        ↓
-Di chuyển đến điểm đón
-        ↓
-Đến điểm đón
-        ↓
-Đón Customer
-        ↓
-Bắt đầu chuyến
-        ↓
-Di chuyển đến điểm đến
-        ↓
-Đến điểm đến
-        ↓
-Kết thúc chuyến
-
-Các trường hợp ngoại lệ:
-
-Tài xế không thể đến điểm đón → hủy chuyến.
-Customer không xuất hiện → xử lý theo chính sách hệ thống.
-Phát sinh sự cố trong chuyến → ghi nhận và xử lý sự cố.
-BP04. Hủy chuyến
-
-Actor: Customer / Driver / System
-
-Yêu cầu hủy chuyến
-        ↓
-Xác định người yêu cầu hủy
-        ↓
-Kiểm tra trạng thái chuyến
-        ↓
-Có thể hủy?
-   ┌────┴────┐
-  Có        Không
-   ↓          ↓
-Hủy chuyến   Thông báo
-   ↓         không thể hủy
-Kiểm tra phí hủy
-   ↓
-Tính phí (nếu có)
-   ↓
-Hoàn tất hủy chuyến
-   ↓
-Thông báo các bên
-
-Cần phân biệt hủy trước khi tài xế nhận, hủy sau khi tài xế nhận và hủy khi chuyến đã bắt đầu, vì mỗi trường hợp có thể có chính sách khác nhau.
-
-BP05. Thanh toán chuyến xe
-
-Actor: Customer / System / Payment Gateway
-
-Chuyến hoàn thành
-        ↓
-Hệ thống tính cước
-        ↓
-Hiển thị số tiền cần thanh toán
-        ↓
-Customer chọn phương thức thanh toán
-        ↓
-Thực hiện thanh toán
-        ↓
-Thanh toán thành công?
-   ┌────┴────┐
-  Có        Không
-   ↓          ↓
-Ghi nhận      Thông báo
-thanh toán    thanh toán thất bại
-   ↓          ↓
-Cập nhật      Thử lại /
-trạng thái    chọn phương thức khác
-   ↓
-Gửi hóa đơn/biên nhận
-BP06. Đánh giá chuyến xe
-
-Actor: Customer / Driver
-
-Chuyến hoàn thành
-        ↓
-Hệ thống yêu cầu đánh giá
-        ↓
-Customer đánh giá Driver
-        ↓
-Nhập số sao / nhận xét
-        ↓
-Hệ thống lưu đánh giá
-        ↓
-Cập nhật rating của Driver
-
-Có thể mở rộng thành Driver đánh giá Customer nếu nghiệp vụ của hệ thống có hỗ trợ.
-
-BP07. Quản lý thông tin Customer
-
-Actor: Customer / System
-
-Customer đăng ký tài khoản
-        ↓
-Nhập thông tin cá nhân
-        ↓
-Xác thực thông tin
-        ↓
-Tạo tài khoản
-        ↓
-Customer cập nhật thông tin
-        ↓
-Hệ thống kiểm tra dữ liệu
-        ↓
-Lưu thông tin
-
-Các nghiệp vụ liên quan:
-
-Đăng ký tài khoản
-Đăng nhập
-Cập nhật thông tin cá nhân
-Thay đổi mật khẩu
-Quản lý phương thức thanh toán
-Quản lý địa chỉ thường dùng
-BP08. Quản lý tài xế
-
-Actor: Admin / Driver
-
-Driver đăng ký trở thành tài xế
-        ↓
-Cung cấp thông tin cá nhân
-        ↓
-Cung cấp thông tin phương tiện
-        ↓
-Cung cấp giấy tờ cần thiết
-        ↓
-Admin/System kiểm tra
-        ↓
-Hợp lệ?
-   ┌────┴────┐
-  Có        Không
-   ↓          ↓
-Phê duyệt    Từ chối/
-tài xế       yêu cầu bổ sung
-   ↓
-Kích hoạt tài khoản Driver
-        ↓
-Driver có thể nhận chuyến
-BP09. Quản lý trạng thái tài xế
-
-Actor: Driver / System
-
-Driver đăng nhập
-        ↓
-Chọn trạng thái hoạt động
-        ↓
-Online / Offline
-        ↓
-Nếu Online
-        ↓
-Cập nhật vị trí hiện tại
-        ↓
-Sẵn sàng nhận chuyến?
-        ↓
-Hệ thống đưa Driver vào danh sách
-tài xế có thể nhận chuyến
-
-Hệ thống cần quản lý các trạng thái như:
-
-Offline
-Online / Available
-Đang chờ nhận chuyến
-Đang đến điểm đón
-Đang thực hiện chuyến
-Tạm ngưng
-BP10. Xử lý khiếu nại / sự cố
-
-Actor: Customer / Driver / Admin
-
-Customer/Driver gửi khiếu nại
-        ↓
-Nhập nội dung + thông tin liên quan
-        ↓
-Hệ thống tạo Ticket/Khiếu nại
-        ↓
-Admin tiếp nhận
-        ↓
-Kiểm tra thông tin
-        ↓
-Xác minh sự việc
-        ↓
-Đưa ra phương án xử lý
-        ↓
-Cập nhật kết quả
-        ↓
-Thông báo cho người gửi
-        ↓
-Đóng khiếu nại
-Tổng hợp các Business Process quan trọng
-Mã	Business Process	Actor chính
-BP01	Đặt chuyến xe	Customer
-BP02	Tìm và phân công tài xế	System / Driver
-BP03	Nhận và thực hiện chuyến	Driver
-BP04	Hủy chuyến	Customer / Driver / System
-BP05	Thanh toán chuyến xe	Customer / System
-BP06	Đánh giá chuyến xe	Customer / Driver
-BP07	Quản lý thông tin Customer	Customer
-BP08	Quản lý tài xế	Admin / Driver
-BP09	Quản lý trạng thái tài xế	Driver / System
-BP10	Xử lý khiếu nại / sự cố	Customer / Driver / Admin
-Luồng nghiệp vụ cốt lõi
-
-Nếu bài của bạn đang xây dựng hệ thống đặt xe, thì không nên xem 10 process trên có mức độ quan trọng ngang nhau. Luồng cốt lõi của hệ thống nên là:
-
-Đặt chuyến
-   ↓
-Tìm tài xế
-   ↓
-Tài xế chấp nhận
-   ↓
-Đón khách
-   ↓
-Thực hiện chuyến
-   ↓
-Kết thúc chuyến
-   ↓
-Tính cước
-   ↓
-Thanh toán
-   ↓
-Đánh giá
-
-# 7. Functional Requirements
-
-Functional Requirement (FR) mô tả các chức năng mà hệ thống CAB phải cung cấp
-để đáp ứng các Business Requirement (BR) đã xác định.
-
-Các FR được phân rã từ BR và chỉ bao gồm những chức năng có cơ sở từ yêu cầu
-của khách hàng. Những quy tắc chưa được khách hàng chốt sẽ được đánh dấu là
-Open Question thay vì tự giả định.
-
----
-
-## 7.1. BR01 — Quản lý tài khoản khách hàng
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR01** | Đăng ký tài khoản khách hàng | Hệ thống cho phép khách hàng đăng ký tài khoản mới. |
-| **FR02** | Nhập thông tin đăng ký | Hệ thống cho phép khách hàng nhập các thông tin cần thiết khi đăng ký. |
-| **FR03** | Đăng nhập | Hệ thống cho phép khách hàng đăng nhập vào tài khoản. |
-| **FR04** | Xác thực khách hàng | Hệ thống phải xác thực khách hàng trước khi cho phép sử dụng các chức năng yêu cầu tài khoản. |
-| **FR05** | Xem thông tin cá nhân | Hệ thống cho phép khách hàng xem thông tin cá nhân của mình. |
-| **FR06** | Cập nhật thông tin cá nhân | Hệ thống cho phép khách hàng cập nhật thông tin cá nhân. |
-
----
-
-## 7.2. BR02 — Quản lý tài khoản và hồ sơ tài xế
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR07** | Đăng ký tài khoản tài xế | Hệ thống cho phép tài xế đăng ký tài khoản. |
-| **FR08** | Tạo tài khoản tài xế | Hệ thống cho phép nhân viên vận hành tạo tài khoản cho tài xế. |
-| **FR09** | Quản lý hồ sơ tài xế | Hệ thống cho phép tài xế cập nhật thông tin hồ sơ. |
-| **FR10** | Quản lý thông tin phương tiện | Hệ thống cho phép lưu trữ và cập nhật thông tin phương tiện của tài xế. |
-| **FR11** | Đăng nhập tài xế | Hệ thống cho phép tài xế đăng nhập vào hệ thống. |
-| **FR12** | Xác thực tài xế | Hệ thống phải xác thực tài xế trước khi sử dụng các chức năng yêu cầu tài khoản. |
-| **FR13** | Cập nhật trạng thái hoạt động | Hệ thống cho phép tài xế cập nhật trạng thái hoạt động. |
-| **FR14** | Chuyển sang trạng thái sẵn sàng | Hệ thống cho phép tài xế chuyển sang trạng thái sẵn sàng nhận chuyến khi đang làm việc. |
-
----
-
-## 7.3. BR03 — Đặt chuyến xe
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR15** | Tạo yêu cầu đặt chuyến | Hệ thống cho phép khách hàng tạo yêu cầu đặt xe. |
-| **FR16** | Nhập điểm đón | Hệ thống cho phép khách hàng nhập điểm đón của chuyến đi. |
-| **FR17** | Nhập điểm đến | Hệ thống cho phép khách hàng nhập điểm đến của chuyến đi. |
-| **FR18** | Lựa chọn loại xe | Hệ thống cho phép khách hàng lựa chọn loại xe khi tạo yêu cầu. |
-| **FR19** | Gửi yêu cầu đặt xe | Hệ thống tiếp nhận và lưu yêu cầu đặt xe sau khi khách hàng gửi yêu cầu. |
-| **FR20** | Hiển thị trạng thái tìm tài xế | Hệ thống thông báo cho khách hàng biết yêu cầu đang được xử lý và tìm tài xế. |
-
----
-
-## 7.4. BR04 — Tìm và phân công tài xế
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR21** | Xác định vị trí tài xế | Hệ thống lưu thông tin vị trí của tài xế để phục vụ việc tìm tài xế. |
-| **FR22** | Xác định tài xế sẵn sàng | Hệ thống xác định các tài xế đang ở trạng thái sẵn sàng nhận chuyến. |
-| **FR23** | Xác định tài xế phù hợp | Hệ thống xác định các tài xế phù hợp với yêu cầu chuyến đi dựa trên vị trí, trạng thái sẵn sàng và các tiêu chí vận hành đã được xác định. |
-| **FR24** | Ưu tiên tài xế phù hợp và gần khách hàng | Hệ thống ưu tiên các tài xế phù hợp và gần khách hàng khi thực hiện phân công. |
-| **FR25** | Gửi yêu cầu đến tài xế | Hệ thống gửi thông tin yêu cầu chuyến đến tài xế được lựa chọn. |
-| **FR26** | Xử lý tài xế từ chối | Khi tài xế từ chối chuyến, hệ thống tiếp tục tìm tài xế khác mà không yêu cầu khách hàng tạo lại yêu cầu. |
-| **FR27** | Xử lý tài xế không phản hồi | Khi tài xế được đề xuất không phản hồi, hệ thống phải có khả năng tiếp tục tìm tài xế khác theo chính sách được xác định. |
-| **FR28** | Thông báo không tìm được tài xế | Nếu không tìm được tài xế phù hợp, hệ thống phải thông báo rõ ràng cho khách hàng. |
-
-> **Open Question:** Bán kính tìm tài xế, thời gian chờ phản hồi và thứ tự
-> ưu tiên cụ thể giữa các tài xế chưa được khách hàng chốt.
->
-> Không tự quy định các giá trị như `1 km`, `2 km`, `5 phút` hoặc ưu tiên
-> tài xế có đánh giá cao nếu chưa có Business Rule tương ứng.
-
----
-
-## 7.5. BR05 — Chấp nhận và xác nhận chuyến
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR29** | Thông báo chuyến mới cho tài xế | Hệ thống gửi thông báo cho tài xế khi có yêu cầu chuyến phù hợp. |
-| **FR30** | Xem thông tin yêu cầu chuyến | Tài xế có thể xem thông tin cần thiết của yêu cầu chuyến. |
-| **FR31** | Chấp nhận chuyến | Tài xế có thể chấp nhận yêu cầu chuyến. |
-| **FR32** | Từ chối chuyến | Tài xế có thể từ chối yêu cầu chuyến. |
-| **FR33** | Xác nhận tài xế | Khi tài xế chấp nhận, hệ thống xác nhận tài xế được phân công cho chuyến. |
-| **FR34** | Thông báo tài xế cho khách hàng | Hệ thống thông báo cho khách hàng biết tài xế đã nhận chuyến. |
-
----
-
-## 7.6. BR06 — Theo dõi và thực hiện chuyến
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR35** | Theo dõi tài xế đang thực hiện chuyến | Hệ thống cho phép khách hàng theo dõi thông tin liên quan đến tài xế trong quá trình thực hiện chuyến. |
-| **FR36** | Hiển thị thời gian dự kiến tài xế đến | Hệ thống cung cấp thời gian dự kiến tài xế đến điểm đón. |
-| **FR37** | Cập nhật trạng thái chuyến | Hệ thống cập nhật trạng thái hiện tại của chuyến đi. |
-| **FR38** | Cập nhật tài xế đã đến điểm đón | Hệ thống ghi nhận trạng thái tài xế đã đến điểm đón. |
-| **FR39** | Thông báo tài xế đã đến | Hệ thống thông báo cho khách hàng khi tài xế đến điểm đón. |
-| **FR40** | Ghi nhận chuyến hoàn thành | Hệ thống ghi nhận trạng thái hoàn thành khi chuyến đi kết thúc. |
-| **FR41** | Thông báo chuyến hoàn thành | Hệ thống thông báo cho khách hàng khi chuyến đi hoàn thành. |
-
----
-
-## 7.7. BR07 — Tính cước chuyến đi
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR42** | Xác định thông tin tính cước | Hệ thống sử dụng loại dịch vụ và thông tin chuyến đi để phục vụ việc tính cước. |
-| **FR43** | Tính số tiền phải trả | Hệ thống xác định số tiền khách hàng phải trả sau khi chuyến đi hoàn thành. |
-| **FR44** | Lưu kết quả tính cước | Hệ thống lưu số tiền phải trả của chuyến đi. |
-| **FR45** | Hiển thị số tiền phải trả | Hệ thống cho phép khách hàng xem số tiền phải trả. |
-
-> **Open Question:** Công thức tính cước và các quy tắc tính giá chưa được
-> khách hàng chốt. Vì vậy chưa phân rã thành các FR như "tính theo km",
-> "tính theo thời gian", "phụ phí", v.v.
-
----
-
-## 7.8. BR08 — Thanh toán
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR46** | Chọn phương thức thanh toán | Hệ thống cho phép khách hàng lựa chọn phương thức thanh toán. |
-| **FR47** | Thanh toán tiền mặt | Hệ thống hỗ trợ ghi nhận thanh toán bằng tiền mặt. |
-| **FR48** | Thanh toán điện tử | Hệ thống hỗ trợ thanh toán điện tử thông qua nhà cung cấp thanh toán bên ngoài. |
-| **FR49** | Tích hợp nhà cung cấp thanh toán | Hệ thống tích hợp với nhà cung cấp thanh toán bên ngoài để xử lý giao dịch điện tử. |
-| **FR50** | Không lưu thông tin thanh toán nhạy cảm | Hệ thống CAB không lưu trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán. |
-| **FR51** | Ghi nhận kết quả thanh toán | Hệ thống ghi nhận trạng thái kết quả của giao dịch thanh toán. |
-| **FR52** | Thông báo thanh toán thất bại | Khi thanh toán điện tử thất bại, hệ thống thông báo cho khách hàng. |
-| **FR53** | Xử lý lại thanh toán | Hệ thống cho phép xử lý lại giao dịch thanh toán thất bại theo chính sách của doanh nghiệp. |
-| **FR54** | Thông báo thanh toán thành công | Hệ thống thông báo cho khách hàng khi thanh toán có kết quả thành công. |
-
----
-
-## 7.9. BR09 — Thông báo
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR55** | Thông báo tiếp nhận yêu cầu | Hệ thống thông báo cho khách hàng khi yêu cầu đặt xe được tiếp nhận. |
-| **FR56** | Thông báo tài xế nhận chuyến | Hệ thống thông báo cho khách hàng khi có tài xế nhận chuyến. |
-| **FR57** | Thông báo tài xế đến điểm đón | Hệ thống thông báo cho khách hàng khi tài xế đến điểm đón. |
-| **FR58** | Thông báo hoàn thành chuyến | Hệ thống thông báo cho khách hàng khi chuyến hoàn thành. |
-| **FR59** | Thông báo kết quả thanh toán | Hệ thống thông báo cho khách hàng khi thanh toán có kết quả. |
-| **FR60** | Thông báo chuyến mới cho tài xế | Hệ thống thông báo cho tài xế khi có chuyến mới phù hợp. |
-| **FR61** | Thông báo thay đổi chuyến | Hệ thống thông báo cho tài xế khi có thay đổi liên quan đến chuyến đang thực hiện. |
-
----
-
-## 7.10. BR10 — Lịch sử chuyến đi và đánh giá
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR62** | Xem lịch sử chuyến đi | Hệ thống cho phép khách hàng xem lịch sử các chuyến đã thực hiện. |
-| **FR63** | Xem thông tin chuyến | Hệ thống cho phép khách hàng xem thông tin của từng chuyến trong lịch sử. |
-| **FR64** | Xem số tiền phải trả | Hệ thống cho phép khách hàng xem số tiền phải trả của chuyến. |
-| **FR65** | Đánh giá tài xế | Hệ thống cho phép khách hàng đánh giá tài xế sau khi chuyến hoàn thành. |
-| **FR66** | Lưu đánh giá | Hệ thống lưu thông tin đánh giá của khách hàng. |
-
----
-
-## 7.11. BR11 — Quản lý khách hàng
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR67** | Xem danh sách khách hàng | Hệ thống quản trị cho phép nhân viên vận hành xem thông tin khách hàng. |
-| **FR68** | Tìm kiếm khách hàng | Hệ thống cho phép nhân viên vận hành tra cứu khách hàng. |
-| **FR69** | Xem thông tin khách hàng | Hệ thống cho phép nhân viên vận hành xem thông tin khách hàng theo quyền được cấp. |
-
----
-
-## 7.12. BR12 — Quản lý tài xế và phương tiện
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR70** | Xem danh sách tài xế | Hệ thống quản trị cho phép nhân viên vận hành xem danh sách tài xế. |
-| **FR71** | Tra cứu tài xế | Hệ thống cho phép nhân viên vận hành tìm kiếm và tra cứu thông tin tài xế. |
-| **FR72** | Xem hồ sơ tài xế | Hệ thống cho phép nhân viên vận hành xem hồ sơ tài xế theo quyền. |
-| **FR73** | Quản lý phương tiện | Hệ thống cho phép nhân viên vận hành quản lý thông tin phương tiện. |
-| **FR74** | Kiểm tra trạng thái tài xế | Hệ thống cho phép nhân viên vận hành kiểm tra trạng thái hoạt động của tài xế. |
-
----
-
-## 7.13. BR13 — Quản lý chuyến đi
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR75** | Xem chuyến đang diễn ra | Hệ thống quản trị cho phép nhân viên vận hành xem các chuyến đang diễn ra. |
-| **FR76** | Xem trạng thái chuyến | Hệ thống cho phép nhân viên vận hành kiểm tra trạng thái của chuyến. |
-| **FR77** | Xem thông tin chuyến | Hệ thống cho phép nhân viên vận hành xem thông tin liên quan đến chuyến. |
-| **FR78** | Hỗ trợ xử lý chuyến bị lỗi | Hệ thống cung cấp chức năng để nhân viên vận hành hỗ trợ xử lý các trường hợp chuyến bị lỗi. |
-
----
-
-## 7.14. BR14 — Quản lý giao dịch
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR79** | Tra cứu lịch sử giao dịch | Hệ thống cho phép nhân viên vận hành tra cứu lịch sử giao dịch. |
-| **FR80** | Xem trạng thái giao dịch | Hệ thống cho phép nhân viên vận hành xem trạng thái của giao dịch. |
-| **FR81** | Tra cứu giao dịch liên quan đến chuyến | Hệ thống cho phép đối chiếu thông tin giao dịch với chuyến đi liên quan. |
-
----
-
-## 7.15. BR15 — Phân quyền quản trị
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR82** | Xác thực nhân viên | Hệ thống yêu cầu nhân viên xác thực trước khi truy cập chức năng quản trị. |
-| **FR83** | Kiểm tra quyền truy cập | Hệ thống kiểm tra quyền của nhân viên trước khi cho phép thực hiện thao tác. |
-| **FR84** | Hạn chế thao tác nhạy cảm | Hệ thống không cho phép nhân viên thông thường thực hiện các thao tác nhạy cảm nếu không có quyền. |
-| **FR85** | Quản lý quyền truy cập | Hệ thống hỗ trợ kiểm soát quyền truy cập đối với các chức năng quản trị. |
-
----
-
-## 7.16. BR16 — Báo cáo hoạt động và kinh doanh
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR86** | Báo cáo số lượng chuyến | Hệ thống cung cấp báo cáo về số lượng chuyến. |
-| **FR87** | Báo cáo doanh thu | Hệ thống cung cấp báo cáo về doanh thu. |
-| **FR88** | Báo cáo tỷ lệ hoàn thành | Hệ thống cung cấp báo cáo về tỷ lệ chuyến hoàn thành. |
-| **FR89** | Báo cáo tỷ lệ hủy | Hệ thống cung cấp báo cáo về tỷ lệ chuyến bị hủy. |
-| **FR90** | Báo cáo hiệu quả tài xế | Hệ thống cung cấp dữ liệu/báo cáo phục vụ đánh giá hiệu quả hoạt động của tài xế. |
-
----
-
-## 7.17. BR17 — Lưu vết hoạt động
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR91** | Ghi nhận thao tác quan trọng | Hệ thống phải ghi nhận các thao tác quan trọng được thực hiện trên hệ thống. |
-| **FR92** | Lưu thông tin người thực hiện | Hệ thống lưu thông tin người thực hiện thao tác. |
-| **FR93** | Lưu thời điểm thao tác | Hệ thống lưu thời điểm thực hiện thao tác. |
-| **FR94** | Tra cứu log | Hệ thống cung cấp khả năng tra cứu các log phục vụ kiểm tra và xử lý sự cố. |
-
----
-
-## 7.18. BR18 — Bảo vệ dữ liệu
-
-| Mã FR | Tên Functional Requirement | Diễn giải |
-|---|---|---|
-| **FR95** | Bảo vệ thông tin cá nhân | Hệ thống phải bảo vệ thông tin cá nhân của người dùng. |
-| **FR96** | Bảo vệ thông tin phương tiện | Hệ thống phải bảo vệ thông tin phương tiện. |
-| **FR97** | Bảo vệ dữ liệu vị trí | Hệ thống phải bảo vệ dữ liệu vị trí của tài xế. |
-| **FR98** | Bảo vệ dữ liệu giao dịch | Hệ thống phải bảo vệ dữ liệu giao dịch. |
-
----
-
-# 7.19. Functional Requirements chưa thể xác định chi tiết
-
-Một số yêu cầu trong tài liệu khách hàng **chưa đủ thông tin để phân rã thành
-FR chi tiết**. Không nên tự thêm quy tắc nghiệp vụ vào FR.
-
-| ID | Nội dung chưa xác định | Liên quan |
-|---|---|---|
-| **FRQ01** | Bán kính tìm tài xế cụ thể | BR04 |
-| **FRQ02** | Công thức và quy tắc tính cước | BR07 |
-| **FRQ03** | Tiêu chí ưu tiên tài xế cụ thể | BR04 |
-| **FRQ04** | Thời gian tài xế phải phản hồi | BR04 |
-| **FRQ05** | Chính sách hủy chuyến | BR03, BR06 |
-| **FRQ06** | Cách xử lý khi mất kết nối mạng | BR03, BR06, BR08 |
-| **FRQ07** | Thời gian lưu trữ dữ liệu | BR10, BR14, BR17 |
-| **FRQ08** | Chính sách xử lý lại thanh toán thất bại | BR08 |
-
----
-
-# 7.20. Traceability — BR → FR
-
-| Business Requirement | Functional Requirements |
-|---|---|
-| **BR01 — Quản lý tài khoản khách hàng** | FR01–FR06 |
-| **BR02 — Quản lý tài khoản và hồ sơ tài xế** | FR07–FR14 |
-| **BR03 — Đặt chuyến xe** | FR15–FR20 |
-| **BR04 — Tìm và phân công tài xế** | FR21–FR28 |
-| **BR05 — Chấp nhận và xác nhận chuyến** | FR29–FR34 |
-| **BR06 — Theo dõi và thực hiện chuyến** | FR35–FR41 |
-| **BR07 — Tính cước chuyến đi** | FR42–FR45 |
-| **BR08 — Thanh toán** | FR46–FR54 |
-| **BR09 — Thông báo** | FR55–FR61 |
-| **BR10 — Lịch sử chuyến đi và đánh giá** | FR62–FR66 |
-| **BR11 — Quản lý khách hàng** | FR67–FR69 |
-| **BR12 — Quản lý tài xế và phương tiện** | FR70–FR74 |
-| **BR13 — Quản lý chuyến đi** | FR75–FR78 |
-| **BR14 — Quản lý giao dịch** | FR79–FR81 |
-| **BR15 — Phân quyền quản trị** | FR82–FR85 |
-| **BR16 — Báo cáo hoạt động và kinh doanh** | FR86–FR90 |
-| **BR17 — Lưu vết hoạt động** | FR91–FR94 |
-| **BR18 — Bảo vệ dữ liệu** | FR95–FR98 |
-
----
-
-# 7.21. Nguyên tắc phân rã FR
-
-Khi xây dựng Functional Requirement, áp dụng các nguyên tắc:
-
-1. **Mỗi FR mô tả một chức năng cụ thể mà hệ thống phải thực hiện.**
-2. **FR phải truy ngược được về một BR.**
-3. Không đưa chi tiết kỹ thuật triển khai vào FR nếu khách hàng chưa yêu cầu.
-4. Không tự tạo Business Rule từ giả định của BA.
-5. Các thông tin chưa được khách hàng xác nhận phải được đánh dấu
-   **Open Question**.
-6. Một BR có thể được phân rã thành nhiều FR.
-7. Một FR không nên chứa nhiều chức năng độc lập nếu có thể tách thành các FR
-   riêng biệt.
-8. FR phải đủ cụ thể để ở bước tiếp theo có thể xây dựng Use Case,
-   Acceptance Criteria và Test Case.
-
-## 8. Business Rules
-
-Business Rules là các quy tắc và ràng buộc nghiệp vụ mà hệ thống CAB phải
-tuân thủ trong quá trình xử lý các nghiệp vụ.
-
-Các Business Rules được xây dựng dựa trên Business Requirements và Business
-Processes đã xác định ở các bước trước.
-
----
-
-### 8.1. Danh sách Business Rules
-
-| Mã Rule | Business Rule | Diễn giải |
-|---|---|---|
-| **BRULE01** | **Yêu cầu đặt xe phải có thông tin chuyến** | Một yêu cầu đặt xe phải có điểm đón, điểm đến và loại xe/dịch vụ trước khi được gửi đến hệ thống. |
-| **BRULE02** | **Khách hàng phải được xác thực** | Khách hàng phải đăng nhập/xác thực trước khi sử dụng các chức năng yêu cầu tài khoản. |
-| **BRULE03** | **Chỉ tài xế sẵn sàng mới được tìm để phân công** | Hệ thống chỉ xem xét các tài xế đang ở trạng thái sẵn sàng nhận chuyến khi tìm tài xế. |
-| **BRULE04** | **Ưu tiên tài xế phù hợp và gần khách hàng** | Khi tìm tài xế, hệ thống phải ưu tiên tài xế phù hợp và gần khách hàng dựa trên các tiêu chí vận hành. |
-| **BRULE05** | **Tài xế phải phản hồi yêu cầu chuyến** | Tài xế được đề xuất phải có khả năng chấp nhận hoặc từ chối chuyến. |
-| **BRULE06** | **Tài xế từ chối hoặc không phản hồi** | Nếu tài xế từ chối hoặc không phản hồi, hệ thống phải tiếp tục tìm tài xế khác mà không yêu cầu khách hàng tạo lại yêu cầu. |
-| **BRULE07** | **Không tìm được tài xế** | Nếu không còn tài xế phù hợp, hệ thống phải thông báo rõ ràng cho khách hàng. |
-| **BRULE08** | **Chỉ tài xế phù hợp mới được nhận chuyến** | Chuyến đi chỉ được phân công cho tài xế đáp ứng các điều kiện lựa chọn của hệ thống. |
-| **BRULE09** | **Tài xế phải cập nhật trạng thái chuyến** | Trong quá trình thực hiện chuyến, tài xế phải cập nhật các trạng thái theo quy trình nghiệp vụ. |
-| **BRULE10** | **Trạng thái chuyến phải theo đúng vòng đời** | Chuyến đi phải được xử lý theo các trạng thái nghiệp vụ từ nhận chuyến, đến điểm đón, đón khách, di chuyển và hoàn thành. |
-| **BRULE11** | **Chỉ chuyến hoàn thành mới được tính cước cuối cùng** | Hệ thống xác định số tiền khách hàng phải trả sau khi chuyến đi hoàn thành. |
-| **BRULE12** | **Cước phải dựa trên thông tin chuyến** | Số tiền phải trả được xác định dựa trên loại dịch vụ và thông tin chuyến đi. |
-| **BRULE13** | **Hỗ trợ hai nhóm phương thức thanh toán** | Khách hàng có thể thanh toán bằng tiền mặt hoặc phương thức thanh toán điện tử. |
-| **BRULE14** | **Không lưu dữ liệu thanh toán nhạy cảm** | Hệ thống CAB không được lưu trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán. |
-| **BRULE15** | **Thanh toán điện tử phải thông qua nhà cung cấp bên ngoài** | Giao dịch thanh toán điện tử phải được xử lý thông qua nhà cung cấp thanh toán bên ngoài. |
-| **BRULE16** | **Thanh toán thất bại phải được thông báo** | Khi thanh toán điện tử thất bại, hệ thống phải thông báo cho khách hàng. |
-| **BRULE17** | **Thanh toán thất bại được xử lý lại theo chính sách** | Khi giao dịch thất bại, việc xử lý lại phải tuân theo chính sách của doanh nghiệp. |
-| **BRULE18** | **Thông báo theo sự kiện nghiệp vụ** | Hệ thống phải gửi thông báo khi xảy ra các sự kiện quan trọng như nhận yêu cầu, tài xế nhận chuyến, tài xế đến điểm đón, hoàn thành chuyến và có kết quả thanh toán. |
-| **BRULE19** | **Tài xế nhận thông báo về chuyến mới** | Tài xế phải nhận được thông báo khi có chuyến mới phù hợp. |
-| **BRULE20** | **Chức năng quản trị phải được phân quyền** | Nhân viên chỉ được thực hiện các thao tác quản trị phù hợp với quyền được cấp. |
-| **BRULE21** | **Dữ liệu quan trọng phải được bảo vệ** | Thông tin cá nhân, phương tiện, vị trí và giao dịch phải được bảo vệ. |
-| **BRULE22** | **Thao tác quan trọng phải được lưu vết** | Các thao tác quan trọng trong hệ thống phải được ghi nhận để phục vụ kiểm tra và xử lý sự cố. |
-| **BRULE23** | **Lỗi thanh toán/thông báo không được làm dừng toàn hệ thống** | Một lỗi xảy ra tại chức năng thanh toán hoặc thông báo không được làm cho toàn bộ hệ thống đặt xe ngừng hoạt động. |
-| **BRULE24** | **Chức năng mới không được gây ảnh hưởng lớn đến chức năng đang hoạt động** | Các chức năng mới phải có khả năng được triển khai từng phần và hạn chế ảnh hưởng đến các chức năng hiện tại. |
-
----
-
-### 8.2. Business Rules theo nghiệp vụ
-
-#### 8.2.1. Booking Rules
-
-| Rule | Quy định |
-|---|---|
-| **BRULE01** | Yêu cầu phải có điểm đón, điểm đến và loại xe/dịch vụ. |
-| **BRULE02** | Khách hàng phải được xác thực khi sử dụng chức năng yêu cầu tài khoản. |
-
-#### 8.2.2. Driver Matching Rules
-
-| Rule | Quy định |
-|---|---|
-| **BRULE03** | Chỉ tài xế đang sẵn sàng nhận chuyến mới được xem xét. |
-| **BRULE04** | Hệ thống ưu tiên tài xế phù hợp và gần khách hàng. |
-| **BRULE05** | Tài xế có thể chấp nhận hoặc từ chối chuyến. |
-| **BRULE06** | Tài xế từ chối hoặc không phản hồi thì hệ thống tiếp tục tìm tài xế khác. |
-| **BRULE07** | Không tìm được tài xế thì phải thông báo cho khách hàng. |
-
-#### 8.2.3. Trip Rules
-
-| Rule | Quy định |
-|---|---|
-| **BRULE08** | Chuyến chỉ được phân công cho tài xế đáp ứng điều kiện phù hợp. |
-| **BRULE09** | Tài xế phải cập nhật trạng thái trong quá trình thực hiện chuyến. |
-| **BRULE10** | Chuyến phải tuân theo vòng đời trạng thái được định nghĩa. |
-
-#### 8.2.4. Fare & Payment Rules
-
-| Rule | Quy định |
-|---|---|
-| **BRULE11** | Chỉ sau khi chuyến hoàn thành mới xác định số tiền phải trả cuối cùng. |
-| **BRULE12** | Cước dựa trên loại dịch vụ và thông tin chuyến. |
-| **BRULE13** | Hỗ trợ tiền mặt và thanh toán điện tử. |
-| **BRULE14** | Không lưu trực tiếp dữ liệu thanh toán nhạy cảm trong CAB. |
-| **BRULE15** | Thanh toán điện tử được xử lý thông qua nhà cung cấp bên ngoài. |
-| **BRULE16** | Thanh toán thất bại phải được thông báo cho khách hàng. |
-| **BRULE17** | Xử lý lại thanh toán thất bại theo chính sách doanh nghiệp. |
-
-#### 8.2.5. Notification Rules
-
-| Rule | Quy định |
-|---|---|
-| **BRULE18** | Khách hàng phải nhận thông báo tại các sự kiện quan trọng. |
-| **BRULE19** | Tài xế phải nhận thông báo về chuyến mới và các thay đổi liên quan đến chuyến đang thực hiện. |
-
-#### 8.2.6. Administration & Security Rules
-
-| Rule | Quy định |
-|---|---|
-| **BRULE20** | Chức năng quản trị phải được kiểm soát bằng quyền truy cập. |
-| **BRULE21** | Dữ liệu cá nhân, phương tiện, vị trí và giao dịch phải được bảo vệ. |
-| **BRULE22** | Các thao tác quan trọng phải được lưu vết. |
-
-#### 8.2.7. System Availability & Scalability Rules
-
-| Rule | Quy định |
-|---|---|
-| **BRULE23** | Lỗi tại một thành phần như thanh toán hoặc thông báo không được làm toàn hệ thống ngừng hoạt động. |
-| **BRULE24** | Chức năng mới phải có khả năng triển khai từng phần và hạn chế ảnh hưởng đến chức năng đang hoạt động. |
-
----
-
-## 8.3. Exceptions
-
-Exception mô tả các trường hợp nghiệp vụ không diễn ra theo luồng bình
-thường và cách hệ thống cần phản ứng.
-
-| Mã Exception | Trường hợp | Cách xử lý |
-|---|---|---|
-| **EX01** | Không tìm thấy tài xế phù hợp | Hệ thống thông báo rõ ràng cho khách hàng. |
-| **EX02** | Tài xế từ chối chuyến | Hệ thống tiếp tục tìm tài xế khác. |
-| **EX03** | Tài xế không phản hồi | Hệ thống tiếp tục tìm tài xế khác. |
-| **EX04** | Thanh toán điện tử thất bại | Thông báo cho khách hàng và cho phép xử lý lại theo chính sách doanh nghiệp. |
-| **EX05** | Thành phần thông báo gặp lỗi | Lỗi thông báo không được làm toàn bộ hệ thống đặt xe ngừng hoạt động. |
-| **EX06** | Thành phần thanh toán gặp lỗi | Hệ thống đặt xe vẫn phải duy trì hoạt động ở mức phù hợp, đồng thời xử lý trạng thái thanh toán theo chính sách. |
-| **EX07** | Người dùng không có quyền thực hiện thao tác quản trị | Hệ thống từ chối thao tác. |
-| **EX08** | Phát sinh lỗi trong chuyến đi | Nhân viên vận hành có thể kiểm tra và xử lý trường hợp chuyến bị lỗi. |
-
----
-
-## 8.4. Business Rules chưa được xác định
-
-Các quy tắc dưới đây **không được tự xác định ở giai đoạn hiện tại** vì tài
-liệu khách hàng chưa cung cấp đủ thông tin.
-
-| ID | Business Rule chưa xác định | Trạng thái |
-|---|---|---|
-| **TBR01** | Thời gian tài xế phải phản hồi trước khi chuyển sang tài xế khác | TBD |
-| **TBR02** | Công thức tính cước cụ thể | TBD |
-| **TBR03** | Thứ tự và trọng số của các tiêu chí ưu tiên tài xế | TBD |
-| **TBR04** | Chính sách hủy chuyến | TBD |
-| **TBR05** | Cách xử lý khi mất kết nối mạng | TBD |
-| **TBR06** | Thời gian lưu trữ dữ liệu | TBD |
-| **TBR07** | Số lần cho phép thử lại thanh toán thất bại | TBD |
-| **TBR08** | Quy trình xử lý và đối soát thanh toán tiền mặt | TBD |
-
-## 9. Data Modeling
-
-Data Modeling được thực hiện nhằm xác định các thực thể (Entity), thuộc tính
-(Attribute) và mối quan hệ (Relationship) giữa các thực thể dựa trên các
-Business Requirements và Business Processes đã xác định.
-
-Mục tiêu của bước này là tạo cơ sở để xây dựng mô hình **Entity Relationship
-Diagram (ERD)** cho hệ thống CAB.
-
----
-
-### 9.1. Xác định các Entity
-
-Dựa trên yêu cầu nghiệp vụ, hệ thống CAB có các Entity chính sau:
-
-| Mã Entity | Entity | Diễn giải |
-|---|---|---|
-| **E01** | **Customer** | Lưu thông tin khách hàng sử dụng dịch vụ đặt xe. |
-| **E02** | **Driver** | Lưu thông tin tài xế cung cấp dịch vụ. |
-| **E03** | **Vehicle** | Lưu thông tin phương tiện được tài xế sử dụng. |
-| **E04** | **Booking** | Lưu yêu cầu đặt xe do khách hàng tạo. |
-| **E05** | **Trip** | Lưu thông tin chuyến đi thực tế sau khi booking được phân công cho tài xế. |
-| **E06** | **Location** | Lưu thông tin vị trí phục vụ việc xác định điểm đón, điểm đến và vị trí tài xế. |
-| **E07** | **Fare** | Lưu thông tin cước của chuyến đi. |
-| **E08** | **Payment** | Lưu thông tin và trạng thái thanh toán của chuyến đi. |
-| **E09** | **Notification** | Lưu thông tin các thông báo được gửi đến khách hàng hoặc tài xế. |
-| **E10** | **Review** | Lưu đánh giá của khách hàng đối với tài xế sau chuyến đi. |
-| **E11** | **Transaction** | Lưu thông tin giao dịch phục vụ tra cứu và quản lý vận hành. |
-| **E12** | **Admin/Operator** | Lưu thông tin nhân viên vận hành sử dụng hệ thống quản trị. |
-
----
-
-### 9.2. Xác định Attributes
-
-#### E01 — Customer
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `customer_id` | Mã khách hàng |
-| `full_name` | Họ tên khách hàng |
-| `phone` | Số điện thoại |
-| `email` | Email |
-| `password` | Thông tin xác thực |
-| `status` | Trạng thái tài khoản |
-| `created_at` | Thời điểm tạo tài khoản |
-
-> Tài liệu yêu cầu khách hàng có thể đăng ký, đăng nhập và cập nhật thông tin
-> cá nhân. :contentReference[oaicite:2]{index=2}
-
----
-
-#### E02 — Driver
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `driver_id` | Mã tài xế |
-| `full_name` | Họ tên tài xế |
-| `phone` | Số điện thoại |
-| `email` | Email |
-| `password` | Thông tin xác thực |
-| `status` | Trạng thái tài xế |
-| `availability_status` | Trạng thái sẵn sàng nhận chuyến |
-| `created_at` | Thời điểm tạo tài khoản |
-
-Tài xế có thể được đăng ký hoặc được nhân viên vận hành tạo tài khoản, cập
-nhật hồ sơ và trạng thái hoạt động. :contentReference[oaicite:3]{index=3}
-
----
-
-#### E03 — Vehicle
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `vehicle_id` | Mã phương tiện |
-| `driver_id` | Mã tài xế sở hữu/sử dụng phương tiện |
-| `vehicle_type` | Loại xe |
-| `license_plate` | Biển số xe |
-| `status` | Trạng thái phương tiện |
-
-Tài liệu yêu cầu quản lý thông tin phương tiện của tài xế. :contentReference[oaicite:4]{index=4}
-
----
-
-#### E04 — Booking
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `booking_id` | Mã yêu cầu đặt xe |
-| `customer_id` | Khách hàng tạo yêu cầu |
-| `pickup_location_id` | Điểm đón |
-| `destination_location_id` | Điểm đến |
-| `vehicle_type` | Loại xe/dịch vụ khách hàng lựa chọn |
-| `status` | Trạng thái yêu cầu |
-| `created_at` | Thời điểm tạo yêu cầu |
-
-Booking đại diện cho yêu cầu đặt xe được khách hàng tạo trước khi hệ thống
-tìm và phân công tài xế. Khách hàng cần nhập điểm đón, điểm đến và lựa chọn
-loại xe. :contentReference[oaicite:5]{index=5}
-
----
-
-#### E05 — Trip
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `trip_id` | Mã chuyến đi |
-| `booking_id` | Booking tương ứng |
-| `customer_id` | Khách hàng |
-| `driver_id` | Tài xế được phân công |
-| `vehicle_id` | Phương tiện thực hiện chuyến |
-| `status` | Trạng thái chuyến |
-| `start_time` | Thời điểm bắt đầu |
-| `end_time` | Thời điểm kết thúc |
-| `estimated_arrival_time` | Thời gian dự kiến tài xế đến |
-
-Trip đại diện cho chuyến đi thực tế sau khi yêu cầu đặt xe được xử lý và tài
-xế được phân công.
-
-Các trạng thái chuyến được tài liệu đề cập gồm:
-
-- Đã nhận chuyến
-- Đã đến điểm đón
-- Đã đón khách
-- Đang di chuyển
-- Hoàn thành chuyến
-
-:contentReference[oaicite:6]{index=6}
-
----
-
-#### E06 — Location
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `location_id` | Mã vị trí |
-| `latitude` | Vĩ độ |
-| `longitude` | Kinh độ |
-| `address` | Địa chỉ |
-| `location_type` | Loại vị trí |
-
-`Location` được sử dụng cho:
-
-- Điểm đón.
-- Điểm đến.
-- Vị trí hiện tại của tài xế.
-
-Doanh nghiệp muốn lưu vị trí tài xế để hỗ trợ tìm tài xế gần khách hàng và
-cải thiện khả năng dự kiến thời gian đến. :contentReference[oaicite:7]{index=7}
-
----
-
-#### E07 — Fare
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `fare_id` | Mã cước |
-| `trip_id` | Mã chuyến |
-| `service_type` | Loại dịch vụ |
-| `amount` | Số tiền phải trả |
-| `created_at` | Thời điểm xác định cước |
-
-Hệ thống cần xác định số tiền khách hàng phải trả sau khi chuyến hoàn thành,
-dựa trên loại dịch vụ và thông tin chuyến đi. :contentReference[oaicite:8]{index=8}
-
-> **TBD:** Công thức tính cước cụ thể chưa được khách hàng chốt.
-
----
-
-#### E08 — Payment
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `payment_id` | Mã thanh toán |
-| `trip_id` | Mã chuyến |
-| `payment_method` | Phương thức thanh toán |
-| `amount` | Số tiền thanh toán |
-| `status` | Trạng thái thanh toán |
-| `paid_at` | Thời điểm thanh toán |
-
-Các phương thức hiện tại:
-
-- `CASH`
-- `ELECTRONIC`
-
-Hệ thống phải tích hợp với nhà cung cấp thanh toán bên ngoài và không lưu
-trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán. :contentReference[oaicite:9]{index=9}
-
----
-
-#### E09 — Notification
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `notification_id` | Mã thông báo |
-| `recipient_type` | Loại người nhận |
-| `recipient_id` | Người nhận |
-| `notification_type` | Loại thông báo |
-| `message` | Nội dung |
-| `status` | Trạng thái gửi |
-| `created_at` | Thời điểm tạo |
-
-Các sự kiện cần thông báo gồm:
-
-- Yêu cầu đặt xe được tiếp nhận.
-- Tài xế nhận chuyến.
-- Tài xế đến điểm đón.
-- Chuyến hoàn thành.
-- Thanh toán có kết quả.
-- Tài xế có chuyến mới.
-- Thay đổi liên quan đến chuyến đang thực hiện.
-
-:contentReference[oaicite:10]{index=10}
-
----
-
-#### E10 — Review
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `review_id` | Mã đánh giá |
-| `trip_id` | Mã chuyến |
-| `customer_id` | Khách hàng đánh giá |
-| `driver_id` | Tài xế được đánh giá |
-| `rating` | Điểm đánh giá |
-| `comment` | Nội dung đánh giá |
-| `created_at` | Thời điểm đánh giá |
-
-Khách hàng có thể đánh giá tài xế sau khi hoàn thành chuyến. :contentReference[oaicite:11]{index=11}
-
----
-
-#### E11 — Transaction
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `transaction_id` | Mã giao dịch |
-| `payment_id` | Mã thanh toán |
-| `transaction_type` | Loại giao dịch |
-| `amount` | Giá trị giao dịch |
-| `status` | Trạng thái giao dịch |
-| `provider_reference` | Mã tham chiếu từ nhà cung cấp |
-| `created_at` | Thời điểm giao dịch |
-
-Entity này phục vụ việc tra cứu lịch sử giao dịch và quản lý kết quả giao dịch
-thanh toán.
-
-Tài liệu yêu cầu nhân viên vận hành có thể tra cứu lịch sử giao dịch. :contentReference[oaicite:12]{index=12}
-
----
-
-#### E12 — Admin / Operator
-
-| Attribute | Ý nghĩa |
-|---|---|
-| `operator_id` | Mã nhân viên |
-| `full_name` | Họ tên |
-| `email` | Email |
-| `password` | Thông tin xác thực |
-| `role` | Vai trò/quyền |
-| `status` | Trạng thái tài khoản |
-
-Nhân viên vận hành cần giao diện quản trị để quản lý khách hàng, tài xế,
-phương tiện, chuyến đi và xử lý các trường hợp chuyến bị lỗi. Một số chức năng
-phải được phân quyền. :contentReference[oaicite:13]{index=13}
-
----
-
-## 9.3. Entity Relationships
-
-Các mối quan hệ nghiệp vụ chính:
-
-| Relationship | Cardinality | Diễn giải |
-|---|---|---|
-| Customer — Booking | 1 : N | Một khách hàng có thể tạo nhiều yêu cầu đặt xe. |
-| Booking — Trip | 1 : 0..1 | Một booking có thể chưa có chuyến hoặc được tạo thành một chuyến sau khi phân công tài xế. |
-| Driver — Vehicle | 1 : N | Một tài xế có thể được liên kết với phương tiện. |
-| Driver — Trip | 1 : N | Một tài xế có thể thực hiện nhiều chuyến. |
-| Customer — Trip | 1 : N | Một khách hàng có thể thực hiện nhiều chuyến. |
-| Vehicle — Trip | 1 : N | Một phương tiện có thể được sử dụng cho nhiều chuyến. |
-| Trip — Fare | 1 : 1 | Một chuyến có một thông tin cước cuối cùng. |
-| Trip — Payment | 1 : 0..1 | Một chuyến có thể chưa thanh toán hoặc có một thông tin thanh toán. |
-| Payment — Transaction | 1 : N | Một payment có thể có các giao dịch/attempt liên quan. |
-| Customer — Review | 1 : N | Một khách hàng có thể tạo nhiều đánh giá. |
-| Driver — Review | 1 : N | Một tài xế có thể nhận nhiều đánh giá. |
-| Trip — Review | 1 : 0..1 | Một chuyến có thể có tối đa một đánh giá từ khách hàng. |
-| Customer — Notification | 1 : N | Khách hàng có thể nhận nhiều thông báo. |
-| Driver — Notification | 1 : N | Tài xế có thể nhận nhiều thông báo. |
-| Location — Booking | 1 : N | Một vị trí có thể được sử dụng làm điểm đón/điểm đến của nhiều booking. |
-| Driver — Location | 1 : N | Một tài xế có thể có nhiều bản ghi vị trí theo thời gian. |
-| Operator — Audit Log | 1 : N | Một nhân viên vận hành có thể tạo nhiều bản ghi thao tác. |
-
----
-
-## 9.4. ERD — Business Data Model
+**Luồng chính:**
+
+1. Tài xế mở trip được phân công.
+2. Tài xế đến điểm đón và cập nhật trạng thái đến điểm đón.
+3. Hệ thống lưu trạng thái, thời điểm và thông báo khách hàng.
+4. Sau khi đón khách, tài xế xác nhận bắt đầu chuyến.
+5. Trong quá trình di chuyển, tài xế cập nhật vị trí.
+6. Khách hàng tra cứu tiến trình và thông tin được phép xem.
+7. Đến điểm kết thúc, tài xế xác nhận hoàn thành.
+8. Hệ thống lưu kết quả hoàn thành, giải phóng tài xế khỏi trạng thái bận và chuyển sang BPR06.
+
+**Thay thế và ngoại lệ:**
+
+- Sai thứ tự trạng thái hoặc cập nhật bởi tài xế khác → từ chối, giữ trạng thái hiện tại.
+- Vị trí không hợp lệ → từ chối bản cập nhật đó.
+- Mất kết nối → khi kết nối lại, tra cứu trạng thái trước khi gửi tiếp.
+- Gửi lại thao tác đã ghi nhận → không tạo thêm chuyển trạng thái.
+- Lỗi thanh toán không làm trip đã hoàn thành quay về trạng thái đang chạy.
+
+**Kết quả:** Trip hoàn thành đúng trình tự; hoàn thành chưa đồng nghĩa đã thanh toán.
+
+```mermaid
+stateDiagram-v2
+    state "Đã phân công" as Assigned
+    state "Đã đến điểm đón" as Arrived
+    state "Đang thực hiện" as InProgress
+    state "Đã hoàn thành" as Completed
+    state "Đã hủy" as Canceled
+
+    [*] --> Assigned
+    Assigned --> Arrived: Tài xế đến điểm đón
+    Arrived --> InProgress: Đón khách và bắt đầu
+    InProgress --> InProgress: Cập nhật vị trí
+    InProgress --> Completed: Hoàn thành
+    Assigned --> Canceled: Hủy hợp lệ theo BPR05
+    Arrived --> Canceled: Hủy hợp lệ theo BPR05
+    Completed --> [*]
+    Canceled --> [*]
+```
+
+Các nhánh hủy chỉ áp dụng nếu trạng thái đó được quy tắc demo cho phép.
+
+### 6.6. BPR05 — Hủy booking hoặc trip
+
+**Tác nhân:** Khách hàng.
+
+**Luồng chính:**
+
+1. Khách hàng chọn booking hoặc trip của mình và nhập lý do hủy.
+2. Hệ thống kiểm tra quyền sở hữu và trạng thái được phép hủy.
+3. Hệ thống cung cấp phí hủy theo quy tắc demo, gồm cả trường hợp phí bằng 0.
+4. Khách hàng xác nhận hủy.
+5. Hệ thống kiểm tra lại trạng thái và ghi nhận kết quả, lý do, người hủy, thời điểm cùng phí.
+6. Nếu đang tìm tài xế, hệ thống dừng tìm và vô hiệu lời mời.
+7. Nếu đã phân công, hệ thống hủy trip tương ứng và giải phóng tài xế.
+8. Hệ thống thông báo cho các bên liên quan.
+
+**Thay thế và ngoại lệ:**
+
+- Không xác nhận → giữ nguyên booking và trip.
+- Thiếu lý do, sai quyền hoặc trạng thái không cho phép → từ chối.
+- Trạng thái thay đổi trước lúc xác nhận → kiểm tra lại, không dùng kết quả kiểm tra cũ để hủy.
+- Gửi lại thao tác hủy → không tạo thêm phí hoặc thông báo trùng.
+
+**Kết quả:** Booking và trip liên quan có kết quả nhất quán; phí hủy được ghi nhận riêng, không mặc định bằng cước chuyến hoàn thành.
+
+### 6.7. BPR06 — Tính cước và thanh toán
+
+**Tác nhân:** Khách hàng, tài xế, payment mock.
+
+**Luồng chính — Thanh toán điện tử giả lập:**
+
+1. Sau khi trip hoàn thành, server tính và lưu cước theo công thức demo.
+2. Khách hàng xem khoản phải trả và chọn thanh toán điện tử.
+3. Hệ thống kiểm tra quyền, số tiền và các lần thanh toán hiện có.
+4. Hệ thống tạo lần thanh toán với payment mock, lưu mã tham chiếu.
+5. Payment mock trả callback.
+6. Hệ thống xác minh callback, giao dịch, số tiền và kết quả.
+7. Hệ thống ghi nhận thanh toán thành công và thông báo khách hàng.
+
+**Luồng thay thế — Tiền mặt:**
+
+- Khách hàng chọn tiền mặt và trả cho tài xế.
+- Tài xế được phân công xác nhận đã nhận tiền.
+- Hệ thống kiểm tra quyền và ghi nhận thanh toán thành công một lần.
+
+**Ngoại lệ:**
+
+- Tính cước lỗi → giữ trip hoàn thành, ghi log; chưa cho thanh toán khi chưa có khoản phải trả hợp lệ.
+- Thanh toán thất bại → lưu thất bại, thông báo và cho retry theo quy tắc demo.
+- Đang chờ callback → cho tra cứu, không tự tạo giao dịch mới.
+- Callback giả mạo hoặc sai số tiền → không cập nhật thành công.
+- Yêu cầu hoặc callback gửi lặp → trả kết quả phù hợp, không ghi nhận thu tiền thêm.
+- Đã thanh toán đủ → không tạo lần thanh toán mới.
+
+**Kết quả:** Kết quả thanh toán được lưu riêng với kết quả trip; các lần thanh toán có thể được tra cứu theo quyền.
+
+```mermaid
+flowchart TD
+    A["Trip hoàn thành"] --> B["Server tính và lưu cước"]
+    B --> C{"Phương thức thanh toán"}
+    C -- "Tiền mặt" --> D["Tài xế xác nhận đã nhận tiền"]
+    C -- "Điện tử giả lập" --> E["Tạo giao dịch payment mock"]
+    E --> F["Nhận callback"]
+    F --> G{"Callback hợp lệ?"}
+    G -- Không --> H["Từ chối cập nhật và ghi log"]
+    G -- Có --> I{"Kết quả giao dịch"}
+    I -- "Thành công" --> J["Ghi nhận đã thanh toán một lần"]
+    I -- "Thất bại" --> K["Lưu thất bại và thông báo"]
+    K --> L{"Retry hợp lệ?"}
+    L -- Có --> E
+    L -- Không --> M["Giữ kết quả hiện tại"]
+    D --> N{"Xác nhận đúng quyền và điều kiện?"}
+    N -- Có --> J
+    N -- Không --> M
+    J --> O["Thông báo kết quả"]
+```
+
+### 6.8. BPR07 — Xem lịch sử và đánh giá tài xế
+
+**Tác nhân:** Khách hàng.
+
+**Luồng chính:**
+
+1. Khách hàng mở Booking history.
+2. Hệ thống trả danh sách thuộc tài khoản, có giới hạn và phân trang.
+3. Khách hàng chọn một booking để xem thông tin chuyến, cước và thanh toán liên quan.
+4. Với trip đã hoàn thành và chưa được đánh giá, khách hàng nhập điểm 1–5 sao cùng nhận xét tùy chọn.
+5. Hệ thống kiểm tra quyền sở hữu, trạng thái trip, điểm hợp lệ và chưa có đánh giá.
+6. Hệ thống lưu một `Review` liên kết với trip và tài xế.
+
+**Thay thế và ngoại lệ:**
+
+- Không có booking → trả danh sách trống.
+- Chưa có cước → thể hiện chưa xác định, không dùng số 0 thay thế.
+- Trip chưa hoàn thành, không thuộc khách hàng, điểm sai hoặc đã đánh giá → từ chối tạo review.
+- Chỉ xem lịch sử → kết thúc tại bước 3.
+
+**Kết quả:** Khách hàng xem được lịch sử của mình và gửi tối đa một đánh giá cho mỗi trip đủ điều kiện.
+
+### 6.9. Các quy trình ngoài phạm vi
+
+| Mã    | Xử lý trong bản demo                                                                                                                 |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| BPR08 | Không xây dựng quy trình tạo và xử lý `SupportCase`. Xử lý lỗi kỹ thuật, thông báo lỗi và log vẫn nằm trong các quy trình liên quan. |
+| BPR09 | Không xây dựng quy trình báo cáo. Giữ mã để truy xuất yêu cầu gốc, không đánh dấu đã triển khai.                                     |
+
+### 6.10. Quan hệ giữa các quy trình
+
+- **BPR01 → BPR02:** tài xế có tài khoản, hoàn thiện hồ sơ và chuẩn bị nhận chuyến.
+- **BPR03 → BPR04 → BPR06:** đặt xe, thực hiện trip và thanh toán.
+- **BPR05:** nhánh hủy tại các trạng thái được phép của BPR03 hoặc BPR04.
+- **BPR07:** tra cứu lịch sử; đánh giá sau khi trip hoàn thành.
+
+## 7. Phân rã Business Requirements thành Functional Requirements
+
+### 7.1. Tài khoản, hồ sơ và phương tiện
+
+| BR nguồn   | Mã FR | Tên FR                          | Diễn giải                                                                                                                                                                                                                |
+| ---------- | ----- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| BR02       | FR01  | Đăng ký tài khoản               | Hệ thống cho phép đăng ký `CUSTOMER` hoặc `DRIVER`; kiểm tra trường bắt buộc, định dạng, mật khẩu và định danh không trùng. Tài xế phải hoàn tất OTP trước khi tạo tài khoản; từ chối đăng ký công khai vai trò `ADMIN`. |
+| BR02, BR20 | FR02  | Đăng nhập                       | Hệ thống xác thực thông tin đăng nhập và trạng thái tài khoản; cấp JWT khi hợp lệ, từ chối khi không hợp lệ.                                                                                                             |
+| BR02       | FR03  | Cập nhật thông tin cá nhân      | Hệ thống cho phép người dùng xem và cập nhật các trường thông tin cá nhân được phép; không cho tự sửa vai trò, trạng thái duyệt hoặc quyền.                                                                              |
+| BR03       | FR05  | Quản lý hồ sơ tài xế            | Hệ thống cho phép tài xế xem và cập nhật hồ sơ của mình theo trạng thái cho phép; `ADMIN` tra cứu danh sách và chi tiết hồ sơ theo quyền.                                                                                |
+| BR03       | FR06  | Quản lý phương tiện             | Hệ thống ghi nhận, tra cứu và cập nhật xe thuộc tài xế; kiểm tra biển số không trùng, loại xe hợp lệ và tối đa một xe đang sử dụng cho mỗi tài xế. Từ chối thay đổi xe đang dùng cho trip chưa kết thúc.                 |
+| BR02, BR03 | FR43  | Xác thực OTP đăng ký tài xế     | Hệ thống tạo OTP giả lập và xác minh mã gắn với số điện thoại, mục đích đăng ký và thời hạn hiệu lực. OTP sai, hết hạn hoặc đã sử dụng không được chấp nhận.                                                             |
+| BR03       | FR44  | Gửi hồ sơ tài xế để duyệt       | Hệ thống kiểm tra thông tin hồ sơ và xe trước khi nhận yêu cầu gửi duyệt; ghi nhận trạng thái `PENDING`. Hồ sơ bị từ chối có thể được chỉnh sửa và gửi lại.                                                              |
+| BR03, BR17 | FR45  | Duyệt hoặc từ chối hồ sơ tài xế | Hệ thống cho phép `ADMIN` xử lý hồ sơ `PENDING`; lưu kết quả, người xử lý và thời điểm. Từ chối phải có lý do; tài xế nhận thông báo kết quả.                                                                            |
+
+### 7.2. Trạng thái và vị trí tài xế
+
+| BR nguồn   | Mã FR | Tên FR                          | Diễn giải                                                                                                                                                                            |
+| ---------- | ----- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| BR04       | FR07  | Cập nhật trạng thái nhận chuyến | Hệ thống cho phép tài xế chuyển online/offline. Bật online phải đáp ứng điều kiện hồ sơ, xe và vị trí; offline ngừng nhận chuyến mới nhưng không tự hủy trip đã nhận.                |
+| BR04       | FR08  | Ghi nhận vị trí tài xế          | Hệ thống tiếp nhận tọa độ hợp lệ của tài xế, lưu vị trí và thời điểm cập nhật để phục vụ tìm xe. Dữ liệu sai không ghi đè vị trí hợp lệ đang có.                                     |
+| BR04, BR05 | FR46  | Tra cứu tài xế nearby           | Hệ thống cung cấp danh sách tài xế đủ điều kiện trong bán kính 1 km quanh tọa độ truy vấn, có khoảng cách, giới hạn và phân trang. Chỉ trả các trường được phép theo quyền truy cập. |
+
+**Online và đang bận là hai điều kiện riêng:** tài xế có thể online nhưng đang thực hiện trip, nên không được xét nhận thêm chuyến.
+
+### 7.3. Đặt xe, tìm và phân công tài xế
+
+| BR nguồn   | Mã FR | Tên FR                             | Diễn giải                                                                                                                                                                                                                    |
+| ---------- | ----- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BR01       | FR09  | Tạo yêu cầu đặt xe                 | Hệ thống kiểm tra điểm đón, điểm đến và loại xe trước khi tạo `Booking` ở trạng thái đang tìm tài xế. Gửi lại cùng thao tác với cùng khóa idempotency không tạo booking trùng.                                               |
+| BR05       | FR10  | Tìm tài xế phù hợp                 | Hệ thống lọc tài xế có hồ sơ được duyệt, xe phù hợp, online, không bận, vị trí đủ mới và khoảng cách đến điểm đón không vượt quá 1 km.                                                                                       |
+| BR05       | FR11  | Xếp thứ tự ưu tiên tài xế          | Hệ thống sắp xếp ứng viên theo khoảng cách tăng dần; khi bằng khoảng cách, dùng quy tắc phụ cố định để kết quả có thể kiểm thử.                                                                                              |
+| BR06, BR14 | FR12  | Gửi lời mời nhận chuyến            | Hệ thống gửi lời mời có thông tin booking và thời hạn phản hồi cho một ứng viên; mỗi booking chỉ có một lời mời còn hiệu lực tại một thời điểm.                                                                              |
+| BR06       | FR13  | Phản hồi lời mời nhận chuyến       | Hệ thống cho đúng tài xế được mời chấp nhận hoặc từ chối; kiểm tra hiệu lực lời mời trước khi xử lý. Phản hồi hết hạn bị từ chối; gửi lại cùng phản hồi không tạo kết quả mới.                                               |
+| BR05, BR06 | FR14  | Xác nhận phân công tài xế          | Hệ thống kiểm tra lại booking, lời mời và khả năng nhận chuyến; xác nhận một tài xế, ghi nhận xe và tạo một `Trip` cho booking. Thao tác đồng thời không được phân công trùng hoặc khiến tài xế nhận hai trip chưa kết thúc. |
+| BR07       | FR15  | Tìm tài xế thay thế                | Khi ứng viên từ chối, timeout hoặc mất điều kiện nhận chuyến, hệ thống đóng lời mời và mời ứng viên tiếp theo trong cùng booking, không mời lại ứng viên đã xử lý.                                                           |
+| BR07       | FR16  | Kết thúc tìm kiếm không thành công | Khi hết ứng viên hoặc đạt giới hạn demo, hệ thống kết thúc tìm kiếm và thông báo khách hàng. Kết quả này được phân biệt với khách hàng hủy.                                                                                  |
+
+`FR46` phục vụ tra cứu danh sách; `FR10` phục vụ lựa chọn ứng viên trong quy trình phân công. Hai chức năng dùng chung điều kiện đủ nhận chuyến.
+
+### 7.4. Thực hiện, theo dõi và hủy chuyến
+
+| BR nguồn   | Mã FR | Tên FR                         | Diễn giải                                                                                                                                                                                        |
+| ---------- | ----- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| BR08       | FR17  | Cập nhật trạng thái chuyến     | Hệ thống cho tài xế được phân công cập nhật đến điểm đón, bắt đầu và hoàn thành theo đúng trình tự; lưu thời điểm mỗi mốc. Sai thứ tự hoặc trip đã kết thúc bị từ chối.                          |
+| BR09       | FR18  | Xem thông tin chuyến hiện tại  | Hệ thống cho khách hàng xem trạng thái booking, trip liên quan, thông tin tài xế và xe đã phân công trong phạm vi dữ liệu của mình.                                                              |
+| BR09       | FR19  | Cung cấp thời gian đến dự kiến | Hệ thống cung cấp ETA theo cách ước tính demo khi dữ liệu vị trí đủ điều kiện; trả trạng thái chưa có ước tính khi thiếu dữ liệu. Không mô tả ETA là thời gian đến được bảo đảm.                 |
+| BR10       | FR20  | Tiếp nhận yêu cầu hủy          | Hệ thống kiểm tra quyền sở hữu, lý do và trạng thái được phép hủy; cung cấp phí hủy áp dụng trước khi khách hàng xác nhận.                                                                       |
+| BR10       | FR21  | Xác nhận và xử lý hủy          | Khi khách hàng xác nhận, hệ thống kiểm tra lại điều kiện rồi lưu kết quả hủy, lý do, người hủy, thời điểm và phí. Dừng tìm kiếm hoặc hủy trip liên quan, giải phóng tài xế và thông báo các bên. |
+| BR08, BR09 | FR47  | Ghi nhận vị trí trong chuyến   | Hệ thống cho tài xế được phân công cập nhật vị trí khi trip đang thực hiện; lưu vị trí mới nhất và thời điểm để khách hàng theo dõi. Sai quyền, tọa độ sai hoặc trip đã kết thúc bị từ chối.     |
+
+`FR08` quản lý vị trí tài xế để tìm xe; `FR47` quản lý bản cập nhật vị trí gắn với trip đang thực hiện. Bản cập nhật hợp lệ trong trip có thể đồng thời cập nhật vị trí hiện tại của tài xế.
+
+### 7.5. Tính cước và thanh toán
+
+| BR nguồn   | Mã FR | Tên FR                                | Diễn giải                                                                                                                                                                                            |
+| ---------- | ----- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BR11       | FR22  | Tính cước chuyến xe                   | Khi trip hoàn thành và đủ dữ liệu, server tính và lưu cước theo công thức demo cùng quy tắc làm tròn. Nếu thiếu dữ liệu, chưa xác nhận khoản phải trả và không làm mất kết quả hoàn thành.           |
+| BR11, BR12 | FR23  | Xem khoản phải trả và chọn thanh toán | Hệ thống cho khách hàng xem khoản phải trả của chuyến mình và chọn tiền mặt hoặc thanh toán điện tử giả lập.                                                                                         |
+| BR12       | FR24  | Xác nhận thanh toán tiền mặt          | Hệ thống cho tài xế được phân công xác nhận đã nhận tiền khi đủ điều kiện; lưu số tiền, người xác nhận và thời điểm. Không ghi nhận thêm nếu khoản phải trả đã được thanh toán.                      |
+| BR12       | FR25  | Khởi tạo thanh toán điện tử giả lập   | Hệ thống tạo giao dịch với payment mock bằng số tiền do server xác định; lưu trip, mã tham chiếu và khóa idempotency. Không tạo giao dịch mới nếu đã thanh toán hoặc còn giao dịch đang chờ kết quả. |
+| BR12, BR20 | FR26  | Ghi nhận callback thanh toán          | Hệ thống xác minh callback, mã giao dịch, số tiền và kết quả trước khi cập nhật payment. Callback giả mạo bị từ chối; callback gửi lặp không ghi nhận thanh toán thêm.                               |
+| BR13       | FR27  | Xử lý thanh toán thất bại             | Hệ thống lưu kết quả thất bại, thông báo khách hàng và cho retry theo quy tắc demo. Lần retry được phân biệt với việc gửi lại cùng yêu cầu cũ.                                                       |
+| BR13       | FR28  | Kiểm tra giao dịch đang chờ kết quả   | Hệ thống cho tra cứu trạng thái giao dịch đã ghi nhận; giao dịch đang chờ không được tự coi là thất bại để thanh toán lại. Bản demo chưa thực hiện đối soát với cổng thanh toán thực tế.             |
+| BR18       | FR29  | Tra cứu giao dịch thanh toán          | Hệ thống cho `ADMIN` tra cứu các lần thanh toán theo trip và trạng thái; cung cấp số tiền, phương thức, mã tham chiếu và thời điểm. Tra cứu không cho phép tự sửa kết quả giao dịch.                 |
+
+Trạng thái trip và payment được quản lý riêng. Payment thất bại hoặc đang chờ không làm trip đã hoàn thành trở lại trạng thái đang thực hiện.
+
+### 7.6. Thông báo, lịch sử và đánh giá
+
+| BR nguồn | Mã FR | Tên FR                                     | Diễn giải                                                                                                                                                     |
+| -------- | ----- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BR14     | FR30  | Thông báo tiến trình chuyến cho khách hàng | Hệ thống tạo thông báo nội bộ khi tiếp nhận booking, phân công tài xế, đến điểm đón, hoàn thành và hủy; gửi đúng khách hàng liên quan.                        |
+| BR14     | FR31  | Thông báo thay đổi cho tài xế              | Hệ thống tạo thông báo về thay đổi hoặc hủy chuyến cho tài xế liên quan. Lời mời nhận chuyến được xử lý tại FR12.                                             |
+| BR14     | FR32  | Thông báo kết quả thanh toán               | Hệ thống tạo thông báo cho khách hàng khi ghi nhận thanh toán thành công hoặc thất bại, nhất quán với kết quả payment đã lưu.                                 |
+| BR15     | FR33  | Xem lịch sử đặt xe và chuyến đi            | Hệ thống trả Booking history của khách hàng, có giới hạn và phân trang; cung cấp chi tiết trip, cước và thanh toán liên quan.                                 |
+| BR16     | FR34  | Gửi đánh giá tài xế                        | Hệ thống cho khách hàng của trip đã hoàn thành gửi một `Review` với điểm nguyên từ 1–5 và nhận xét tùy chọn; từ chối sai quyền, sai điểm hoặc đánh giá trùng. |
+| BR14     | FR48  | Tra cứu thông báo nội bộ                   | Hệ thống cho người dùng xem danh sách và chi tiết thông báo gửi cho mình; từ chối truy cập thông báo của người khác.                                          |
+
+Thông báo kết quả duyệt hồ sơ được tạo tại `FR45` và tra cứu qua `FR48`. Lỗi tạo thông báo phải được ghi nhận, không đảo ngược kết quả nghiệp vụ đã lưu.
+
+### 7.7. Quản trị, quyền truy cập và kiểm tra kỹ thuật
+
+| BR nguồn   | Mã FR | Tên FR                                | Diễn giải                                                                                                                                                                         |
+| ---------- | ----- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BR17       | FR35  | Tra cứu khách hàng trong quản trị     | Hệ thống cho `ADMIN` tra cứu danh sách và thông tin khách hàng được phép xem; bản demo chưa cho quản trị sửa hồ sơ khách hàng.                                                    |
+| BR17       | FR36  | Theo dõi hoạt động vận hành           | Hệ thống cho `ADMIN` tra cứu booking, trip đang hoạt động và trạng thái tài xế; cung cấp thời điểm cập nhật để nhận biết dữ liệu cũ.                                              |
+| BR15, BR17 | FR37  | Tra cứu lịch sử chuyến trong quản trị | Hệ thống cho `ADMIN` tra cứu booking và trip theo khách hàng, tài xế hoặc trạng thái; chỉ trả dữ liệu trong phạm vi quyền.                                                        |
+| BR20       | FR40  | Kiểm tra quyền truy cập               | Hệ thống kiểm tra JWT, vai trò và quyền sở hữu dữ liệu trước thao tác được bảo vệ; từ chối token không hợp lệ và yêu cầu ngoài quyền.                                             |
+| BR21       | FR41  | Ghi log kỹ thuật cần thiết            | Hệ thống ghi thời điểm, service, mã liên kết yêu cầu, hành động và kết quả hoặc lỗi cần kiểm tra. Log không chứa mật khẩu, OTP, token hoặc thông tin thanh toán nhạy cảm dạng rõ. |
+| BR22       | FR49  | Kiểm tra tình trạng hệ thống          | Hệ thống cung cấp `/health`, `/ready`, `/health/services` qua Gateway để kiểm tra trạng thái hoạt động, khả năng sẵn sàng và tình trạng các service.                              |
+
+### 7.8. Ánh xạ thay đổi và yêu cầu ngoài phạm vi
+
+| ID cũ                                     | Xử lý trong bản mới                                                    | Yêu cầu liên quan                |
+| ----------------------------------------- | ---------------------------------------------------------------------- | -------------------------------- |
+| FR04 — Tạo tài khoản tài xế bởi nhân viên | Ngoài phạm vi; giữ mã, không tái sử dụng                               | Tài xế tự đăng ký tại FR01, FR43 |
+| FR05 — Quản lý hồ sơ tài xế               | Giữ chức năng hồ sơ; tách gửi duyệt và quyết định duyệt thành FR mới   | FR05, FR44, FR45                 |
+| FR19 — Hiển thị thời gian đến dự kiến     | Giữ ID; giới hạn ở ETA demo                                            | FR19                             |
+| FR25–FR28 — Thanh toán điện tử            | Giữ nghiệp vụ; dùng payment mock, không tích hợp hoặc đối soát thực tế | FR25–FR28                        |
+| FR33 — Xem lịch sử chuyến                 | Giữ ID; làm rõ lịch sử booking và trip liên quan, bổ sung phân trang   | FR33                             |
+| FR35 — Quản lý khách hàng                 | Thu hẹp thành tra cứu; phần quản trị cập nhật khách hàng ngoài phạm vi | FR35                             |
+| FR38 — Ghi nhận xử lý sự cố               | Ngoài phạm vi support case                                             | Không có FR thay thế             |
+| FR39 — Xem báo cáo hoạt động              | Ngoài phạm vi report                                                   | Không có FR thay thế             |
+| FR41 — Ghi nhận thao tác quan trọng       | Thu hẹp thành log kỹ thuật; chưa đáp ứng toàn bộ lưu vết nghiệp vụ cũ  | FR41                             |
+| FR42 — Tra cứu lưu vết                    | Ngoài phạm vi audit query                                              | Không có FR thay thế             |
+
+Các FR mới là `FR43–FR49`. Chúng bổ sung hành vi cần thiết cho phạm vi demo, không dùng để đánh số lại FR cũ.
+
+### 7.9. Những nội dung tiếp tục đặc tả bằng NFR và Business Rules
+
+- **BR20:** bảo vệ dữ liệu lưu trữ, quản lý khóa, kiểm tra input, rate limit và không tiết lộ dữ liệu nhạy cảm cần NFR và kiểm thử bảo mật riêng.
+- **BR21:** mức log, thời gian lưu và quyền truy cập log cần quy định kỹ thuật cụ thể.
+- **BR22:** timeout giữa các thành phần và kiểm thử lỗi thanh toán, thông báo thuộc yêu cầu phi chức năng.
+- **BR23:** 8 bounded context, MongoDB riêng về mặt logic, Gateway và message broker thuộc ràng buộc kiến trúc; không cần tạo FR CRUD để biểu diễn chúng.
+
+## 8. Quy tắc nghiệp vụ và ngoại lệ — Business Rules and Exceptions
+
+### 8.1. Quy ước nguồn và trạng thái
+
+- **Nguồn KH:** có căn cứ trong tài liệu khách hàng.
+- **Nguồn PC:** có căn cứ trong phiếu chấm.
+- **Demo:** lựa chọn bổ sung để triển khai và kiểm thử bản cơ bản.
+
+Nguồn KH hoặc PC xác nhận nhu cầu; các giá trị và điều kiện chi tiết bổ sung vẫn được ghi là Demo.
+
+| Đối tượng        | Trạng thái dùng trong demo                                    |
+| ---------------- | ------------------------------------------------------------- |
+| `Account`        | `ACTIVE`, `DISABLED`                                          |
+| `DriverProfile`  | `DRAFT`, `PENDING`, `APPROVED`, `REJECTED`                    |
+| `Booking`        | `SEARCHING`, `ASSIGNED`, `COMPLETED`, `CANCELED`, `NO_DRIVER` |
+| `Trip`           | `ASSIGNED`, `ARRIVED`, `IN_PROGRESS`, `COMPLETED`, `CANCELED` |
+| `TripInvitation` | `PENDING`, `ACCEPTED`, `REJECTED`, `EXPIRED`, `CANCELED`      |
+| `Payment`        | `PENDING`, `COMPLETED`, `FAILED`                              |
+
+Trạng thái hồ sơ, online/offline, tình trạng bận và trạng thái tài khoản được quản lý riêng.
+
+### 8.2. Tài khoản và quyền truy cập
+
+| Mã     | Quy tắc                                                                                                                                                                                              | Nguồn     | FR liên quan                          |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------- |
+| RULE01 | Chức năng được bảo vệ yêu cầu JWT hợp lệ, chưa hết hạn và tài khoản `ACTIVE`.                                                                                                                        | KH + Demo | FR02, FR40                            |
+| RULE02 | Demo có ba vai trò `CUSTOMER`, `DRIVER`, `ADMIN`. Chỉ `ADMIN` được duyệt hồ sơ; đăng ký công khai không được tạo `ADMIN`.                                                                            | KH + Demo | FR01, FR40, FR45                      |
+| RULE03 | Khách hàng chỉ thao tác booking, trip, payment và review thuộc mình; tài xế chỉ phản hồi lời mời gửi cho mình và cập nhật trip được phân công. `ADMIN` truy cập theo chức năng quản trị đã xác định. | Demo      | FR13, FR17–FR18, FR23–FR29, FR33–FR40 |
+| RULE04 | Số điện thoại là định danh đăng nhập, được chuẩn hóa và duy nhất toàn hệ thống. Demo nhận số Việt Nam gồm 10 chữ số, bắt đầu bằng `0`; mỗi tài khoản có một vai trò.                                 | Demo      | FR01–FR03                             |
+
+### 8.3. Đặt xe và phân công tài xế
+
+| Mã     | Quy tắc                                                                                                                                                                                    | Nguồn     | FR liên quan     |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- | ---------------- |
+| RULE05 | Booking phải có tọa độ điểm đón, điểm đến và loại xe `MOTORBIKE` hoặc `CAR`. Latitude thuộc `[-90, 90]`, longitude thuộc `[-180, 180]`; hai điểm không được trùng tọa độ.                  | KH + Demo | FR09             |
+| RULE06 | Tài xế được xét phải có tài khoản `ACTIVE`, hồ sơ `APPROVED`, online, không bận, có xe đang sử dụng phù hợp và vị trí đủ mới.                                                              | KH + Demo | FR07, FR10, FR46 |
+| RULE07 | Chỉ xét tài xế cách điểm đón **không quá 1 km**, tính bằng Haversine. Sắp xếp khoảng cách tăng dần; bằng khoảng cách thì sắp xếp `driverId` tăng dần.                                      | PC + Demo | FR10–FR11, FR46  |
+| RULE08 | Một booking có tối đa một trip; một tài xế có tối đa một trip ở trạng thái `ASSIGNED`, `ARRIVED` hoặc `IN_PROGRESS` tại một thời điểm.                                                     | Demo      | FR14             |
+| RULE09 | Chỉ xác nhận phân công khi booking còn `SEARCHING`, lời mời còn `PENDING` và chưa hết hạn, tài xế vẫn đủ điều kiện. Tìm thấy ứng viên không đồng nghĩa đã phân công.                       | Demo      | FR13–FR14        |
+| RULE10 | Mỗi lời mời có hiệu lực **30 giây**, tính theo thời gian server. Chấp nhận tại hoặc sau `expiresAt` bị từ chối. Mỗi booking chỉ có một lời mời còn hiệu lực.                               | KH + Demo | FR12–FR15        |
+| RULE11 | Từ chối, timeout hoặc mất điều kiện nhận chuyến → mời ứng viên tiếp theo trong cùng booking; không mời lại tài xế đã xử lý trong booking đó.                                               | KH + Demo | FR15             |
+| RULE12 | Xét tối đa **5 ứng viên** trong danh sách ban đầu; không bổ sung hoặc tìm lại vòng mới. Hết ứng viên → `NO_DRIVER`; booking bị hủy → dừng tìm kiếm. Phải thông báo kết quả cho khách hàng. | KH + Demo | FR14–FR16, FR21  |
+| RULE13 | Vị trí dùng để tìm tài xế có tuổi **không quá 120 giây**, tính từ lúc server nhận bản cập nhật hợp lệ. Không có vị trí hoặc vị trí cũ hơn ngưỡng → loại khỏi danh sách ứng viên.           | Demo      | FR08, FR10, FR46 |
+
+Giới hạn danh sách và thời hạn lời mời tạo ra tối đa **150 giây chờ phản hồi**, chưa tính thời gian xử lý kỹ thuật. Đây không phải cam kết tổng thời gian tìm xe.
+
+### 8.4. Thực hiện và hủy chuyến
+
+| Mã     | Quy tắc                                                                                                                                                                                                       | Nguồn     | FR liên quan          |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | --------------------- |
+| RULE14 | Trip chuyển theo thứ tự `ASSIGNED → ARRIVED → IN_PROGRESS → COMPLETED`. Không được bỏ qua hoặc quay ngược trạng thái.                                                                                         | KH + Demo | FR17                  |
+| RULE15 | Chỉ tài xế được phân công được bắt đầu hoặc hoàn thành trip. Chỉ nhận cập nhật vị trí gắn với trip khi `IN_PROGRESS`.                                                                                         | KH + Demo | FR17, FR47            |
+| RULE16 | Khách hàng được hủy booking `SEARCHING` hoặc trip `ASSIGNED`, `ARRIVED` của mình. Không hủy thông thường khi trip `IN_PROGRESS`, `COMPLETED` hoặc `CANCELED`. Demo chưa cung cấp chức năng tài xế hủy chuyến. | Demo      | FR20–FR21             |
+| RULE17 | Hủy phải có lý do từ **1–300 ký tự sau khi loại khoảng trắng đầu/cuối**, lưu người hủy và thời điểm. Phải kiểm tra lại trạng thái khi xác nhận; dừng lời mời hoặc giải phóng tài xế tương ứng.                | PC + Demo | FR20–FR21             |
+| RULE18 | Phí hủy demo là **0 VND** cho mọi trường hợp được phép hủy. Hiển thị phí trước xác nhận; không tạo payment cho booking hoặc trip đã hủy.                                                                      | Demo      | FR20–FR21             |
+| RULE19 | `COMPLETED`, `CANCELED`, `NO_DRIVER` là kết quả cuối tương ứng. Không sửa ngược qua API nghiệp vụ; `ADMIN` không được tùy ý sửa kết quả chuyến.                                                               | Demo      | FR17, FR21, FR36–FR37 |
+
+**Chọn phí hủy bằng 0 vẫn là một chính sách cụ thể**, có thể kiểm thử và giúp demo tránh phát sinh quy trình thu phí sau hủy.
+
+### 8.5. Cước và thanh toán
+
+| Mã     | Quy tắc                                                                                                                                                                                                            | Nguồn     | FR liên quan    |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- | --------------- |
+| RULE20 | Server tính cước khi trip hoàn thành theo công thức tại mục 8.6; số tiền client gửi không được dùng làm khoản phải trả.                                                                                            | KH + Demo | FR22            |
+| RULE21 | Demo hỗ trợ `CASH` và `MOCK_ONLINE`. Chỉ thanh toán trip `COMPLETED` đã có cước hợp lệ.                                                                                                                            | KH + Demo | FR23–FR25       |
+| RULE22 | Thanh toán tiền mặt chỉ thành công sau xác nhận của tài xế được phân công. Không xác nhận nếu đã thanh toán hoặc còn payment online `PENDING`.                                                                     | Demo      | FR24            |
+| RULE23 | Payment online chỉ thành công sau callback có chữ ký hợp lệ và khớp `paymentId`, mã tham chiếu, số tiền, tiền tệ `VND`. Client báo thành công không đủ căn cứ.                                                     | Demo      | FR26            |
+| RULE24 | Một trip chỉ được ghi nhận thanh toán thành công một lần. Cùng khóa idempotency và cùng dữ liệu → trả kết quả cũ; cùng khóa nhưng khác dữ liệu → từ chối xung đột. Callback lặp không tạo thêm kết quả thanh toán. | PC + Demo | FR25–FR26       |
+| RULE25 | Chỉ retry khi lần trước `FAILED`; tối đa **3 lần khởi tạo online**, gồm lần đầu và 2 retry. Mỗi retry dùng payment và khóa idempotency mới. Không retry khi `PENDING` hoặc `COMPLETED`.                            | KH + Demo | FR27–FR28       |
+| RULE26 | Trip và payment có trạng thái riêng. Payment thất bại hoặc đang chờ không thay đổi trip `COMPLETED`; không giữ tài xế ở trạng thái bận chỉ vì khách chưa thanh toán.                                               | Demo      | FR17, FR26–FR28 |
+| RULE27 | Không lưu thông tin thẻ hoặc tài khoản thanh toán nhạy cảm. Demo chỉ lưu số tiền, phương thức, trạng thái và các mã tham chiếu cần thiết.                                                                          | KH        | FR25–FR29       |
+
+Sau khi các lần online đã kết thúc `FAILED`, khách hàng có thể chuyển sang tiền mặt. Payment đã có kết quả cuối không được đổi kết quả bằng callback đến sau trái ngược; ghi log và từ chối thay đổi.
+
+### 8.6. Công thức cước demo
+
+Khoảng cách tính cước là **khoảng cách đường thẳng Haversine giữa điểm đón và điểm đến**, do server tính và lưu khi tạo booking. Không dùng độ dài tuyến đường thực tế hoặc tổng quãng đường GPS.
+
+| Thông số            | Giá trị demo               |
+| ------------------- | -------------------------- |
+| `baseFare`          | 10.000 VND                 |
+| `ratePerKm`         | 5.000 VND/km               |
+| `vehicleMultiplier` | `MOTORBIKE = 1`; `CAR = 2` |
+| Làm tròn cước       | Lên bội số 1.000 VND       |
+
+\[
+fareAmount =
+1000 \times
+\left\lceil
+\frac{(10000 + 5000 \times distanceKm)\times vehicleMultiplier}{1000}
+\right\rceil
+\]
+
+Ví dụ với khoảng cách 2 km:
+
+- `MOTORBIKE`: 20.000 VND.
+- `CAR`: 40.000 VND.
+
+Không làm tròn khoảng cách trước khi tính cước. Lưu thông số giá áp dụng trong booking để thay đổi cấu hình sau này không làm đổi giá của booking đã tạo.
+
+### 8.7. Đánh giá, thông báo và log
+
+| Mã     | Quy tắc                                                                                                                                                                                    | Nguồn     | FR liên quan          |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- | --------------------- |
+| RULE28 | Chỉ khách hàng của trip `COMPLETED` được đánh giá tài xế của trip đó. Không bắt buộc payment đã thành công mới cho đánh giá.                                                               | KH + Demo | FR34                  |
+| RULE29 | Mỗi trip có tối đa một review; `rating` là số nguyên từ **1–5**; `comment` tùy chọn, tối đa **500 ký tự**. Demo không cho sửa hoặc xóa review.                                             | PC + Demo | FR34                  |
+| RULE31 | Ghi log kỹ thuật cần thiết về yêu cầu, xử lý trạng thái và lỗi; không ghi mật khẩu, OTP, token hoặc dữ liệu thanh toán nhạy cảm dạng rõ. Demo không cung cấp audit query.                  | KH + Demo | FR41                  |
+| RULE32 | Thông báo chỉ được tra cứu bởi người nhận. Xử lý lại cùng sự kiện không tạo thông báo trùng cho cùng người nhận và loại thông báo. Lỗi thông báo không đảo ngược kết quả nghiệp vụ đã lưu. | KH + Demo | FR30–FR32, FR45, FR48 |
+
+`RULE30 — Công thức báo cáo` được giữ mã và chuyển ngoài phạm vi.
+
+### 8.8. Quy tắc demo bổ sung
+
+| Mã     | Quy tắc                                                                                                                                                                                                                      | FR liên quan     |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| RULE33 | OTP giả lập gồm 6 chữ số, hiệu lực **5 phút**, tối đa **5 lần nhập sai** cho mỗi mã; khoảng cách giữa hai lần yêu cầu mã tối thiểu **60 giây**. Mã mới vô hiệu mã cũ; mã xác thực thành công chỉ dùng một lần.               | FR43             |
+| RULE34 | Hồ sơ chuyển `DRAFT → PENDING → APPROVED` hoặc `REJECTED`. Hồ sơ `REJECTED` có thể sửa và gửi lại `PENDING`. Chỉ `ADMIN` được quyết định duyệt; lý do từ chối dài **1–300 ký tự**.                                           | FR44–FR45        |
+| RULE35 | Mỗi tài xế có tối đa một xe đang sử dụng; biển số sau chuẩn hóa là duy nhất. Không đổi hoặc sửa xe đang dùng cho trip chưa kết thúc.                                                                                         | FR06             |
+| RULE36 | Nearby và Booking history dùng `page ≥ 1`, `limit` từ **1–50**, mặc định `page = 1`, `limit = 10`. Sai kiểu hoặc ngoài giới hạn → từ chối; trang không có dữ liệu → danh sách trống.                                         | FR33, FR46       |
+| RULE37 | Booking history sắp xếp `createdAt` giảm dần; bằng thời điểm thì `bookingId` giảm dần. Chỉ trả booking thuộc khách hàng đang truy vấn.                                                                                       | FR33             |
+| RULE38 | ETA demo dùng khoảng cách đường thẳng từ tài xế đến điểm đón, tốc độ giả định **20 km/h**: `etaMinutes = ceil(distanceKm × 60 / 20)`. Chỉ cung cấp khi có tài xế được phân công và vị trí đủ mới; tại `ARRIVED`, ETA bằng 0. | FR19             |
+| RULE39 | Gửi lại thao tác đến điểm đón, bắt đầu, hoàn thành hoặc hủy đã thành công không tạo thêm lần chuyển trạng thái, phí hoặc thay đổi thời điểm đã lưu.                                                                          | FR17, FR21       |
+| RULE40 | Khi trip được phân công, booking chuyển `ASSIGNED`; trip hoàn thành → booking `COMPLETED`; hủy hợp lệ sau phân công → cả booking và trip `CANCELED`. Booking `NO_DRIVER` hoặc hủy trước phân công không có trip.             | FR14, FR17, FR21 |
+
+Các quy tắc trên là lựa chọn demo, không mô tả khả năng tính tuyến đường hoặc vận hành thực tế.
+
+### 8.9. Ngoại lệ — Exceptions
+
+| Mã   | Ngoại lệ                                                         | Cách xử lý                                                                                                             |
+| ---- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| EX01 | Dữ liệu đăng ký hoặc đặt xe thiếu, sai hoặc trùng                | Từ chối thao tác; trả thông tin lỗi phù hợp; không tạo dữ liệu nghiệp vụ dở dang.                                      |
+| EX02 | Không có tài xế đủ điều kiện                                     | Booking chuyển `NO_DRIVER`; thông báo khách hàng; không tạo trip.                                                      |
+| EX03 | Tài xế từ chối hoặc timeout                                      | Đóng lời mời; xét ứng viên tiếp theo theo RULE11–RULE12.                                                               |
+| EX04 | Chấp nhận khi lời mời hết hạn hoặc booking đã hủy                | Từ chối phân công; không tạo trip.                                                                                     |
+| EX05 | Tài xế đã nhận trip khác hoặc chuyển offline trước khi chấp nhận | Từ chối phân công; tiếp tục ứng viên khác.                                                                             |
+| EX06 | Vị trí thiếu hoặc quá cũ                                         | Không xét tài xế nearby hoặc phân công; không cung cấp ETA thiếu căn cứ.                                               |
+| EX07 | Không gặp khách tại điểm đón                                     | Tài xế chưa bắt đầu trip; không tự ghi hoàn thành. Demo chưa có tự động hủy vì khách không xuất hiện.                  |
+| EX08 | Mất kết nối khi gửi thao tác                                     | Tra cứu kết quả đã lưu và gửi lại an toàn; không mặc định thao tác thất bại chỉ vì client không nhận phản hồi.         |
+| EX09 | Cập nhật trạng thái sai trình tự                                 | Từ chối; giữ nguyên trạng thái và thời điểm đã lưu.                                                                    |
+| EX10 | Thiếu dữ liệu tính cước                                          | Giữ trip hoàn thành, chưa xác nhận khoản phải trả; ghi log và cho xử lý lại tính cước khi đủ dữ liệu.                  |
+| EX11 | Payment mock trả thất bại                                        | Lưu `FAILED`, thông báo khách hàng; cho retry trong giới hạn hoặc chuyển tiền mặt khi đủ điều kiện.                    |
+| EX12 | Payment đang chờ, callback trùng hoặc trái kết quả cuối          | Không tạo payment mới khi đang chờ; callback trùng không xử lý thêm; callback trái kết quả cuối bị từ chối và ghi log. |
+| EX13 | Có tranh chấp cước hoặc tiền mặt                                 | Cho tra cứu dữ liệu đã ghi nhận; không tự sửa cước hoặc payment. Quy trình xử lý tranh chấp ngoài phạm vi.             |
+| EX14 | Xử lý thông báo lỗi                                              | Giữ kết quả nghiệp vụ, ghi log; người dùng vẫn tra cứu booking, trip và payment được.                                  |
+| EX15 | Review sai quyền, sai điểm, chưa hoàn thành hoặc trùng           | Từ chối; không tạo hoặc sửa review đã lưu.                                                                             |
+| EX16 | OTP sai, hết hạn, đã dùng hoặc vượt số lần nhập                  | Từ chối xác thực; chỉ cho yêu cầu mã mới khi hết thời gian chờ.                                                        |
+| EX17 | Hồ sơ chưa được duyệt nhưng tài xế yêu cầu online                | Từ chối và trả lý do; giữ trạng thái offline.                                                                          |
+
+### 8.10. Ánh xạ quy tắc thay đổi
+
+| Mã cũ         | Xử lý trong bản mới                                                                             |
+| ------------- | ----------------------------------------------------------------------------------------------- |
+| RULE01–RULE29 | Giữ ý nghĩa chính; bổ sung điều kiện và thông số demo để kiểm thử được                          |
+| RULE30        | Ngoài phạm vi report; giữ mã, không tái sử dụng                                                 |
+| RULE31        | Thu hẹp từ lưu vết nghiệp vụ sang log kỹ thuật; không coi là đã đáp ứng đầy đủ yêu cầu audit cũ |
+| RULE32–RULE40 | Quy tắc mới; bổ sung thông báo, OTP, duyệt hồ sơ, xe, phân trang, ETA và đồng bộ trạng thái     |
+| EX13          | Giữ tình huống tranh chấp; giới hạn ở tra cứu, loại xử lý support case                          |
+| EX16–EX17     | Ngoại lệ mới về OTP và điều kiện online                                                         |
+
+## 9. Mô hình dữ liệu — Data Modeling
+
+### 9.1. Quy ước mô hình
+
+- Mỗi thực thể tương ứng một collection MongoDB.
+- `PK`: định danh duy nhất, tương ứng trường `_id` khi triển khai.
+- `FK`: trường tham chiếu ID; MongoDB không tự kiểm tra khóa ngoại.
+- `UK`: trường hoặc tổ hợp trường cần bảo đảm duy nhất.
+- Các service chỉ truy cập database của mình; tham chiếu sang service khác được xử lý qua API hoặc sự kiện.
+- Thời điểm do server ghi nhận và lưu theo UTC.
+- Số tiền lưu bằng số nguyên, đơn vị VND.
+- Trường chưa phát sinh có thể để `null`, chẳng hạn thời điểm hoàn thành của trip chưa kết thúc.
+
+### 9.2. Xác định các thực thể
+
+| Thực thể          | Ý nghĩa                                                     | Service sở hữu         |
+| ----------------- | ----------------------------------------------------------- | ---------------------- |
+| `Account`         | Tài khoản đăng nhập, vai trò và trạng thái tài khoản        | `auth_service`         |
+| `OtpChallenge`    | Mã OTP giả lập và kết quả xác minh đăng ký tài xế           | `auth_service`         |
+| `CustomerProfile` | Thông tin cá nhân khách hàng                                | `customer_service`     |
+| `DriverProfile`   | Hồ sơ, kết quả duyệt, trạng thái online và vị trí tài xế    | `driver_service`       |
+| `Vehicle`         | Phương tiện thuộc tài xế                                    | `driver_service`       |
+| `Booking`         | Yêu cầu đặt xe, điểm đón, điểm đến và tiến trình tìm tài xế | `booking_service`      |
+| `TripInvitation`  | Lời mời nhận chuyến gửi cho một tài xế                      | `booking_service`      |
+| `Trip`            | Chuyến đi đã phân công, tiến trình thực hiện và cước        | `trip_service`         |
+| `Payment`         | Một lần thanh toán tiền mặt hoặc thanh toán online giả lập  | `payment_service`      |
+| `Notification`    | Thông báo nội bộ gửi đến một tài khoản                      | `notification_service` |
+| `Review`          | Đánh giá tài xế của một chuyến đi                           | `rating_service`       |
+
+**Không tạo thực thể `Admin` riêng:** quản trị viên là `Account` có `role = ADMIN`. Driver và Vehicle cùng thuộc một bounded context nhưng vẫn là hai thực thể.
+
+### 9.3. Quan hệ giữa các thực thể
+
+| Quan hệ                            | Bội số      | Diễn giải                                                           |
+| ---------------------------------- | ----------- | ------------------------------------------------------------------- |
+| Account — CustomerProfile          | 1 — 0..1    | Tài khoản khách hàng có một hồ sơ khách hàng; vai trò khác không có |
+| Account — DriverProfile            | 1 — 0..1    | Tài khoản tài xế có một hồ sơ tài xế; vai trò khác không có         |
+| Account — DriverProfile được duyệt | 0..1 — 0..n | Hồ sơ chưa xử lý chưa có người duyệt; một ADMIN xử lý nhiều hồ sơ   |
+| DriverProfile — Vehicle            | 1 — 0..n    | Tài xế có thể lưu nhiều xe, tối đa một xe đang sử dụng              |
+| CustomerProfile — Booking          | 1 — 0..n    | Khách hàng tạo nhiều yêu cầu đặt xe                                 |
+| Booking — TripInvitation           | 1 — 0..n    | Booking có nhiều lời mời tuần tự                                    |
+| DriverProfile — TripInvitation     | 1 — 0..n    | Tài xế nhận nhiều lời mời theo thời gian                            |
+| Booking — Trip                     | 1 — 0..1    | Chỉ phát sinh trip khi phân công thành công                         |
+| DriverProfile — Trip               | 1 — 0..n    | Tài xế thực hiện nhiều trip theo thời gian                          |
+| Vehicle — Trip                     | 1 — 0..n    | Một xe được sử dụng trong nhiều trip                                |
+| Trip — Payment                     | 1 — 0..n    | Trip có thể chưa thanh toán hoặc có nhiều lần thanh toán do retry   |
+| Trip — Review                      | 1 — 0..1    | Một trip có tối đa một đánh giá                                     |
+| CustomerProfile — Review           | 1 — 0..n    | Khách hàng gửi nhiều đánh giá cho các trip khác nhau                |
+| DriverProfile — Review             | 1 — 0..n    | Tài xế nhận nhiều đánh giá                                          |
+| Account — Notification             | 1 — 0..n    | Một tài khoản nhận nhiều thông báo                                  |
+
+`OtpChallenge` gắn với số điện thoại và mục đích đăng ký. **Không bắt buộc tham chiếu Account**, vì OTP được tạo trước khi tài khoản tài xế tồn tại.
+
+### 9.4. ERD tổng thể bằng Mermaid
 
 ```mermaid
 erDiagram
+    ACCOUNT ||--o| CUSTOMER_PROFILE : "có"
+    ACCOUNT ||--o| DRIVER_PROFILE : "có"
+    ACCOUNT o|--o{ DRIVER_PROFILE : "xử lý duyệt"
 
-    CUSTOMER {
-        int customer_id PK
-        string full_name
-        string phone
-        string email
-        string password
+    DRIVER_PROFILE ||--o{ VEHICLE : "sở hữu"
+    CUSTOMER_PROFILE ||--o{ BOOKING : "tạo"
+
+    BOOKING ||--o{ TRIP_INVITATION : "phát sinh"
+    DRIVER_PROFILE ||--o{ TRIP_INVITATION : "nhận"
+
+    BOOKING ||--o| TRIP : "phát sinh"
+    DRIVER_PROFILE ||--o{ TRIP : "thực hiện"
+    VEHICLE ||--o{ TRIP : "được sử dụng"
+
+    TRIP ||--o{ PAYMENT : "có lần thanh toán"
+    TRIP ||--o| REVIEW : "có"
+    CUSTOMER_PROFILE ||--o{ REVIEW : "gửi"
+    DRIVER_PROFILE ||--o{ REVIEW : "nhận"
+
+    ACCOUNT ||--o{ NOTIFICATION : "nhận"
+
+    ACCOUNT {
+        ObjectId accountId PK
+        string phone UK
+        string passwordHash
+        string role
         string status
-        datetime created_at
+        datetime createdAt
+        datetime updatedAt
     }
 
-    DRIVER {
-        int driver_id PK
-        string full_name
+    OTP_CHALLENGE {
+        ObjectId otpId PK
         string phone
+        string purpose
+        string codeHash
+        int failedAttempts
+        datetime expiresAt
+        datetime verifiedAt
+        datetime consumedAt
+        datetime invalidatedAt
+        datetime createdAt
+    }
+
+    CUSTOMER_PROFILE {
+        ObjectId customerId PK
+        ObjectId accountId FK,UK
+        string fullName
         string email
-        string password
-        string status
-        string availability_status
-        datetime created_at
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    DRIVER_PROFILE {
+        ObjectId driverId PK
+        ObjectId accountId FK,UK
+        string fullName
+        string email
+        string licenseNumber
+        string approvalStatus
+        datetime submittedAt
+        ObjectId reviewedByAccountId FK
+        datetime reviewedAt
+        string rejectionReason
+        boolean isOnline
+        ObjectId activeTripId FK
+        double latitude
+        double longitude
+        datetime locationUpdatedAt
+        datetime createdAt
+        datetime updatedAt
     }
 
     VEHICLE {
-        int vehicle_id PK
-        int driver_id FK
-        string vehicle_type
-        string license_plate
-        string status
+        ObjectId vehicleId PK
+        ObjectId driverId FK
+        string plateNumber UK
+        string vehicleType
+        string model
+        string color
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
     }
 
     BOOKING {
-        int booking_id PK
-        int customer_id FK
-        int pickup_location_id FK
-        int destination_location_id FK
-        string vehicle_type
+        ObjectId bookingId PK
+        ObjectId customerId FK
+        string idempotencyKey
+        string requestHash
+        double pickupLatitude
+        double pickupLongitude
+        double destinationLatitude
+        double destinationLongitude
+        string vehicleType
         string status
-        datetime created_at
+        double distanceKm
+        int baseFare
+        int ratePerKm
+        int vehicleMultiplier
+        int roundingUnit
+        ObjectId[] candidateDriverIds
+        string cancellationReason
+        ObjectId canceledByAccountId FK
+        int cancellationFee
+        datetime canceledAt
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    TRIP_INVITATION {
+        ObjectId invitationId PK
+        ObjectId bookingId FK
+        ObjectId driverId FK
+        int candidateOrder
+        string status
+        datetime expiresAt
+        datetime respondedAt
+        datetime createdAt
     }
 
     TRIP {
-        int trip_id PK
-        int booking_id FK
-        int customer_id FK
-        int driver_id FK
-        int vehicle_id FK
+        ObjectId tripId PK
+        ObjectId bookingId FK,UK
+        ObjectId driverId FK
+        ObjectId vehicleId FK
+        object bookingSnapshot
+        object vehicleSnapshot
         string status
-        datetime start_time
-        datetime end_time
-        datetime estimated_arrival_time
-    }
-
-    LOCATION {
-        int location_id PK
-        decimal latitude
-        decimal longitude
-        string address
-        string location_type
-    }
-
-    DRIVER_LOCATION {
-        int driver_location_id PK
-        int driver_id FK
-        decimal latitude
-        decimal longitude
-        datetime recorded_at
-    }
-
-    FARE {
-        int fare_id PK
-        int trip_id FK
-        string service_type
-        decimal amount
-        datetime created_at
+        int fareAmount
+        datetime fareCalculatedAt
+        double latestLatitude
+        double latestLongitude
+        datetime locationUpdatedAt
+        datetime assignedAt
+        datetime arrivedAt
+        datetime startedAt
+        datetime completedAt
+        datetime canceledAt
+        datetime updatedAt
     }
 
     PAYMENT {
-        int payment_id PK
-        int trip_id FK
-        string payment_method
-        decimal amount
+        ObjectId paymentId PK
+        ObjectId tripId FK
+        string method
         string status
-        datetime paid_at
-    }
-
-    TRANSACTION {
-        int transaction_id PK
-        int payment_id FK
-        string transaction_type
-        decimal amount
-        string status
-        string provider_reference
-        datetime created_at
+        int amount![alt text](image.png)
+        string currency
+        string referenceCode
+        string idempotencyKey
+        string requestHash
+        int attemptNumber
+        ObjectId confirmedByAccountId FK
+        datetime confirmedAt
+        datetime createdAt
+        datetime updatedAt
     }
 
     NOTIFICATION {
-        int notification_id PK
-        string recipient_type
-        int recipient_id
-        string notification_type
-        string message
-        string status
-        datetime created_at
+        ObjectId notificationId PK
+        ObjectId recipientAccountId FK
+        string eventId
+        string type
+        string content
+        string relatedEntityType
+        ObjectId relatedEntityId
+        datetime createdAt
     }
 
     REVIEW {
-        int review_id PK
-        int trip_id FK
-        int customer_id FK
-        int driver_id FK
+        ObjectId reviewId PK
+        ObjectId tripId FK,UK
+        ObjectId customerId FK
+        ObjectId driverId FK
         int rating
         string comment
-        datetime created_at
+        datetime createdAt
     }
-
-    OPERATOR {
-        int operator_id PK
-        string full_name
-        string email
-        string password
-        string role
-        string status
-    }
-
-    AUDIT_LOG {
-        int audit_log_id PK
-        int operator_id FK
-        string action
-        string entity_type
-        int entity_id
-        datetime created_at
-    }
-
-    CUSTOMER ||--o{ BOOKING : creates
-    BOOKING ||--o| TRIP : generates
-
-    DRIVER ||--o{ VEHICLE : uses
-    DRIVER ||--o{ TRIP : performs
-    CUSTOMER ||--o{ TRIP : takes
-    VEHICLE ||--o{ TRIP : used_for
-
-    BOOKING }o--|| LOCATION : pickup
-    BOOKING }o--|| LOCATION : destination
-
-    DRIVER ||--o{ DRIVER_LOCATION : has
-
-    TRIP ||--|| FARE : has
-    TRIP ||--o| PAYMENT : has
-    PAYMENT ||--o{ TRANSACTION : contains
-
-    CUSTOMER ||--o{ REVIEW : writes
-    DRIVER ||--o{ REVIEW : receives
-    TRIP ||--o| REVIEW : receives
-
-    OPERATOR ||--o{ AUDIT_LOG : creates
 ```
 
-## còn 9.5 -> 9.6
+### 9.5. Giải thích các trường nghiệp vụ chính
 
-## 10. Non-Functional Requirements
+| Trường                                 | Ý nghĩa và cách sử dụng                                                         |
+| -------------------------------------- | ------------------------------------------------------------------------------- |
+| `Account.phone`                        | Số điện thoại đã chuẩn hóa; dùng đăng nhập và kiểm tra trùng                    |
+| `OtpChallenge.codeHash`                | Giá trị băm của OTP; không lưu mã rõ                                            |
+| `verifiedAt`, `consumedAt`             | Phân biệt OTP đã xác minh với bằng chứng xác minh đã được dùng để đăng ký       |
+| `DriverProfile.approvalStatus`         | Trạng thái hồ sơ; độc lập với trạng thái tài khoản và online                    |
+| `DriverProfile.activeTripId`           | Trip chưa kết thúc đang được tài xế nhận; `null` khi không bận                  |
+| `locationUpdatedAt`                    | Thời điểm server nhận vị trí hợp lệ; dùng kiểm tra ngưỡng 120 giây              |
+| `Vehicle.isActive`                     | Xe đang được tài xế sử dụng để nhận chuyến                                      |
+| `Booking.candidateDriverIds`           | Danh sách ban đầu đã sắp xếp, tối đa 5 tài xế; không bổ sung vòng tìm mới       |
+| `idempotencyKey`, `requestHash`        | Nhận diện thao tác gửi lại và phát hiện cùng khóa nhưng khác dữ liệu            |
+| `Booking.distanceKm`                   | Khoảng cách Haversine từ điểm đón đến điểm đến, chưa làm tròn                   |
+| Các trường giá trong Booking           | Bộ thông số giá được lưu tại lúc đặt xe                                         |
+| `Trip.bookingSnapshot`                 | Bản sao điểm đón, điểm đến, khoảng cách và thông số giá khi phân công           |
+| `Trip.vehicleSnapshot`                 | Bản sao biển số, loại xe, mẫu xe và màu xe lúc phân công; giữ thông tin lịch sử |
+| `Trip.fareAmount`                      | Cước do server tính khi hoàn thành; `null` nếu chưa xác định được               |
+| `Payment.attemptNumber`                | Thứ tự lần khởi tạo online, từ 1 đến 3; không tăng khi gửi lại cùng yêu cầu     |
+| `Payment.confirmedByAccountId`         | Tài xế xác nhận đã nhận tiền mặt; không dùng làm bằng chứng cho callback online |
+| `Notification.eventId`                 | Định danh sự kiện nguồn để chống tạo thông báo trùng                            |
+| `relatedEntityType`, `relatedEntityId` | Tham chiếu đối tượng liên quan, như Booking, Trip hoặc Payment                  |
 
-Non-Functional Requirements (NFR) mô tả các yêu cầu về chất lượng, hiệu năng,
-bảo mật, khả năng mở rộng, tính ổn định và khả năng bảo trì của hệ thống CAB.
+Các snapshot là **document nhúng trong Trip**, không phải collection hay bounded context mới. Khi tạo trip, server lấy dữ liệu từ service sở hữu và lưu bản sao cần thiết.
 
-Các yêu cầu này không mô tả hệ thống phải thực hiện nghiệp vụ gì mà mô tả
-hệ thống phải thực hiện các nghiệp vụ đó như thế nào.
+### 9.6. Miền giá trị và ràng buộc dữ liệu
 
----
+| Dữ liệu                        | Giá trị hoặc điều kiện                                        |
+| ------------------------------ | ------------------------------------------------------------- |
+| `Account.role`                 | `CUSTOMER`, `DRIVER`, `ADMIN`                                 |
+| `Account.status`               | `ACTIVE`, `DISABLED`                                          |
+| `DriverProfile.approvalStatus` | `DRAFT`, `PENDING`, `APPROVED`, `REJECTED`                    |
+| `Vehicle.vehicleType`          | `MOTORBIKE`, `CAR`                                            |
+| `Booking.status`               | `SEARCHING`, `ASSIGNED`, `COMPLETED`, `CANCELED`, `NO_DRIVER` |
+| `TripInvitation.status`        | `PENDING`, `ACCEPTED`, `REJECTED`, `EXPIRED`, `CANCELED`      |
+| `Trip.status`                  | `ASSIGNED`, `ARRIVED`, `IN_PROGRESS`, `COMPLETED`, `CANCELED` |
+| `Payment.method`               | `CASH`, `MOCK_ONLINE`                                         |
+| `Payment.status`               | `PENDING`, `COMPLETED`, `FAILED`                              |
+| `Payment.currency`             | `VND`                                                         |
+| Latitude / Longitude           | Latitude `[-90, 90]`; longitude `[-180, 180]`                 |
+| `Review.rating`                | Số nguyên từ 1–5                                              |
+| `Review.comment`               | Tùy chọn, tối đa 500 ký tự                                    |
+| Lý do hủy / từ chối hồ sơ      | 1–300 ký tự sau khi bỏ khoảng trắng đầu/cuối                  |
 
-### 10.1. Danh sách Non-Functional Requirements
+### 9.7. Ràng buộc duy nhất và index cần thiết
 
-| Mã NFR | Nhóm | Tên yêu cầu | Diễn giải |
-|---|---|---|---|
-| **NFR01** | Performance | **Hiệu năng** | Hệ thống phải có khả năng xử lý các yêu cầu đặt xe và các thao tác chính với thời gian phản hồi phù hợp với nhu cầu sử dụng thực tế. |
-| **NFR02** | Performance | **Tìm tài xế nhanh** | Hệ thống phải hỗ trợ quá trình tìm và phân công tài xế nhanh chóng để giảm thời gian chờ của khách hàng. |
-| **NFR03** | Scalability | **Khả năng mở rộng khi tải tăng** | Hệ thống phải có khả năng mở rộng các thành phần độc lập khi số lượng người dùng và yêu cầu tăng cao. |
-| **NFR04** | Availability | **Hoạt động ổn định** | Hệ thống phải hoạt động ổn định trong các thời điểm nhu cầu sử dụng tăng cao. |
-| **NFR05** | Fault Tolerance | **Cô lập lỗi giữa các thành phần** | Lỗi xảy ra ở chức năng thanh toán hoặc thông báo không được làm cho toàn bộ hệ thống đặt xe ngừng hoạt động. |
-| **NFR06** | Security | **Bảo vệ dữ liệu người dùng** | Hệ thống phải bảo vệ thông tin cá nhân của khách hàng và tài xế. |
-| **NFR07** | Security | **Bảo vệ dữ liệu thanh toán** | Hệ thống không được lưu trực tiếp thông tin nhạy cảm của thẻ hoặc tài khoản thanh toán. |
-| **NFR08** | Security | **Kiểm soát quyền truy cập** | Hệ thống phải hỗ trợ phân quyền để nhân viên thông thường không thể thực hiện các thao tác quản trị nhạy cảm. |
-| **NFR09** | Maintainability | **Dễ bảo trì** | Các thành phần của hệ thống cần có khả năng được thay đổi hoặc bảo trì mà hạn chế ảnh hưởng đến các thành phần khác. |
-| **NFR10** | Extensibility | **Mở rộng kênh thông báo** | Hệ thống phải cho phép bổ sung các kênh hoặc nhà cung cấp thông báo mới mà không phải thay đổi toàn bộ hệ thống. |
-| **NFR11** | Extensibility | **Mở rộng phương thức thanh toán** | Kiến trúc hệ thống phải cho phép bổ sung thêm phương thức hoặc nhà cung cấp thanh toán trong tương lai. |
-| **NFR12** | Extensibility | **Mở rộng loại dịch vụ** | Hệ thống phải có khả năng bổ sung các loại dịch vụ mới mà không phải xây dựng lại toàn bộ ứng dụng. |
-| **NFR13** | Deployability | **Triển khai từng phần** | Các chức năng mới phải có khả năng được triển khai từng phần và hạn chế ảnh hưởng đến các chức năng đang hoạt động. |
-| **NFR14** | Reliability | **Không để lỗi cục bộ làm dừng toàn hệ thống** | Khi một thành phần gặp sự cố, các chức năng khác vẫn phải tiếp tục hoạt động ở mức phù hợp. |
-| **NFR15** | Auditability | **Lưu vết hoạt động** | Các thao tác quan trọng của hệ thống cần được lưu vết để phục vụ kiểm tra và xử lý sự cố. |
+| Collection      | Index / ràng buộc                                                 | Mục đích                                              |
+| --------------- | ----------------------------------------------------------------- | ----------------------------------------------------- |
+| Account         | Unique `phone`                                                    | Không trùng định danh đăng nhập                       |
+| CustomerProfile | Unique `accountId`                                                | Một hồ sơ khách hàng cho mỗi tài khoản                |
+| DriverProfile   | Unique `accountId`                                                | Một hồ sơ tài xế cho mỗi tài khoản                    |
+| Vehicle         | Unique `plateNumber` đã chuẩn hóa                                 | Không trùng biển số                                   |
+| Vehicle         | Partial unique `driverId` khi `isActive = true`                   | Tối đa một xe đang sử dụng                            |
+| Booking         | Unique `(customerId, idempotencyKey)`                             | Chống tạo booking trùng                               |
+| Booking         | Index `(customerId, createdAt, _id)`                              | Tra cứu lịch sử và sắp xếp ổn định                    |
+| TripInvitation  | Unique `(bookingId, driverId)`                                    | Không mời lại cùng tài xế trong booking               |
+| TripInvitation  | Partial unique `bookingId` khi `status = PENDING`                 | Tối đa một lời mời đang chờ                           |
+| TripInvitation  | Index `(status, expiresAt)`                                       | Tìm lời mời cần xử lý timeout                         |
+| Trip            | Unique `bookingId`                                                | Một booking có tối đa một trip                        |
+| Trip            | Partial unique `driverId` với trạng thái chưa kết thúc            | Ngăn tài xế có hai trip đang hoạt động                |
+| Payment         | Unique `(tripId, idempotencyKey)`                                 | Chống tạo lần thanh toán trùng                        |
+| Payment         | Unique `referenceCode` khi có giá trị                             | Định danh giao dịch mock                              |
+| Payment         | Partial unique `tripId` với trạng thái `PENDING` hoặc `COMPLETED` | Tối đa một lần thanh toán đang chờ hoặc đã thành công |
+| Notification    | Unique `(eventId, recipientAccountId, type)`                      | Chống thông báo trùng                                 |
+| Review          | Unique `tripId`                                                   | Một đánh giá cho mỗi trip                             |
 
----
+**Index không thay thế kiểm tra nghiệp vụ.** Ví dụ, lời mời vẫn có thể lưu `PENDING` dù đã qua `expiresAt`; server phải kiểm tra thời hạn khi tài xế phản hồi và đóng lời mời trước khi mời ứng viên tiếp theo.
 
-## 10.2. NFR theo nhóm
+### 9.8. Dữ liệu truy vấn và dữ liệu tính toán
 
-### 10.2.1. Performance
+| Nội dung                 | Cách lấy dữ liệu                                                          |
+| ------------------------ | ------------------------------------------------------------------------- |
+| Booking history          | Truy vấn Booking của khách hàng và lấy Trip, Payment liên quan            |
+| Nearby                   | Lọc DriverProfile và Vehicle theo điều kiện nhận chuyến; tính khoảng cách |
+| ETA                      | Tính từ vị trí tài xế đến điểm đón theo RULE38                            |
+| Khoản phải trả           | Đọc `Trip.fareAmount` do server xác định                                  |
+| Trạng thái đã thanh toán | Kiểm tra Payment `COMPLETED` của trip                                     |
+| Điểm đánh giá trung bình | Tổng hợp từ Review nếu giao diện cần hiển thị                             |
 
-#### NFR01 — Hiệu năng
+## 10. Yêu cầu phi chức năng — Non-functional Requirements
 
-Hệ thống phải có khả năng xử lý các thao tác chính như:
+**Yêu cầu phi chức năng cần có tiêu chí kiểm tra cụ thể.** Những câu như “hệ thống nhanh, an toàn và ổn định” chưa đủ để nghiệm thu. Với CAB System ở mức cơ bản, các yêu cầu dưới đây tập trung vào khả năng chạy local, bảo mật, tính nhất quán và xử lý lỗi.
 
-- Đặt chuyến.
-- Tìm tài xế.
-- Theo dõi trạng thái chuyến.
-- Thanh toán.
-- Gửi thông báo.
+Các ngưỡng thời gian, tải và lưu log được ghi là **thông số demo đề xuất**, không phải kết quả kiểm thử đã đạt hoặc chính sách có sẵn của khách hàng.
 
-với thời gian phản hồi phù hợp với nhu cầu sử dụng thực tế.
+### 10.1. Phạm vi áp dụng
 
-> **TBD:** Tài liệu chưa xác định cụ thể thời gian phản hồi tối đa
-> (ví dụ: 2 giây, 3 giây...). Cần xác nhận với stakeholder.
+- Áp dụng cho Gateway, 8 service, MongoDB và message broker.
+- Thanh toán sử dụng payment mock; thông báo được lưu và tra cứu trong hệ thống.
+- Đánh giá trên môi trường local bằng Docker Compose.
+- Không đặt cam kết vận hành 24/7 hoặc SLA 99,9% cho bản demo.
 
-#### NFR02 — Tìm tài xế nhanh
+### 10.2. Bảo mật và quyền truy cập
 
-Hệ thống cần hỗ trợ việc tìm và phân công tài xế nhanh nhằm giảm thời gian
-khách hàng phải chờ.
+| Mã    | Yêu cầu                                                                                                                                                        | Tiêu chí kiểm tra                                                                                                                                                |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NFR01 | **Xác thực và phân quyền:** API được bảo vệ phải kiểm tra JWT, vai trò, trạng thái tài khoản và quyền sở hữu dữ liệu.                                          | Token thiếu, sai hoặc hết hạn trả `401`; tài khoản bị vô hiệu hóa hoặc thao tác ngoài quyền trả `403`. Yêu cầu bị từ chối không làm thay đổi dữ liệu.            |
+| NFR02 | **Bảo vệ thông tin xác thực:** mật khẩu và OTP phải được lưu dưới dạng băm. Khóa ký JWT, khóa callback và thông tin kết nối phải được cấu hình ngoài mã nguồn. | Không có mật khẩu hoặc OTP dạng rõ trong database; không commit secret vào repository; API không trả `passwordHash`, `codeHash` hoặc khóa bí mật.                |
+| NFR03 | **Kiểm tra dữ liệu đầu vào:** server phải kiểm tra kiểu dữ liệu, độ dài, miền giá trị và các trường được phép cập nhật.                                        | Từ chối tọa độ sai, điểm đánh giá ngoài 1–5, phân trang sai và yêu cầu tự sửa `role`, trạng thái duyệt hoặc cước. Không ghi dữ liệu không hợp lệ.                |
+| NFR04 | **Giới hạn yêu cầu xác thực:** hạn chế thử đăng nhập liên tục; OTP tuân theo RULE33.                                                                           | Demo đề xuất: tối đa **10 yêu cầu đăng nhập/phút/IP**; vượt giới hạn trả `429`. OTP vẫn áp dụng thời gian chờ 60 giây và tối đa 5 lần nhập sai cho mỗi mã.       |
+| NFR05 | **Bảo vệ callback thanh toán:** callback phải có chữ ký hợp lệ và khớp dữ liệu giao dịch đã lưu.                                                               | Callback sai chữ ký, sai số tiền, sai tiền tệ hoặc sai mã tham chiếu bị từ chối; không chuyển payment thành công. Chữ ký hợp lệ được kiểm thử bằng payment mock. |
 
----
+**Lưu ý:** phân quyền phải được kiểm tra tại service xử lý nghiệp vụ; kiểm tra tại Gateway không đủ để bảo vệ các API nội bộ.
 
-### 10.2.2. Availability & Reliability
+### 10.3. Hiệu năng và xử lý thời gian
 
-#### NFR03 — Khả năng mở rộng khi tải tăng
+| Mã    | Yêu cầu                                                                                                           | Tiêu chí kiểm tra                                                                                                                                                                                                           |
+| ----- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NFR06 | **Thời gian phản hồi:** các API đọc cơ bản phải phản hồi trong thời gian phù hợp cho demo.                        | Demo đề xuất: **p95 ≤ 2 giây** với ít nhất 100 yêu cầu, tối đa 10 yêu cầu đồng thời, trên máy 4 CPU logic và RAM 8 GB. Áp dụng cho xem hồ sơ, nearby, Booking history và chi tiết trip; ghi rõ dữ liệu thử và cấu hình máy. |
+| NFR07 | **Giới hạn dữ liệu trả về:** nearby và Booking history phải phân trang, không trả toàn bộ dữ liệu không giới hạn. | Mặc định `page = 1`, `limit = 10`; `limit` từ 1–50. Trang không có dữ liệu trả danh sách trống; dữ liệu và thứ tự phù hợp RULE36–RULE37.                                                                                    |
+| NFR08 | **Timeout giữa các service:** lời gọi nội bộ phải có giới hạn thời gian chờ.                                      | Demo đề xuất: timeout **5 giây/lời gọi HTTP nội bộ**. Khi quá hạn, trả lỗi phù hợp và ghi log; không giữ yêu cầu chờ vô hạn hoặc mặc định thao tác từ xa chưa được thực hiện.                                               |
+| NFR09 | **Xử lý lời mời hết hạn:** hệ thống phải tự xử lý timeout mà không phụ thuộc việc người dùng mở ứng dụng.         | Lời mời hết hiệu lực đúng tại `expiresAt`; phản hồi đến muộn bị từ chối. Khi hệ thống hoạt động bình thường, demo đề xuất đóng lời mời và xét ứng viên tiếp theo trong **5 giây sau khi hết hạn**.                          |
 
-Hệ thống phải có khả năng mở rộng các thành phần độc lập khi tải tăng.
+Ngưỡng phản hồi API không bao gồm thời gian chờ tài xế nhận chuyến. Thời hạn lời mời 30 giây và tối đa 5 ứng viên vẫn tuân theo Business Rules.
 
-#### NFR04 — Hoạt động ổn định
+### 10.4. Tính nhất quán và độ tin cậy
 
-Hệ thống phải hoạt động ổn định trong các thời điểm nhu cầu tăng cao.
+| Mã    | Yêu cầu                                                                                                                                          | Tiêu chí kiểm tra                                                                                                                                                                                            |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| NFR10 | **An toàn khi gửi lại yêu cầu:** thao tác có tác động quan trọng phải xử lý được yêu cầu lặp.                                                    | Gửi lại cùng khóa và dữ liệu không tạo booking hoặc payment mới; cùng khóa nhưng khác dữ liệu trả `409`. Gửi lại thao tác trạng thái, callback hoặc sự kiện thông báo không tạo kết quả trùng.               |
+| NFR11 | **An toàn khi xử lý đồng thời:** hệ thống phải bảo vệ các ràng buộc duy nhất khi nhiều yêu cầu đến cùng lúc.                                     | Kiểm thử đồng thời không tạo hai trip cho một booking, không cho tài xế nhận hai trip chưa kết thúc và không ghi nhận hai payment thành công cho một trip.                                                   |
+| NFR12 | **Đồng bộ trạng thái giữa service:** kết quả booking, trip và tình trạng bận của tài xế phải được đồng bộ, có cách phục hồi khi xử lý gián đoạn. | Khi các thành phần hoạt động bình thường, demo đề xuất đồng bộ trong **5 giây**. Kiểm thử gián đoạn và xử lý lại phải đưa dữ liệu về trạng thái đúng, không tạo thêm trip hoặc chuyển ngược trạng thái cuối. |
+| NFR13 | **Cô lập lỗi thanh toán và thông báo:** lỗi ở chức năng phụ không được đảo ngược kết quả nghiệp vụ đã lưu.                                       | Payment thất bại không làm trip `COMPLETED` trở lại đang thực hiện. Lỗi tạo thông báo không hủy kết quả duyệt hồ sơ hoặc hoàn thành trip; lỗi được ghi nhận để xử lý lại.                                    |
+| NFR14 | **Lưu dữ liệu bền vững:** dữ liệu nghiệp vụ phải tồn tại sau khi khởi động lại container.                                                        | MongoDB dùng volume. Sau `docker compose down` rồi `up`, dữ liệu đã lưu vẫn còn. Trường hợp chủ động xóa volume không thuộc tiêu chí này.                                                                    |
 
-#### NFR05 — Cô lập lỗi
+NFR12 yêu cầu **kết quả đồng bộ và khả năng phục hồi**, không mặc định rằng nhiều database có thể được cập nhật bằng một transaction chung.
 
-Một lỗi xảy ra ở chức năng thanh toán hoặc thông báo không được làm toàn bộ
-hệ thống đặt xe ngừng hoạt động.
+### 10.5. Triển khai, giám sát và bảo trì
 
-```text
-Thanh toán lỗi
-     ↓
-Không làm dừng
-     ↓
-Hệ thống đặt xe
-```
-# 11. Use Case Modeling
+| Mã    | Yêu cầu                                                                                                                  | Tiêu chí kiểm tra                                                                                                                                                                                                          |
+| ----- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NFR15 | **Kiến trúc theo bounded context:** hệ thống có đúng 8 service nghiệp vụ, mỗi service sở hữu MongoDB riêng về mặt logic. | Có đủ auth, customer, driver, booking, trip, payment, notification và rating. Driver quản lý cả Vehicle. Không có service đọc hoặc ghi trực tiếp collection của service khác. Gateway và broker là thành phần hạ tầng.     |
+| NFR16 | **Chạy local có thể tái lập:** dự án phải có cấu hình Docker Compose và hướng dẫn thiết lập đầy đủ.                      | Có `.env.example`, lệnh khởi động, seed ADMIN và hướng dẫn reset dữ liệu. Sau khi cấu hình biến môi trường, có thể khởi động bằng `docker compose up --build -d`.                                                          |
+| NFR17 | **Kiểm tra tình trạng hệ thống:** phân biệt tiến trình đang chạy với khả năng sẵn sàng phục vụ.                          | `/health` kiểm tra tiến trình; `/ready` trả `200` khi các phụ thuộc bắt buộc sẵn sàng, `503` khi chưa sẵn sàng; `/health/services` cung cấp trạng thái thành phần qua Gateway. Không trả secret hoặc chuỗi kết nối.        |
+| NFR18 | **Log phục vụ kiểm tra:** log phải giúp liên kết yêu cầu giữa các service và xác định lỗi.                               | Log có thời điểm, tên service, `requestId` hoặc `correlationId`, hành động và kết quả. Không chứa mật khẩu, OTP, JWT hoặc secret dạng rõ. Demo đề xuất lưu log **7 ngày**, có xoay vòng để giới hạn dung lượng.            |
+| NFR19 | **Hợp đồng API nhất quán:** API triển khai phải khớp các specification và có cấu trúc lỗi thống nhất.                    | Đúng 10 file YAML mô tả endpoint, dữ liệu, quyền và mã phản hồi. Lỗi dùng cấu trúc thống nhất, ví dụ `{code, message, requestId}`; không trả stack trace cho client.                                                       |
+| NFR20 | **Có thể kiểm thử và giải thích:** dự án phải có dữ liệu demo và kịch bản kiểm thử tái lập.                              | Có Postman Collection, Environment không chứa secret thật và dữ liệu mẫu. Kiểm thử bao phủ luồng chính, sai quyền, timeout, hủy, payment thất bại/retry và đánh giá; có đối chiếu kết quả với FR, AC và 30 mục phiếu chấm. |
 
-Use Case Modeling được sử dụng để xác định các Actor tương tác với hệ thống
-và các chức năng mà mỗi Actor có thể thực hiện.
+### 10.6. Giới hạn của bản demo
 
-Mỗi Use Case mô tả một mục tiêu nghiệp vụ mà Actor muốn đạt được thông qua
-hệ thống.
+- Chưa yêu cầu triển khai nhiều máy, tự động mở rộng hoặc chuyển đổi dự phòng.
+- Chưa tích hợp SMS OTP, bản đồ tuyến đường và cổng thanh toán thực tế.
+- Chưa có SLA phục vụ người dùng thực.
+- Chỉ ghi nhận một NFR là **đã đạt** khi có bằng chứng kiểm tra tương ứng; cấu hình hoặc mô tả thiết kế chưa đủ để xác nhận.
 
----
+## 11. Xác định và mô hình hóa Use Case
 
-## 11.1. Xác định Actors
+### 11.1. Xác định Actor
 
-| Mã Actor | Actor | Vai trò |
-|---|---|---|
-| **A01** | **Customer** | Người sử dụng ứng dụng để đặt xe, theo dõi chuyến, thanh toán và đánh giá tài xế. |
-| **A02** | **Driver** | Người cung cấp dịch vụ vận chuyển, nhận chuyến, thực hiện chuyến và cập nhật trạng thái chuyến. |
-| **A03** | **Operator** | Nhân viên vận hành, quản lý khách hàng, tài xế, phương tiện, chuyến đi và xử lý các trường hợp phát sinh. |
-| **A04** | **Management** | Ban lãnh đạo sử dụng báo cáo để theo dõi và đánh giá hoạt động kinh doanh. |
-| **A05** | **Payment Provider** | Hệ thống bên ngoài xử lý các giao dịch thanh toán điện tử. |
-| **A06** | **Notification Provider** | Hệ thống bên ngoài hỗ trợ gửi thông báo đến khách hàng hoặc tài xế. |
+| Actor          | Vai trò                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `CUSTOMER`     | Đặt xe, theo dõi chuyến, hủy, thanh toán và đánh giá                    |
+| `DRIVER`       | Quản lý hồ sơ và xe, nhận chuyến, thực hiện chuyến và xác nhận tiền mặt |
+| `ADMIN`        | Duyệt hồ sơ và tra cứu dữ liệu vận hành                                 |
+| `Payment Mock` | Hệ thống giả lập bên ngoài gửi callback kết quả thanh toán              |
 
----
+Người chưa đăng nhập có thể thực hiện đăng ký, đăng nhập và yêu cầu OTP. Các chức năng còn lại yêu cầu xác thực theo quyền.
 
-## 11.2. Xác định Use Cases
+### 11.2. Danh sách Use Case
 
-### Customer
+#### A. Chức năng chung
 
-Customer có các Use Case chính:
+| Mã UC | Tên Use Case                      | Actor                   | FR liên quan |
+| ----- | --------------------------------- | ----------------------- | ------------ |
+| UC01  | Đăng ký tài khoản                 | CUSTOMER, DRIVER        | FR01, FR43   |
+| UC02  | Đăng nhập                         | CUSTOMER, DRIVER, ADMIN | FR02         |
+| UC03  | Xem và cập nhật thông tin cá nhân | CUSTOMER, DRIVER        | FR03         |
+| UC04  | Xem thông báo nội bộ              | CUSTOMER, DRIVER, ADMIN | FR48         |
 
-| Mã UC | Use Case | Diễn giải |
-|---|---|---|
-| **UC01** | Đăng ký tài khoản | Customer tạo tài khoản để sử dụng hệ thống. |
-| **UC02** | Đăng nhập | Customer đăng nhập vào ứng dụng. |
-| **UC03** | Quản lý thông tin cá nhân | Customer xem và cập nhật thông tin cá nhân. |
-| **UC04** | Đặt chuyến xe | Customer nhập điểm đón, điểm đến, chọn loại xe và gửi yêu cầu đặt xe. |
-| **UC05** | Theo dõi chuyến | Customer theo dõi trạng thái chuyến và thông tin tài xế. |
-| **UC06** | Xem lịch sử chuyến | Customer xem lại các chuyến đã thực hiện. |
-| **UC07** | Thanh toán | Customer thực hiện thanh toán cho chuyến đi bằng tiền mặt hoặc điện tử. |
-| **UC08** | Đánh giá tài xế | Customer đánh giá tài xế sau khi chuyến hoàn thành. |
-| **UC09** | Nhận thông báo | Customer nhận các thông báo liên quan đến yêu cầu và chuyến đi. |
+Đăng ký công khai chỉ cho phép `CUSTOMER` hoặc `DRIVER`. Tài khoản `ADMIN` được tạo bằng cấu hình hoặc seed của bản demo.
 
----
+#### B. Nhóm Use Case của Customer
 
-### Driver
+| Mã UC | Tên Use Case                  | Mục tiêu                                                                    | FR liên quan          |
+| ----- | ----------------------------- | --------------------------------------------------------------------------- | --------------------- |
+| UC05  | Tra cứu tài xế nearby         | Xem tài xế đủ điều kiện trong bán kính 1 km                                 | FR46                  |
+| UC06  | Đặt xe                        | Tạo booking và nhận kết quả tìm tài xế                                      | FR09–FR16             |
+| UC07  | Theo dõi booking và chuyến đi | Xem trạng thái, tài xế, xe, ETA và vị trí chuyến                            | FR18–FR19, FR47       |
+| UC08  | Hủy booking hoặc chuyến đi    | Xem phí và xác nhận hủy có lý do                                            | FR20–FR21             |
+| UC09  | Thanh toán chuyến đi          | Xem khoản phải trả, chọn tiền mặt hoặc payment mock; retry khi đủ điều kiện | FR23, FR25, FR27–FR28 |
+| UC10  | Xem lịch sử đặt xe            | Xem danh sách booking và chi tiết trip, payment liên quan                   | FR33                  |
+| UC11  | Đánh giá tài xế               | Gửi điểm 1–5 và nhận xét cho trip đã hoàn thành                             | FR34                  |
 
-Driver có các Use Case chính:
+#### C. Nhóm Use Case của Driver
 
-| Mã UC | Use Case | Diễn giải |
-|---|---|---|
-| **UC10** | Đăng nhập | Driver đăng nhập vào ứng dụng tài xế. |
-| **UC11** | Quản lý hồ sơ tài xế | Driver xem và cập nhật thông tin hồ sơ. |
-| **UC12** | Cập nhật trạng thái sẵn sàng | Driver chuyển trạng thái sẵn sàng hoặc không sẵn sàng nhận chuyến. |
-| **UC13** | Nhận yêu cầu chuyến | Driver nhận thông tin yêu cầu chuyến từ hệ thống. |
-| **UC14** | Chấp nhận chuyến | Driver chấp nhận yêu cầu chuyến. |
-| **UC15** | Từ chối chuyến | Driver từ chối yêu cầu chuyến. |
-| **UC16** | Cập nhật trạng thái chuyến | Driver cập nhật các trạng thái: đã nhận, đã đến điểm đón, đã đón khách, đang di chuyển và hoàn thành. |
-| **UC17** | Cập nhật vị trí | Hệ thống nhận và cập nhật vị trí hiện tại của Driver. |
-| **UC18** | Xem lịch sử chuyến | Driver xem các chuyến đã thực hiện. |
-| **UC19** | Nhận thông báo | Driver nhận thông báo về chuyến mới và các thay đổi liên quan đến chuyến. |
+| Mã UC | Tên Use Case                 | Mục tiêu                                            | FR liên quan |
+| ----- | ---------------------------- | --------------------------------------------------- | ------------ |
+| UC12  | Xác thực OTP đăng ký         | Xác minh số điện thoại trước khi đăng ký tài xế     | FR43         |
+| UC13  | Xem và cập nhật hồ sơ tài xế | Hoàn thiện thông tin hồ sơ theo trạng thái cho phép | FR05         |
+| UC14  | Quản lý phương tiện          | Thêm, xem, cập nhật và chọn xe đang sử dụng         | FR06         |
+| UC15  | Gửi hồ sơ để duyệt           | Gửi hồ sơ và xe hợp lệ sang trạng thái `PENDING`    | FR44         |
+| UC16  | Chuyển online hoặc offline   | Bật hoặc tắt khả năng nhận chuyến mới               | FR07         |
+| UC17  | Cập nhật vị trí tài xế       | Cung cấp vị trí để hệ thống tìm xe và tính ETA      | FR08         |
+| UC18  | Phản hồi lời mời nhận chuyến | Chấp nhận hoặc từ chối lời mời còn hiệu lực         | FR13–FR15    |
+| UC19  | Cập nhật tiến trình chuyến   | Xác nhận đến điểm đón, bắt đầu và hoàn thành        | FR17, FR22   |
+| UC20  | Cập nhật vị trí trong chuyến | Cung cấp vị trí khi trip `IN_PROGRESS`              | FR47         |
+| UC21  | Xác nhận nhận tiền mặt       | Xác nhận đã nhận tiền của trip được phân công       | FR24         |
 
----
+#### D. Nhóm Use Case của Admin
 
-### Operator
+| Mã UC | Tên Use Case                    | Mục tiêu                                              | FR liên quan |
+| ----- | ------------------------------- | ----------------------------------------------------- | ------------ |
+| UC22  | Tra cứu và duyệt hồ sơ tài xế   | Xem hồ sơ; duyệt hoặc từ chối hồ sơ `PENDING`         | FR05, FR45   |
+| UC23  | Tra cứu khách hàng              | Xem danh sách và thông tin khách hàng được phép       | FR35         |
+| UC24  | Theo dõi hoạt động vận hành     | Xem booking, trip đang hoạt động và trạng thái tài xế | FR36         |
+| UC25  | Tra cứu lịch sử booking và trip | Tra cứu theo khách hàng, tài xế hoặc trạng thái       | FR37         |
+| UC26  | Tra cứu giao dịch thanh toán    | Xem các lần thanh toán theo trip và trạng thái        | FR29         |
 
-Operator có các Use Case chính:
+#### E. Tương tác với Payment Mock
 
-| Mã UC | Use Case | Diễn giải |
-|---|---|---|
-| **UC20** | Đăng nhập quản trị | Operator đăng nhập vào hệ thống quản trị. |
-| **UC21** | Quản lý Customer | Operator xem và quản lý thông tin khách hàng. |
-| **UC22** | Quản lý Driver | Operator xem và quản lý thông tin tài xế. |
-| **UC23** | Quản lý Vehicle | Operator quản lý thông tin phương tiện. |
-| **UC24** | Quản lý Trip | Operator theo dõi và quản lý các chuyến đi. |
-| **UC25** | Theo dõi chuyến đang diễn ra | Operator theo dõi các chuyến đang thực hiện. |
-| **UC26** | Xử lý chuyến bị lỗi | Operator kiểm tra và hỗ trợ xử lý các trường hợp chuyến bị lỗi. |
-| **UC27** | Tra cứu giao dịch | Operator tra cứu lịch sử giao dịch. |
+| Mã UC | Tên Use Case                        | Actor        | FR liên quan |
+| ----- | ----------------------------------- | ------------ | ------------ |
+| UC27  | Ghi nhận kết quả thanh toán giả lập | Payment Mock | FR26         |
 
----
+`UC27` kiểm tra chữ ký và dữ liệu callback trước khi lưu kết quả. Callback có thể được gửi lặp; hệ thống không ghi nhận thanh toán thêm.
 
-### Management
+### 11.3. Sơ đồ Use Case của Customer
 
-Management có các Use Case:
-
-| Mã UC | Use Case | Diễn giải |
-|---|---|---|
-| **UC28** | Xem báo cáo hoạt động | Management xem các báo cáo về hoạt động của hệ thống. |
-| **UC29** | Xem chỉ số kinh doanh | Management theo dõi số chuyến, doanh thu, tỷ lệ hoàn thành, tỷ lệ hủy và hiệu quả hoạt động của tài xế. |
-
----
-
-### External Systems
-
-| Mã UC | Use Case | Diễn giải |
-|---|---|---|
-| **UC30** | Xử lý thanh toán điện tử | Payment Provider xử lý giao dịch thanh toán điện tử. |
-| **UC31** | Gửi thông báo | Notification Provider hỗ trợ gửi thông báo. |
-
----
-
-# 11.3. Use Case Diagram
+Mermaid biểu diễn bằng `flowchart`: hình chữ nhật là Actor, hình oval là Use Case, khung bao là phạm vi CAB System. Các đường nối thể hiện Actor tham gia, **không biểu diễn thứ tự thực hiện**.
 
 ```mermaid
-flowchart LR
+flowchart TD
+    C["Actor: CUSTOMER"]
+    PM["Actor: Payment Mock"]
 
-    Customer((Customer))
-    Driver((Driver))
-    Operator((Operator))
-    Management((Management))
-    Payment((Payment Provider))
-    Notification((Notification Provider))
-
-    subgraph CAB["CAB System"]
-
-        UC01["UC01<br/>Đăng ký tài khoản"]
-        UC02["UC02<br/>Đăng nhập"]
-        UC03["UC03<br/>Quản lý thông tin cá nhân"]
-        UC04["UC04<br/>Đặt chuyến xe"]
-        UC05["UC05<br/>Theo dõi chuyến"]
-        UC06["UC06<br/>Xem lịch sử chuyến"]
-        UC07["UC07<br/>Thanh toán"]
-        UC08["UC08<br/>Đánh giá tài xế"]
-        UC09["UC09<br/>Nhận thông báo"]
-
-        UC10["UC10<br/>Đăng nhập"]
-        UC11["UC11<br/>Quản lý hồ sơ tài xế"]
-        UC12["UC12<br/>Cập nhật trạng thái sẵn sàng"]
-        UC13["UC13<br/>Nhận yêu cầu chuyến"]
-        UC14["UC14<br/>Chấp nhận chuyến"]
-        UC15["UC15<br/>Từ chối chuyến"]
-        UC16["UC16<br/>Cập nhật trạng thái chuyến"]
-        UC17["UC17<br/>Cập nhật vị trí"]
-        UC18["UC18<br/>Xem lịch sử chuyến"]
-        UC19["UC19<br/>Nhận thông báo"]
-
-        UC20["UC20<br/>Đăng nhập quản trị"]
-        UC21["UC21<br/>Quản lý Customer"]
-        UC22["UC22<br/>Quản lý Driver"]
-        UC23["UC23<br/>Quản lý Vehicle"]
-        UC24["UC24<br/>Quản lý Trip"]
-        UC25["UC25<br/>Theo dõi chuyến đang diễn ra"]
-        UC26["UC26<br/>Xử lý chuyến bị lỗi"]
-        UC27["UC27<br/>Tra cứu giao dịch"]
-
-        UC28["UC28<br/>Xem báo cáo hoạt động"]
-        UC29["UC29<br/>Xem chỉ số kinh doanh"]
-
-        UC30["UC30<br/>Xử lý thanh toán điện tử"]
-        UC31["UC31<br/>Gửi thông báo"]
+    subgraph CAB["CAB System — chức năng Customer"]
+        U01(["UC01: Đăng ký tài khoản"])
+        U02(["UC02: Đăng nhập"])
+        U03(["UC03: Xem và cập nhật thông tin cá nhân"])
+        U04(["UC04: Xem thông báo nội bộ"])
+        U05(["UC05: Tra cứu tài xế nearby"])
+        U06(["UC06: Đặt xe"])
+        U07(["UC07: Theo dõi booking và chuyến đi"])
+        U08(["UC08: Hủy booking hoặc chuyến đi"])
+        U09(["UC09: Thanh toán chuyến đi"])
+        U10(["UC10: Xem lịch sử đặt xe"])
+        U11(["UC11: Đánh giá tài xế"])
+        U27(["UC27: Ghi nhận kết quả thanh toán giả lập"])
     end
 
-    Customer --- UC01
-    Customer --- UC02
-    Customer --- UC03
-    Customer --- UC04
-    Customer --- UC05
-    Customer --- UC06
-    Customer --- UC07
-    Customer --- UC08
-    Customer --- UC09
+    C --- U01
+    C --- U02
+    C --- U03
+    C --- U04
+    C --- U05
+    C --- U06
+    C --- U07
+    C --- U08
+    C --- U09
+    C --- U10
+    C --- U11
 
-    Driver --- UC10
-    Driver --- UC11
-    Driver --- UC12
-    Driver --- UC13
-    Driver --- UC14
-    Driver --- UC15
-    Driver --- UC16
-    Driver --- UC17
-    Driver --- UC18
-    Driver --- UC19
-
-    Operator --- UC20
-    Operator --- UC21
-    Operator --- UC22
-    Operator --- UC23
-    Operator --- UC24
-    Operator --- UC25
-    Operator --- UC26
-    Operator --- UC27
-
-    Management --- UC28
-    Management --- UC29
-
-    Payment --- UC30
-    Notification --- UC31
-
-    UC07 --- UC30
-    UC09 --- UC31
-    UC19 --- UC31
+    PM --- U09
+    PM --- U27
 ```
 
-# 12. Use Case Specification
-
-Use Case Specification mô tả chi tiết cách Actor tương tác với hệ thống CAB để
-đạt được một mục tiêu nghiệp vụ cụ thể.
-
-Mỗi Use Case bao gồm:
-
-* **Use Case ID**
-* **Use Case Name**
-* **Primary Actor**
-* **Supporting Actor**
-* **Goal**
-* **Preconditions**
-* **Trigger**
-* **Main Success Scenario**
-* **Alternative / Exception Flows**
-* **Postconditions**
-* **Business Rules**
-* **Related Functional Requirements**
-
-> **Lưu ý:** Các giá trị nghiệp vụ chưa được khách hàng xác nhận như bán kính
-> tìm tài xế, thời gian phản hồi, công thức tính cước hoặc số lần retry thanh
-> toán không được tự giả định trong Use Case Specification.
-
----
-
-# 12.1. Customer Use Cases
-
-## UC01 — Đăng ký tài khoản
-
-| Thuộc tính           | Nội dung                                                        |
-| -------------------- | --------------------------------------------------------------- |
-| **Use Case ID**      | UC01                                                            |
-| **Use Case Name**    | Đăng ký tài khoản                                               |
-| **Primary Actor**    | Customer                                                        |
-| **Supporting Actor** | —                                                               |
-| **Goal**             | Tạo tài khoản mới để sử dụng các chức năng yêu cầu tài khoản.   |
-| **Preconditions**    | Customer chưa có tài khoản hoặc chưa sử dụng tài khoản hiện có. |
-| **Trigger**          | Customer chọn chức năng đăng ký tài khoản.                      |
-
-### Main Success Scenario
-
-1. Customer chọn **Đăng ký tài khoản**.
-2. Hệ thống hiển thị biểu mẫu đăng ký.
-3. Customer nhập các thông tin cần thiết.
-4. Customer gửi thông tin đăng ký.
-5. Hệ thống kiểm tra tính hợp lệ của thông tin.
-6. Hệ thống tạo tài khoản Customer.
-7. Hệ thống thông báo đăng ký thành công.
-
-### Alternative / Exception Flows
-
-* **A1.** Thông tin đăng ký không hợp lệ → Hệ thống yêu cầu Customer sửa
-  thông tin.
-* **A2.** Tài khoản/thông tin định danh đã tồn tại → Hệ thống thông báo và
-  không tạo tài khoản mới.
-* **A3.** Hệ thống không thể tạo tài khoản → Hệ thống thông báo lỗi.
-
-### Postconditions
-
-* Tài khoản Customer được tạo thành công hoặc yêu cầu đăng ký bị từ chối.
-
-### Business Rules
-
-* BRULE02 — Khách hàng phải được xác thực khi sử dụng chức năng yêu cầu tài khoản.
-
-### Related FR
-
-* FR01, FR02
-
----
-
-## UC02 — Đăng nhập
-
-| Thuộc tính        | Nội dung                                                       |
-| ----------------- | -------------------------------------------------------------- |
-| **Use Case ID**   | UC02                                                           |
-| **Use Case Name** | Đăng nhập                                                      |
-| **Primary Actor** | Customer                                                       |
-| **Goal**          | Xác thực Customer để truy cập các chức năng yêu cầu tài khoản. |
-| **Preconditions** | Customer đã có tài khoản.                                      |
-| **Trigger**       | Customer chọn chức năng đăng nhập.                             |
-
-### Main Success Scenario
-
-1. Customer nhập thông tin đăng nhập.
-2. Hệ thống tiếp nhận thông tin.
-3. Hệ thống xác thực thông tin.
-4. Hệ thống xác định tài khoản hợp lệ.
-5. Hệ thống cho phép Customer đăng nhập.
-
-### Alternative / Exception Flows
-
-* **A1.** Thông tin đăng nhập không đúng → Hệ thống từ chối đăng nhập.
-* **A2.** Tài khoản không ở trạng thái có thể sử dụng → Hệ thống thông báo
-  trạng thái tài khoản.
-
-### Postconditions
-
-* Customer được xác thực và có quyền sử dụng các chức năng tương ứng.
-
-### Business Rules
-
-* BRULE02
-
-### Related FR
-
-* FR03, FR04
-
----
-
-## UC03 — Quản lý thông tin cá nhân
-
-| Thuộc tính        | Nội dung                             |
-| ----------------- | ------------------------------------ |
-| **Use Case ID**   | UC03                                 |
-| **Use Case Name** | Quản lý thông tin cá nhân            |
-| **Primary Actor** | Customer                             |
-| **Goal**          | Xem và cập nhật thông tin cá nhân.   |
-| **Preconditions** | Customer đã đăng nhập.               |
-| **Trigger**       | Customer truy cập thông tin cá nhân. |
-
-### Main Success Scenario
-
-1. Customer chọn **Thông tin cá nhân**.
-2. Hệ thống hiển thị thông tin hiện tại.
-3. Customer chọn cập nhật thông tin.
-4. Customer thay đổi thông tin.
-5. Customer lưu thay đổi.
-6. Hệ thống kiểm tra thông tin.
-7. Hệ thống lưu thông tin mới.
-8. Hệ thống thông báo cập nhật thành công.
-
-### Alternative / Exception Flows
-
-* **A1.** Thông tin không hợp lệ → Hệ thống yêu cầu nhập lại.
-* **A2.** Lỗi khi lưu → Hệ thống không cập nhật dữ liệu và thông báo lỗi.
-
-### Postconditions
-
-* Thông tin cá nhân được cập nhật nếu thao tác thành công.
-
-### Related FR
-
-* FR05, FR06
-
----
-
-## UC04 — Đặt chuyến xe
-
-| Thuộc tính        | Nội dung                        |
-| ----------------- | ------------------------------- |
-| **Use Case ID**   | UC04                            |
-| **Use Case Name** | Đặt chuyến xe                   |
-| **Primary Actor** | Customer                        |
-| **Goal**          | Tạo một yêu cầu đặt xe.         |
-| **Preconditions** | Customer đã đăng nhập.          |
-| **Trigger**       | Customer chọn chức năng đặt xe. |
-
-### Main Success Scenario
-
-1. Customer chọn **Đặt xe**.
-2. Hệ thống yêu cầu nhập thông tin chuyến.
-3. Customer nhập điểm đón.
-4. Customer nhập điểm đến.
-5. Customer lựa chọn loại xe/dịch vụ.
-6. Customer gửi yêu cầu đặt xe.
-7. Hệ thống kiểm tra thông tin yêu cầu.
-8. Hệ thống tạo Booking.
-9. Hệ thống chuyển Booking sang trạng thái tìm tài xế.
-10. Hệ thống thông báo yêu cầu đã được tiếp nhận.
-11. Hệ thống bắt đầu quá trình tìm tài xế.
-
-### Alternative / Exception Flows
-
-* **A1.** Thiếu điểm đón, điểm đến hoặc loại xe → Không cho gửi yêu cầu.
-* **A2.** Thông tin chuyến không hợp lệ → Hệ thống yêu cầu chỉnh sửa.
-* **A3.** Không thể tạo Booking → Hệ thống thông báo lỗi.
-
-### Postconditions
-
-* Booking được tạo và chuyển sang quá trình tìm tài xế.
-
-### Business Rules
-
-* BRULE01
-* BRULE02
-
-### Related FR
-
-* FR15–FR20
-
----
-
-## UC05 — Theo dõi chuyến
-
-| Thuộc tính        | Nội dung                                                  |
-| ----------------- | --------------------------------------------------------- |
-| **Use Case ID**   | UC05                                                      |
-| **Use Case Name** | Theo dõi chuyến                                           |
-| **Primary Actor** | Customer                                                  |
-| **Goal**          | Theo dõi trạng thái và thông tin liên quan đến chuyến đi. |
-| **Preconditions** | Customer có Booking/Trip hợp lệ.                          |
-| **Trigger**       | Customer mở màn hình theo dõi chuyến.                     |
-
-### Main Success Scenario
-
-1. Customer chọn chuyến đang theo dõi.
-2. Hệ thống hiển thị trạng thái hiện tại.
-3. Hệ thống hiển thị thông tin tài xế nếu đã được phân công.
-4. Hệ thống hiển thị thời gian dự kiến tài xế đến nếu có.
-5. Hệ thống cập nhật trạng thái khi có thay đổi.
-6. Customer tiếp tục theo dõi cho đến khi chuyến hoàn thành.
-
-### Alternative / Exception Flows
-
-* **A1.** Chưa tìm được tài xế → Hiển thị trạng thái đang tìm tài xế.
-* **A2.** Không tìm được tài xế → Hiển thị trạng thái không tìm được tài xế.
-* **A3.** Không thể cập nhật dữ liệu → Hiển thị trạng thái gần nhất đã biết.
-
-### Postconditions
-
-* Customer có thể biết trạng thái mới nhất của chuyến trong phạm vi dữ liệu
-  hệ thống cung cấp.
-
-### Related FR
-
-* FR35–FR37
-
----
-
-## UC06 — Xem lịch sử chuyến
-
-| Thuộc tính        | Nội dung                         |
-| ----------------- | -------------------------------- |
-| **Use Case ID**   | UC06                             |
-| **Use Case Name** | Xem lịch sử chuyến               |
-| **Primary Actor** | Customer                         |
-| **Goal**          | Xem lại các chuyến đã thực hiện. |
-| **Preconditions** | Customer đã đăng nhập.           |
-| **Trigger**       | Customer chọn lịch sử chuyến.    |
-
-### Main Success Scenario
-
-1. Customer chọn **Lịch sử chuyến**.
-2. Hệ thống truy vấn các Trip thuộc Customer.
-3. Hệ thống hiển thị danh sách chuyến.
-4. Customer chọn một chuyến.
-5. Hệ thống hiển thị thông tin chi tiết chuyến và số tiền phải trả.
-
-### Alternative / Exception Flows
-
-* **A1.** Không có lịch sử chuyến → Hệ thống hiển thị danh sách rỗng.
-* **A2.** Không thể tải dữ liệu → Hệ thống thông báo lỗi.
-
-### Related FR
-
-* FR62–FR64
-
----
-
-## UC07 — Thanh toán
-
-| Thuộc tính           | Nội dung                                   |
-| -------------------- | ------------------------------------------ |
-| **Use Case ID**      | UC07                                       |
-| **Use Case Name**    | Thanh toán                                 |
-| **Primary Actor**    | Customer                                   |
-| **Supporting Actor** | Payment Provider                           |
-| **Goal**             | Thanh toán số tiền phải trả cho chuyến đi. |
-| **Preconditions**    | Trip đã hoàn thành và có số tiền phải trả. |
-| **Trigger**          | Customer thực hiện thanh toán.             |
-
-### Main Success Scenario
-
-1. Hệ thống hiển thị số tiền phải trả.
-2. Customer lựa chọn phương thức thanh toán.
-3. Nếu chọn tiền mặt, hệ thống ghi nhận phương thức tiền mặt.
-4. Nếu chọn thanh toán điện tử, hệ thống gửi yêu cầu đến Payment Provider.
-5. Payment Provider xử lý giao dịch.
-6. Hệ thống nhận kết quả giao dịch.
-7. Hệ thống lưu trạng thái thanh toán.
-8. Hệ thống thông báo kết quả cho Customer.
-
-### Alternative / Exception Flows
-
-* **A1.** Thanh toán điện tử thất bại → Hệ thống thông báo thất bại.
-* **A2.** Customer thực hiện lại thanh toán → Hệ thống xử lý lại theo chính
-  sách doanh nghiệp.
-* **A3.** Payment Provider không phản hồi → Hệ thống ghi nhận trạng thái
-  phù hợp và không làm dừng toàn bộ hệ thống.
-
-### Postconditions
-
-* Payment được ghi nhận với trạng thái tương ứng.
-
-### Business Rules
-
-* BRULE11–BRULE17
-
-### Related FR
-
-* FR45–FR54
-
----
-
-## UC08 — Đánh giá tài xế
-
-| Thuộc tính        | Nội dung                              |
-| ----------------- | ------------------------------------- |
-| **Use Case ID**   | UC08                                  |
-| **Use Case Name** | Đánh giá tài xế                       |
-| **Primary Actor** | Customer                              |
-| **Goal**          | Gửi đánh giá về tài xế sau chuyến đi. |
-| **Preconditions** | Trip đã hoàn thành.                   |
-| **Trigger**       | Customer chọn đánh giá tài xế.        |
-
-### Main Success Scenario
-
-1. Customer mở thông tin Trip đã hoàn thành.
-2. Hệ thống hiển thị chức năng đánh giá.
-3. Customer nhập điểm đánh giá và nội dung nếu có.
-4. Customer gửi đánh giá.
-5. Hệ thống kiểm tra dữ liệu.
-6. Hệ thống lưu Review.
-7. Hệ thống thông báo đánh giá đã được ghi nhận.
-
-### Alternative / Exception Flows
-
-* **A1.** Trip chưa hoàn thành → Không cho phép đánh giá.
-* **A2.** Dữ liệu đánh giá không hợp lệ → Yêu cầu nhập lại.
-* **A3.** Lỗi lưu Review → Thông báo lỗi.
-
-### Related FR
-
-* FR65, FR66
-
----
-
-## UC09 — Nhận thông báo
-
-| Thuộc tính           | Nội dung                                                            |
-| -------------------- | ------------------------------------------------------------------- |
-| **Use Case ID**      | UC09                                                                |
-| **Use Case Name**    | Nhận thông báo                                                      |
-| **Primary Actor**    | Customer                                                            |
-| **Supporting Actor** | Notification Provider                                               |
-| **Goal**             | Customer nhận được thông tin quan trọng liên quan đến Booking/Trip. |
-| **Preconditions**    | Customer có tài khoản và có sự kiện cần thông báo.                  |
-| **Trigger**          | Một sự kiện nghiệp vụ phát sinh.                                    |
-
-### Main Success Scenario
-
-1. Một sự kiện nghiệp vụ xảy ra.
-2. CAB tạo thông báo.
-3. CAB gửi thông báo thông qua Notification Provider.
-4. Notification Provider thực hiện gửi.
-5. Customer nhận thông báo.
-6. Hệ thống ghi nhận trạng thái gửi.
-
-### Alternative / Exception Flows
-
-* **A1.** Notification Provider lỗi → Hệ thống ghi nhận lỗi và tiếp tục xử lý
-  các nghiệp vụ khác.
-
-### Related FR
-
-* FR55–FR59
-
----
-
-# 12.2. Driver Use Cases
-
-## UC10 — Đăng nhập tài xế
-
-| Thuộc tính        | Nội dung                             |
-| ----------------- | ------------------------------------ |
-| **Use Case ID**   | UC10                                 |
-| **Use Case Name** | Đăng nhập                            |
-| **Primary Actor** | Driver                               |
-| **Goal**          | Xác thực Driver để sử dụng hệ thống. |
-| **Preconditions** | Driver đã có tài khoản.              |
-| **Trigger**       | Driver thực hiện đăng nhập.          |
-
-### Main Success Scenario
-
-1. Driver nhập thông tin đăng nhập.
-2. Hệ thống xác thực thông tin.
-3. Hệ thống xác nhận tài khoản hợp lệ.
-4. Hệ thống cho phép Driver truy cập ứng dụng.
-
-### Alternative / Exception Flows
-
-* **A1.** Thông tin đăng nhập không hợp lệ → Từ chối đăng nhập.
-* **A2.** Tài khoản không thể sử dụng → Thông báo trạng thái tài khoản.
-
-### Related FR
-
-* FR11, FR12
-
----
-
-## UC11 — Quản lý hồ sơ tài xế
-
-| Thuộc tính        | Nội dung                      |
-| ----------------- | ----------------------------- |
-| **Use Case ID**   | UC11                          |
-| **Use Case Name** | Quản lý hồ sơ tài xế          |
-| **Primary Actor** | Driver                        |
-| **Goal**          | Xem và cập nhật hồ sơ tài xế. |
-| **Preconditions** | Driver đã đăng nhập.          |
-| **Trigger**       | Driver mở hồ sơ cá nhân.      |
-
-### Main Success Scenario
-
-1. Driver mở hồ sơ.
-2. Hệ thống hiển thị thông tin hiện tại.
-3. Driver cập nhật thông tin.
-4. Driver lưu thay đổi.
-5. Hệ thống kiểm tra dữ liệu.
-6. Hệ thống lưu thay đổi.
-
-### Alternative / Exception Flows
-
-* **A1.** Dữ liệu không hợp lệ → Yêu cầu chỉnh sửa.
-* **A2.** Lỗi lưu → Không cập nhật dữ liệu.
-
-### Related FR
-
-* FR09, FR10
-
----
-
-## UC12 — Cập nhật trạng thái sẵn sàng
-
-| Thuộc tính        | Nội dung                                               |
-| ----------------- | ------------------------------------------------------ |
-| **Use Case ID**   | UC12                                                   |
-| **Use Case Name** | Cập nhật trạng thái sẵn sàng                           |
-| **Primary Actor** | Driver                                                 |
-| **Goal**          | Cho hệ thống biết Driver có thể nhận chuyến hay không. |
-| **Preconditions** | Driver đã đăng nhập.                                   |
-| **Trigger**       | Driver thay đổi trạng thái hoạt động.                  |
-
-### Main Success Scenario
-
-1. Driver chọn trạng thái hoạt động.
-2. Driver chuyển sang trạng thái sẵn sàng.
-3. Hệ thống cập nhật `availability_status`.
-4. Hệ thống đưa Driver vào nhóm có thể được xem xét phân công.
-
-### Alternative / Exception Flows
-
-* **A1.** Driver chuyển sang không sẵn sàng → Hệ thống không đưa Driver vào
-  danh sách tìm kiếm mới.
-* **A2.** Không thể cập nhật trạng thái → Giữ trạng thái trước đó và thông báo lỗi.
-
-### Business Rules
-
-* BRULE03
-
-### Related FR
-
-* FR13, FR14
-
----
-
-## UC13 — Nhận yêu cầu chuyến
-
-| Thuộc tính        | Nội dung                                                |
-| ----------------- | ------------------------------------------------------- |
-| **Use Case ID**   | UC13                                                    |
-| **Use Case Name** | Nhận yêu cầu chuyến                                     |
-| **Primary Actor** | Driver                                                  |
-| **Goal**          | Nhận và xem thông tin một chuyến được hệ thống đề xuất. |
-| **Preconditions** | Driver đang sẵn sàng và được hệ thống lựa chọn.         |
-| **Trigger**       | Hệ thống gửi yêu cầu chuyến đến Driver.                 |
-
-### Main Success Scenario
-
-1. Hệ thống xác định Driver phù hợp.
-2. Hệ thống gửi thông tin chuyến.
-3. Driver nhận thông báo.
-4. Driver mở yêu cầu.
-5. Hệ thống hiển thị thông tin chuyến.
-
-### Alternative / Exception Flows
-
-* **A1.** Driver không phản hồi → Hệ thống xử lý theo quy tắc tìm tài xế.
-* **A2.** Driver từ chối → Chuyển sang quy trình tìm tài xế khác.
-
-### Related FR
-
-* FR22–FR25, FR29–FR30
-
----
-
-## UC14 — Chấp nhận chuyến
-
-| Thuộc tính        | Nội dung                                                   |
-| ----------------- | ---------------------------------------------------------- |
-| **Use Case ID**   | UC14                                                       |
-| **Use Case Name** | Chấp nhận chuyến                                           |
-| **Primary Actor** | Driver                                                     |
-| **Goal**          | Chấp nhận yêu cầu chuyến được hệ thống đề xuất.            |
-| **Preconditions** | Driver nhận được yêu cầu hợp lệ và vẫn có thể nhận chuyến. |
-| **Trigger**       | Driver chọn **Chấp nhận**.                                 |
-
-### Main Success Scenario
-
-1. Driver chọn chấp nhận chuyến.
-2. Hệ thống kiểm tra trạng thái yêu cầu.
-3. Hệ thống xác nhận Driver được phân công.
-4. Hệ thống tạo/cập nhật Trip.
-5. Hệ thống cập nhật trạng thái Driver.
-6. Hệ thống thông báo cho Customer.
-
-### Alternative / Exception Flows
-
-* **A1.** Chuyến đã được Driver khác nhận → Hệ thống thông báo không thể
-  nhận chuyến.
-* **A2.** Chuyến không còn hợp lệ → Từ chối thao tác.
-* **A3.** Lỗi hệ thống → Không xác nhận phân công.
-
-### Business Rules
-
-* BRULE08
-
-### Related FR
-
-* FR31, FR33, FR34
-
----
-
-## UC15 — Từ chối chuyến
-
-| Thuộc tính        | Nội dung                             |
-| ----------------- | ------------------------------------ |
-| **Use Case ID**   | UC15                                 |
-| **Use Case Name** | Từ chối chuyến                       |
-| **Primary Actor** | Driver                               |
-| **Goal**          | Từ chối một yêu cầu chuyến.          |
-| **Preconditions** | Driver đang nhận một yêu cầu chuyến. |
-| **Trigger**       | Driver chọn **Từ chối**.             |
-
-### Main Success Scenario
-
-1. Driver chọn từ chối.
-2. Hệ thống ghi nhận việc từ chối.
-3. Hệ thống loại Driver khỏi yêu cầu hiện tại.
-4. Hệ thống tiếp tục tìm Driver khác.
-5. Customer tiếp tục giữ Booking hiện tại.
-
-### Alternative / Exception Flows
-
-* **A1.** Booking đã được xử lý bởi Driver khác → Hệ thống thông báo trạng
-  thái hiện tại.
-
-### Business Rules
-
-* BRULE06
-
-### Related FR
-
-* FR26, FR32
-
----
-
-## UC16 — Cập nhật trạng thái chuyến
-
-| Thuộc tính        | Nội dung                                                   |
-| ----------------- | ---------------------------------------------------------- |
-| **Use Case ID**   | UC16                                                       |
-| **Use Case Name** | Cập nhật trạng thái chuyến                                 |
-| **Primary Actor** | Driver                                                     |
-| **Goal**          | Cập nhật trạng thái Trip trong quá trình thực hiện chuyến. |
-| **Preconditions** | Driver đã được phân công cho Trip.                         |
-| **Trigger**       | Trạng thái chuyến thay đổi.                                |
-
-### Main Success Scenario
-
-1. Driver mở Trip hiện tại.
-2. Driver cập nhật trạng thái.
-3. Hệ thống kiểm tra trạng thái hiện tại.
-4. Hệ thống ghi nhận trạng thái mới.
-5. Hệ thống thông báo cho các Actor liên quan nếu cần.
-6. Quá trình tiếp tục cho đến khi Trip hoàn thành.
-
-### Các trạng thái nghiệp vụ
-
-```text
-Assigned
-   ↓
-Arrived at Pickup
-   ↓
-Passenger Picked Up
-   ↓
-In Progress
-   ↓
-Completed
+Payment Mock tham gia `UC09` khi chọn thanh toán online. Customer không trực tiếp thực hiện callback tại `UC27`.
+
+### 11.4. Sơ đồ Use Case của Driver
+
+```mermaid
+flowchart TD
+    D["Actor: DRIVER"]
+
+    subgraph CAB["CAB System — chức năng Driver"]
+        U01(["UC01: Đăng ký tài khoản"])
+        U02(["UC02: Đăng nhập"])
+        U03(["UC03: Xem và cập nhật thông tin cá nhân"])
+        U04(["UC04: Xem thông báo nội bộ"])
+        U12(["UC12: Xác thực OTP đăng ký"])
+        U13(["UC13: Xem và cập nhật hồ sơ tài xế"])
+        U14(["UC14: Quản lý phương tiện"])
+        U15(["UC15: Gửi hồ sơ để duyệt"])
+        U16(["UC16: Chuyển online hoặc offline"])
+        U17(["UC17: Cập nhật vị trí tài xế"])
+        U18(["UC18: Phản hồi lời mời nhận chuyến"])
+        U19(["UC19: Cập nhật tiến trình chuyến"])
+        U20(["UC20: Cập nhật vị trí trong chuyến"])
+        U21(["UC21: Xác nhận nhận tiền mặt"])
+    end
+
+    D --- U01
+    D --- U02
+    D --- U03
+    D --- U04
+    D --- U12
+    D --- U13
+    D --- U14
+    D --- U15
+    D --- U16
+    D --- U17
+    D --- U18
+    D --- U19
+    D --- U20
+    D --- U21
 ```
 
-### Alternative / Exception Flows
-
-* **A1.** Driver cố cập nhật trạng thái không phù hợp với vòng đời chuyến →
-  Hệ thống từ chối thao tác.
-* **A2.** Không thể cập nhật → Giữ trạng thái hiện tại và thông báo lỗi.
-
-### Business Rules
-
-* BRULE09
-* BRULE10
-
-### Related FR
-
-* FR37–FR40
-
----
-
-## UC17 — Cập nhật vị trí
-
-| Thuộc tính        | Nội dung                                                                   |
-| ----------------- | -------------------------------------------------------------------------- |
-| **Use Case ID**   | UC17                                                                       |
-| **Use Case Name** | Cập nhật vị trí                                                            |
-| **Primary Actor** | Driver                                                                     |
-| **Goal**          | Cập nhật vị trí hiện tại để hệ thống hỗ trợ tìm tài xế và theo dõi chuyến. |
-| **Preconditions** | Driver đã đăng nhập và cho phép hệ thống nhận vị trí.                      |
-| **Trigger**       | Vị trí Driver thay đổi hoặc hệ thống yêu cầu cập nhật vị trí.              |
-
-### Main Success Scenario
-
-1. Ứng dụng Driver lấy vị trí hiện tại.
-2. Hệ thống tiếp nhận dữ liệu vị trí.
-3. Hệ thống lưu bản ghi vị trí.
-4. Dữ liệu được sử dụng cho các nghiệp vụ liên quan.
-
-### Alternative / Exception Flows
-
-* **A1.** Không lấy được vị trí → Hệ thống không cập nhật bản ghi mới.
-* **A2.** Mất kết nối → Dữ liệu được xử lý theo chính sách chưa được xác định.
-
-### Open Question
-
-* Tần suất cập nhật vị trí chưa được khách hàng xác định.
-* Chính sách xử lý mất kết nối chưa được xác định.
-
-### Related FR
-
-* FR21, FR35, FR36
-
----
-
-## UC18 — Xem lịch sử chuyến
-
-| Thuộc tính        | Nội dung                            |
-| ----------------- | ----------------------------------- |
-| **Use Case ID**   | UC18                                |
-| **Use Case Name** | Xem lịch sử chuyến                  |
-| **Primary Actor** | Driver                              |
-| **Goal**          | Xem các chuyến Driver đã thực hiện. |
-| **Preconditions** | Driver đã đăng nhập.                |
-| **Trigger**       | Driver mở lịch sử chuyến.           |
-
-### Main Success Scenario
-
-1. Driver chọn lịch sử chuyến.
-2. Hệ thống truy vấn các Trip thuộc Driver.
-3. Hệ thống hiển thị danh sách.
-4. Driver chọn một Trip để xem chi tiết.
-
-### Alternative / Exception Flows
-
-* **A1.** Không có chuyến → Hiển thị danh sách rỗng.
-* **A2.** Không thể tải dữ liệu → Thông báo lỗi.
-
-### Related FR
-
-* Phạm vi này **chưa có FR riêng trong danh sách FR hiện tại**.
-
-> Đây là một điểm cần bổ sung vào FR nếu UC18 thực sự nằm trong Scope.
-
----
-
-## UC19 — Nhận thông báo
-
-| Thuộc tính           | Nội dung                                                                |
-| -------------------- | ----------------------------------------------------------------------- |
-| **Use Case ID**      | UC19                                                                    |
-| **Use Case Name**    | Nhận thông báo                                                          |
-| **Primary Actor**    | Driver                                                                  |
-| **Supporting Actor** | Notification Provider                                                   |
-| **Goal**             | Driver nhận thông tin về chuyến mới hoặc thay đổi liên quan đến chuyến. |
-| **Preconditions**    | Driver có sự kiện cần thông báo.                                        |
-| **Trigger**          | Một sự kiện nghiệp vụ phát sinh.                                        |
-
-### Main Success Scenario
-
-1. Hệ thống phát sinh sự kiện.
-2. CAB tạo Notification.
-3. CAB gửi Notification đến Notification Provider.
-4. Provider thực hiện gửi.
-5. Driver nhận thông báo.
-6. Hệ thống ghi nhận trạng thái gửi.
-
-### Alternative / Exception Flows
-
-* **A1.** Provider gặp lỗi → Hệ thống ghi nhận lỗi và không làm dừng các
-  nghiệp vụ khác.
-
-### Business Rules
-
-* BRULE19
-
-### Related FR
-
-* FR60, FR61
-
----
-
-# 12.3. Operator Use Cases
-
-## UC20 — Đăng nhập quản trị
-
-| Thuộc tính        | Nội dung                                         |
-| ----------------- | ------------------------------------------------ |
-| **Use Case ID**   | UC20                                             |
-| **Use Case Name** | Đăng nhập quản trị                               |
-| **Primary Actor** | Operator                                         |
-| **Goal**          | Xác thực Operator để truy cập hệ thống quản trị. |
-| **Preconditions** | Operator có tài khoản hợp lệ.                    |
-| **Trigger**       | Operator đăng nhập hệ thống quản trị.            |
-
-### Main Success Scenario
-
-1. Operator nhập thông tin đăng nhập.
-2. Hệ thống xác thực.
-3. Hệ thống kiểm tra trạng thái tài khoản.
-4. Hệ thống xác định quyền.
-5. Hệ thống cho phép truy cập chức năng quản trị phù hợp.
-
-### Alternative / Exception Flows
-
-* **A1.** Sai thông tin → Từ chối đăng nhập.
-* **A2.** Tài khoản không hoạt động → Từ chối truy cập.
-
-### Business Rules
-
-* BRULE20
-
-### Related FR
-
-* FR82, FR83
-
----
-
-## UC21 — Quản lý Customer
-
-| Thuộc tính        | Nội dung                                                     |
-| ----------------- | ------------------------------------------------------------ |
-| **Use Case ID**   | UC21                                                         |
-| **Use Case Name** | Quản lý Customer                                             |
-| **Primary Actor** | Operator                                                     |
-| **Goal**          | Tra cứu và quản lý thông tin khách hàng theo quyền được cấp. |
-| **Preconditions** | Operator đã đăng nhập và có quyền phù hợp.                   |
-| **Trigger**       | Operator truy cập chức năng Customer Management.             |
-
-### Main Success Scenario
-
-1. Operator mở danh sách Customer.
-2. Hệ thống hiển thị danh sách.
-3. Operator tìm kiếm Customer nếu cần.
-4. Operator chọn Customer.
-5. Hệ thống hiển thị thông tin theo quyền.
-
-### Alternative / Exception Flows
-
-* **A1.** Không tìm thấy Customer → Hiển thị kết quả rỗng.
-* **A2.** Không đủ quyền → Từ chối thao tác.
-
-### Related FR
-
-* FR67–FR69
-
----
-
-## UC22 — Quản lý Driver
-
-| Thuộc tính        | Nội dung                                   |
-| ----------------- | ------------------------------------------ |
-| **Use Case ID**   | UC22                                       |
-| **Use Case Name** | Quản lý Driver                             |
-| **Primary Actor** | Operator                                   |
-| **Goal**          | Tra cứu và quản lý thông tin Driver.       |
-| **Preconditions** | Operator đã đăng nhập và có quyền phù hợp. |
-| **Trigger**       | Operator truy cập Driver Management.       |
-
-### Main Success Scenario
-
-1. Operator mở danh sách Driver.
-2. Hệ thống hiển thị danh sách.
-3. Operator tìm kiếm Driver.
-4. Operator xem hồ sơ Driver.
-5. Hệ thống hiển thị thông tin theo quyền.
-
-### Alternative / Exception Flows
-
-* **A1.** Không tìm thấy Driver → Hiển thị kết quả rỗng.
-* **A2.** Không đủ quyền → Từ chối thao tác.
-
-### Related FR
-
-* FR70–FR72
-
----
-
-## UC23 — Quản lý Vehicle
-
-| Thuộc tính        | Nội dung                                   |
-| ----------------- | ------------------------------------------ |
-| **Use Case ID**   | UC23                                       |
-| **Use Case Name** | Quản lý Vehicle                            |
-| **Primary Actor** | Operator                                   |
-| **Goal**          | Quản lý thông tin phương tiện.             |
-| **Preconditions** | Operator đã đăng nhập và có quyền phù hợp. |
-| **Trigger**       | Operator truy cập Vehicle Management.      |
-
-### Main Success Scenario
-
-1. Operator mở danh sách Vehicle.
-2. Hệ thống hiển thị phương tiện.
-3. Operator tìm kiếm hoặc chọn Vehicle.
-4. Hệ thống hiển thị thông tin phương tiện.
-5. Operator thực hiện thao tác được cấp quyền.
-6. Hệ thống lưu thay đổi nếu có.
-
-### Alternative / Exception Flows
-
-* **A1.** Không đủ quyền → Từ chối thao tác.
-* **A2.** Dữ liệu không hợp lệ → Không lưu thay đổi.
-
-### Related FR
-
-* FR73
-
----
-
-## UC24 — Quản lý Trip
-
-| Thuộc tính        | Nội dung                            |
-| ----------------- | ----------------------------------- |
-| **Use Case ID**   | UC24                                |
-| **Use Case Name** | Quản lý Trip                        |
-| **Primary Actor** | Operator                            |
-| **Goal**          | Theo dõi và quản lý thông tin Trip. |
-| **Preconditions** | Operator đã đăng nhập.              |
-| **Trigger**       | Operator truy cập Trip Management.  |
-
-### Main Success Scenario
-
-1. Operator mở danh sách Trip.
-2. Hệ thống hiển thị Trip.
-3. Operator tìm kiếm Trip.
-4. Operator chọn Trip.
-5. Hệ thống hiển thị thông tin Trip.
-6. Operator thực hiện thao tác được cấp quyền.
-
-### Alternative / Exception Flows
-
-* **A1.** Không tìm thấy Trip → Hiển thị kết quả rỗng.
-* **A2.** Không đủ quyền → Từ chối thao tác.
-
-### Related FR
-
-* FR75–FR77
-
----
-
-## UC25 — Theo dõi chuyến đang diễn ra
-
-| Thuộc tính        | Nội dung                                |
-| ----------------- | --------------------------------------- |
-| **Use Case ID**   | UC25                                    |
-| **Use Case Name** | Theo dõi chuyến đang diễn ra            |
-| **Primary Actor** | Operator                                |
-| **Goal**          | Theo dõi các Trip đang được thực hiện.  |
-| **Preconditions** | Operator đã đăng nhập.                  |
-| **Trigger**       | Operator mở màn hình theo dõi vận hành. |
-
-### Main Success Scenario
-
-1. Operator mở danh sách chuyến đang diễn ra.
-2. Hệ thống hiển thị các Trip đang hoạt động.
-3. Operator chọn một Trip.
-4. Hệ thống hiển thị trạng thái, Customer, Driver và thông tin liên quan.
-5. Hệ thống cập nhật dữ liệu khi trạng thái thay đổi.
-
-### Alternative / Exception Flows
-
-* **A1.** Không có Trip đang diễn ra → Hiển thị danh sách rỗng.
-* **A2.** Dữ liệu cập nhật không khả dụng → Hiển thị dữ liệu gần nhất.
-
-### Related FR
-
-* FR75, FR76, FR77
-
----
-
-## UC26 — Xử lý chuyến bị lỗi
-
-| Thuộc tính        | Nội dung                                                    |
+OTP phải được xác minh trước khi hoàn tất đăng ký tài xế. Việc chuyển online, nhận chuyến và cập nhật trip đều phải kiểm tra điều kiện tại bước 8.
+
+### 11.5. Sơ đồ Use Case của Admin
+
+```mermaid
+flowchart TD
+    A["Actor: ADMIN"]
+
+    subgraph CAB["CAB System — chức năng Admin"]
+        U02(["UC02: Đăng nhập"])
+        U04(["UC04: Xem thông báo nội bộ"])
+        U22(["UC22: Tra cứu và duyệt hồ sơ tài xế"])
+        U23(["UC23: Tra cứu khách hàng"])
+        U24(["UC24: Theo dõi hoạt động vận hành"])
+        U25(["UC25: Tra cứu lịch sử booking và trip"])
+        U26(["UC26: Tra cứu giao dịch thanh toán"])
+    end
+
+    A --- U02
+    A --- U04
+    A --- U22
+    A --- U23
+    A --- U24
+    A --- U25
+    A --- U26
+```
+
+Admin không có Use Case sửa cước, tự đổi kết quả thanh toán hoặc tùy ý chuyển trạng thái chuyến đã kết thúc.
+
+### 11.6. Những xử lý không cần tách thành Use Case riêng
+
+| Xử lý                                            | Đặt trong đặc tả                                             |
+| ------------------------------------------------ | ------------------------------------------------------------ |
+| Lọc, sắp xếp và mời tài xế tuần tự               | Luồng của UC06                                               |
+| Timeout, chuyển ứng viên và kết thúc `NO_DRIVER` | Luồng thay thế của UC06                                      |
+| Kiểm tra lại và xác nhận phân công               | Luồng chấp nhận tại UC18, liên quan UC06                     |
+| Tính ETA                                         | Xử lý trong UC07                                             |
+| Tính cước khi hoàn thành                         | Xử lý trong UC19                                             |
+| Thanh toán thất bại và retry                     | Luồng thay thế của UC09                                      |
+| Tạo thông báo nghiệp vụ                          | Kết quả của UC tương ứng; người dùng tra cứu qua UC04        |
+| Kiểm tra JWT và ghi log                          | Yêu cầu xuyên suốt, không phải mục tiêu riêng của người dùng |
+
+### 11.7. Nội dung cần có khi đặc tả từng Use Case
+
+Mỗi UC sẽ được mô tả bằng các mục sau:
+
+| Mục               | Nội dung                                                    |
 | ----------------- | ----------------------------------------------------------- |
-| **Use Case ID**   | UC26                                                        |
-| **Use Case Name** | Xử lý chuyến bị lỗi                                         |
-| **Primary Actor** | Operator                                                    |
-| **Goal**          | Kiểm tra và hỗ trợ xử lý các trường hợp Trip phát sinh lỗi. |
-| **Preconditions** | Operator đã đăng nhập và có quyền xử lý sự cố.              |
-| **Trigger**       | Trip phát sinh lỗi hoặc Operator phát hiện bất thường.      |
+| Mã và tên         | Ví dụ `UC06 — Đặt xe`                                       |
+| Actor             | Actor chính và Actor hỗ trợ nếu có                          |
+| Mục tiêu          | Kết quả Actor muốn đạt                                      |
+| Tiền điều kiện    | Điều kiện cần có trước khi bắt đầu                          |
+| Sự kiện kích hoạt | Hành động bắt đầu Use Case                                  |
+| Luồng chính       | Các bước Actor và hệ thống thực hiện khi thành công         |
+| Luồng thay thế    | Nhánh hợp lệ khác, như tài xế từ chối hoặc payment thất bại |
+| Ngoại lệ          | Lỗi dữ liệu, sai quyền, mất kết nối hoặc xung đột           |
+| Hậu điều kiện     | Dữ liệu và trạng thái sau khi kết thúc                      |
+| Quy tắc liên quan | RULE và FR cần tuân theo                                    |
 
-### Main Success Scenario
+Ví dụ, **UC06 — Đặt xe** bao gồm nhập điểm đón/đến, chọn loại xe, tạo booking, tìm và mời tài xế, rồi trả kết quả phân công hoặc `NO_DRIVER`. **Thực hiện chuyến và thanh toán thuộc các UC riêng**, giúp đặc tả ngắn và dễ kiểm thử.
 
-1. Operator xác định Trip bị lỗi.
-2. Operator mở thông tin Trip.
-3. Hệ thống hiển thị trạng thái và thông tin liên quan.
-4. Operator kiểm tra nguyên nhân hoặc thông tin hiện có.
-5. Operator thực hiện thao tác được hệ thống hỗ trợ.
-6. Hệ thống ghi nhận thao tác.
-7. Trip được đưa về trạng thái phù hợp.
+## 12. Đặc tả Use Case
 
-### Alternative / Exception Flows
+### 12.1. Quy ước chung
 
-* **A1.** Operator không đủ quyền → Từ chối thao tác.
-* **A2.** Không thể xử lý tự động → Operator tiếp tục xử lý theo quy trình
-  vận hành của doanh nghiệp.
+- **Luồng chính:** các bước khi đạt mục tiêu bình thường.
+- **Luồng thay thế:** nhánh xử lý khác đã được dự kiến.
+- **Ngoại lệ:** trường hợp không thể tiếp tục do lỗi, sai quyền hoặc xung đột.
+- Các UC được bảo vệ yêu cầu JWT hợp lệ và tài khoản `ACTIVE`. Hệ thống vẫn phải kiểm tra điều kiện này khi nhận yêu cầu.
+- Khi từ chối thao tác, hệ thống giữ nguyên dữ liệu nghiệp vụ đã lưu.
+- Khi client mất phản hồi, client tra cứu kết quả hoặc gửi lại an toàn; không mặc định thao tác đã thất bại.
+- Lỗi thông báo không đảo ngược kết quả nghiệp vụ đã lưu.
+- Các bước dưới đây mô tả nghiệp vụ, không bắt buộc một bước tương ứng một API.
 
-### Open Question
+### 12.2. Chức năng chung
 
-Quy trình xử lý cụ thể cho từng loại lỗi chưa được khách hàng xác định.
+#### UC01 — Đăng ký tài khoản
 
-### Related FR
+| Mục            | Đặc tả                                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------ |
+| Actor chính    | Người đăng ký `CUSTOMER` , `DRIVER`                                                        |
+| Mục tiêu       | Tạo tài khoản và hồ sơ tương ứng                                                           |
+| Tiền điều kiện | Với DRIVER, đã xác minh OTP đăng ký và bằng chứng xác minh còn hiệu lực, chưa được sử dụng |
+| Kích hoạt      | Người dùng chọn đăng ký                                                                    |
 
-* FR78
+**Luồng chính**
 
----
+1. Người dùng nhập số điện thoại, mật khẩu, họ tên và vai trò.
+2. Hệ thống chuẩn hóa số điện thoại; kiểm tra trường bắt buộc, định dạng, mật khẩu và vai trò.
+3. Hệ thống kiểm tra số điện thoại chưa được đăng ký.
+4. Nếu là DRIVER, hệ thống kiểm tra bằng chứng OTP đúng số điện thoại và mục đích.
+5. Hệ thống tạo Account `ACTIVE` và hồ sơ tương ứng; hồ sơ tài xế có trạng thái `DRAFT`.
+6. Hệ thống ghi nhận bằng chứng OTP đã được sử dụng nếu đăng ký DRIVER.
+7. Hệ thống trả kết quả đăng ký thành công.
 
-## UC27 — Tra cứu giao dịch
+**Thay thế / ngoại lệ**
 
-| Thuộc tính        | Nội dung                                   |
-| ----------------- | ------------------------------------------ |
-| **Use Case ID**   | UC27                                       |
-| **Use Case Name** | Tra cứu giao dịch                          |
-| **Primary Actor** | Operator                                   |
-| **Goal**          | Tra cứu lịch sử và trạng thái giao dịch.   |
-| **Preconditions** | Operator đã đăng nhập và có quyền phù hợp. |
-| **Trigger**       | Operator truy cập Transaction Management.  |
+- Số điện thoại trùng hoặc dữ liệu sai: từ chối và trả lỗi.
+- Yêu cầu vai trò `ADMIN`: từ chối.
+- OTP thiếu, hết hiệu lực hoặc đã dùng: từ chối đăng ký DRIVER.
+- Lỗi khi tạo hồ sơ: không báo đăng ký hoàn tất; xử lý lại hoặc bù trừ để tránh tài khoản thiếu hồ sơ.
 
-### Main Success Scenario
+**Hậu điều kiện:** có một tài khoản và hồ sơ phù hợp khi thành công.
 
-1. Operator mở chức năng tra cứu giao dịch.
-2. Hệ thống hiển thị giao dịch.
-3. Operator tìm kiếm giao dịch.
-4. Operator chọn một giao dịch.
-5. Hệ thống hiển thị trạng thái và thông tin liên quan.
-6. Operator có thể đối chiếu giao dịch với Trip.
+**Liên kết:** FR01, FR43; RULE02, RULE04, RULE33.
 
-### Alternative / Exception Flows
+#### UC02 — Đăng nhập
 
-* **A1.** Không tìm thấy giao dịch → Hiển thị kết quả rỗng.
-* **A2.** Không đủ quyền → Từ chối truy cập.
+| Mục            | Đặc tả                                      |
+| -------------- | ------------------------------------------- |
+| Actor chính    | CUSTOMER, DRIVER, ADMIN                     |
+| Mục tiêu       | Nhận thông tin xác thực để sử dụng hệ thống |
+| Tiền điều kiện | Không yêu cầu phiên đăng nhập               |
+| Kích hoạt      | Người dùng gửi thông tin đăng nhập          |
 
-### Related FR
+**Luồng chính**
 
-* FR79–FR81
+1. Người dùng nhập số điện thoại và mật khẩu.
+2. Hệ thống chuẩn hóa số điện thoại và kiểm tra dữ liệu.
+3. Hệ thống xác thực mật khẩu và kiểm tra Account `ACTIVE`.
+4. Hệ thống cấp JWT và trả thông tin tài khoản được phép hiển thị.
 
----
+**Thay thế / ngoại lệ**
 
-# 12.4. Management Use Cases
+- Sai thông tin đăng nhập: trả lỗi chung, không tiết lộ tài khoản có tồn tại hay không.
+- Tài khoản `DISABLED`: từ chối đăng nhập.
+- Vượt giới hạn yêu cầu: trả lỗi giới hạn truy cập.
 
-## UC28 — Xem báo cáo hoạt động
+**Hậu điều kiện:** người dùng nhận JWT khi thành công; không thay đổi vai trò hoặc trạng thái tài khoản.
 
-| Thuộc tính        | Nội dung                                    |
-| ----------------- | ------------------------------------------- |
-| **Use Case ID**   | UC28                                        |
-| **Use Case Name** | Xem báo cáo hoạt động                       |
-| **Primary Actor** | Management                                  |
-| **Goal**          | Theo dõi các chỉ số hoạt động của hệ thống. |
-| **Preconditions** | Management có quyền truy cập báo cáo.       |
-| **Trigger**       | Management mở chức năng báo cáo.            |
+**Liên kết:** FR02; RULE01, RULE04; NFR01, NFR04.
 
-### Main Success Scenario
+#### UC03 — Xem và cập nhật thông tin cá nhân
 
-1. Management truy cập báo cáo.
-2. Hệ thống tổng hợp dữ liệu.
-3. Hệ thống hiển thị các chỉ số hoạt động.
-4. Management xem và phân tích báo cáo.
+| Mục            | Đặc tả                                      |
+| -------------- | ------------------------------------------- |
+| Actor chính    | CUSTOMER, DRIVER                            |
+| Mục tiêu       | Xem và cập nhật thông tin cá nhân được phép |
+| Tiền điều kiện | Người dùng đã đăng nhập và có hồ sơ         |
+| Kích hoạt      | Người dùng mở thông tin cá nhân             |
 
-### Báo cáo có thể bao gồm
+**Luồng chính**
 
-* Số lượng chuyến.
-* Tỷ lệ hoàn thành.
-* Tỷ lệ hủy.
-* Hiệu quả hoạt động của tài xế.
+1. Hệ thống trả thông tin cá nhân của người dùng.
+2. Người dùng sửa các trường được phép, như họ tên và email.
+3. Hệ thống kiểm tra quyền sở hữu và dữ liệu cập nhật.
+4. Hệ thống lưu thay đổi và trả thông tin mới.
 
-### Alternative / Exception Flows
+**Thay thế / ngoại lệ**
 
-* **A1.** Không có dữ liệu → Hiển thị báo cáo không có dữ liệu.
-* **A2.** Không thể tổng hợp dữ liệu → Thông báo lỗi.
+- Người dùng chỉ xem: kết thúc mà không cập nhật.
+- Dữ liệu sai: từ chối cập nhật.
+- Tự sửa vai trò, trạng thái duyệt hoặc quyền: từ chối.
+- Bản demo không cho đổi số điện thoại đăng nhập qua UC này vì chưa có quy trình xác minh số mới.
 
-### Related FR
+**Hậu điều kiện:** các trường hợp lệ được cập nhật; thông tin phân quyền giữ nguyên.
 
-* FR86, FR88–FR90
+**Liên kết:** FR03; RULE03–RULE04.
 
----
+#### UC04 — Xem thông báo nội bộ
 
-## UC29 — Xem chỉ số kinh doanh
+| Mục            | Đặc tả                            |
+| -------------- | --------------------------------- |
+| Actor chính    | CUSTOMER, DRIVER, ADMIN           |
+| Mục tiêu       | Xem thông báo gửi đến mình        |
+| Tiền điều kiện | Người dùng đã đăng nhập           |
+| Kích hoạt      | Người dùng mở danh sách thông báo |
 
-| Thuộc tính        | Nội dung                                                        |
-| ----------------- | --------------------------------------------------------------- |
-| **Use Case ID**   | UC29                                                            |
-| **Use Case Name** | Xem chỉ số kinh doanh                                           |
-| **Primary Actor** | Management                                                      |
-| **Goal**          | Theo dõi doanh thu và các chỉ số phục vụ quyết định kinh doanh. |
-| **Preconditions** | Management có quyền truy cập báo cáo kinh doanh.                |
-| **Trigger**       | Management mở báo cáo kinh doanh.                               |
+**Luồng chính**
 
-### Main Success Scenario
+1. Người dùng yêu cầu danh sách thông báo.
+2. Hệ thống trả thông báo có `recipientAccountId` là tài khoản hiện tại.
+3. Người dùng chọn một thông báo.
+4. Hệ thống kiểm tra người nhận và trả chi tiết.
 
-1. Management mở báo cáo kinh doanh.
-2. Hệ thống tổng hợp dữ liệu.
-3. Hệ thống hiển thị doanh thu và các chỉ số liên quan.
-4. Management xem và đánh giá kết quả hoạt động.
+**Thay thế / ngoại lệ**
 
-### Alternative / Exception Flows
+- Chưa có thông báo: trả danh sách trống.
+- Thông báo không tồn tại: trả lỗi không tìm thấy.
+- Truy cập thông báo của người khác: từ chối.
 
-* **A1.** Không có dữ liệu → Hiển thị trạng thái không có dữ liệu.
-* **A2.** Dữ liệu không thể tổng hợp → Thông báo lỗi.
+**Hậu điều kiện:** không thay đổi dữ liệu nghiệp vụ. Bản demo chưa yêu cầu đánh dấu đã đọc.
 
-### Related FR
+**Liên kết:** FR48; RULE32.
 
-* FR86, FR87, FR88, FR89, FR90
+### 12.3. Nhóm Use Case của Customer
 
----
+#### UC05 — Tra cứu tài xế nearby
 
-# 12.5. External System Use Cases
+| Mục            | Đặc tả                                   |
+| -------------- | ---------------------------------------- |
+| Actor chính    | CUSTOMER                                 |
+| Mục tiêu       | Xem tài xế đủ điều kiện quanh một vị trí |
+| Tiền điều kiện | Khách hàng đã đăng nhập                  |
+| Kích hoạt      | Khách hàng yêu cầu tìm tài xế nearby     |
 
-## UC30 — Xử lý thanh toán điện tử
-
-| Thuộc tính           | Nội dung                                                   |
-| -------------------- | ---------------------------------------------------------- |
-| **Use Case ID**      | UC30                                                       |
-| **Use Case Name**    | Xử lý thanh toán điện tử                                   |
-| **Primary Actor**    | Payment Provider                                           |
-| **Supporting Actor** | Customer / CAB                                             |
-| **Goal**             | Xử lý giao dịch thanh toán điện tử và trả kết quả cho CAB. |
-| **Preconditions**    | CAB đã gửi yêu cầu thanh toán hợp lệ.                      |
-| **Trigger**          | CAB yêu cầu Payment Provider xử lý giao dịch.              |
-
-### Main Success Scenario
-
-1. CAB gửi yêu cầu thanh toán.
-2. Payment Provider tiếp nhận yêu cầu.
-3. Payment Provider xử lý giao dịch.
-4. Payment Provider xác định kết quả.
-5. Payment Provider trả kết quả cho CAB.
-6. CAB ghi nhận trạng thái giao dịch.
-
-### Alternative / Exception Flows
-
-* **A1.** Giao dịch thất bại → Provider trả trạng thái thất bại.
-* **A2.** Provider không phản hồi → CAB ghi nhận trạng thái phù hợp theo chính
-  sách.
-* **A3.** Giao dịch bị từ chối → CAB thông báo kết quả cho Customer.
-
-### Related FR
-
-* FR48, FR49, FR51–FR54
-
----
-
-## UC31 — Gửi thông báo
-
-| Thuộc tính           | Nội dung                                   |
-| -------------------- | ------------------------------------------ |
-| **Use Case ID**      | UC31                                       |
-| **Use Case Name**    | Gửi thông báo                              |
-| **Primary Actor**    | Notification Provider                      |
-| **Supporting Actor** | CAB                                        |
-| **Goal**             | Gửi thông báo đến Customer hoặc Driver.    |
-| **Preconditions**    | CAB đã tạo thông báo cần gửi.              |
-| **Trigger**          | CAB gửi yêu cầu đến Notification Provider. |
-
-### Main Success Scenario
-
-1. CAB tạo Notification.
-2. CAB gửi yêu cầu đến Notification Provider.
-3. Provider tiếp nhận yêu cầu.
-4. Provider gửi thông báo đến người nhận.
-5. Provider trả kết quả gửi.
-6. CAB ghi nhận trạng thái gửi.
-
-### Alternative / Exception Flows
-
-* **A1.** Provider không thể gửi → CAB ghi nhận trạng thái thất bại.
-* **A2.** Provider gặp lỗi → Các chức năng nghiệp vụ khác của CAB vẫn tiếp tục
-  hoạt động.
-
-### Business Rules
-
-* BRULE18
-* BRULE19
-* BRULE23
-
-### Related FR
-
-* FR55–FR61
-
----
-
-# 12.6. Use Case Relationship Summary
-
-Các Use Case chính có quan hệ nghiệp vụ với nhau như sau:
-
-```text
-                         CUSTOMER
-                            │
-                            ▼
-                    UC04 Đặt chuyến xe
-                            │
-                            ▼
-                  Tìm và phân công tài xế
-                            │
-             ┌──────────────┴──────────────┐
-             │                             │
-             ▼                             ▼
-      UC14 Chấp nhận                 UC15 Từ chối
-             │                             │
-             │                             └──────► Tìm Driver khác
-             ▼
-      UC16 Cập nhật trạng thái
-             │
-             ▼
-       UC05 Theo dõi chuyến
-             │
-             ▼
-        Trip hoàn thành
-             │
-       ┌─────┴──────┐
-       ▼            ▼
-   UC07 Thanh toán  UC08 Đánh giá
-       │
-       ▼
-UC30 Payment Provider
-```
-
----
-
-# 12.7. Use Case Traceability
-
-| Use Case                              | Business Requirement | Functional Requirements |
-| ------------------------------------- | -------------------- | ----------------------- |
-| **UC01** Đăng ký tài khoản            | BR12                 | FR01–FR02               |
-| **UC02** Đăng nhập                    | BR12, BR20           | FR03–FR04               |
-| **UC03** Quản lý thông tin cá nhân    | BR12                 | FR05–FR06               |
-| **UC04** Đặt chuyến xe                | BR01                 | FR15–FR20               |
-| **UC05** Theo dõi chuyến              | BR04                 | FR35–FR37               |
-| **UC06** Xem lịch sử chuyến           | BR13                 | FR62–FR64               |
-| **UC07** Thanh toán                   | BR09                 | FR45–FR54               |
-| **UC08** Đánh giá tài xế              | BR14                 | FR65–FR66               |
-| **UC09** Nhận thông báo               | BR11                 | FR55–FR59               |
-| **UC10** Đăng nhập Driver             | BR20                 | FR11–FR12               |
-| **UC11** Quản lý hồ sơ Driver         | BR05                 | FR09–FR10               |
-| **UC12** Cập nhật trạng thái sẵn sàng | BR05                 | FR13–FR14               |
-| **UC13** Nhận yêu cầu chuyến          | BR02                 | FR22–FR25, FR29–FR30    |
-| **UC14** Chấp nhận chuyến             | BR02                 | FR31, FR33–FR34         |
-| **UC15** Từ chối chuyến               | BR03                 | FR26, FR32              |
-| **UC16** Cập nhật trạng thái chuyến   | BR06                 | FR37–FR40               |
-| **UC17** Cập nhật vị trí              | BR07                 | FR21, FR35–FR36         |
-| **UC18** Xem lịch sử chuyến           | BR13                 | **Cần bổ sung FR**      |
-| **UC19** Nhận thông báo               | BR11                 | FR60–FR61               |
-| **UC20** Đăng nhập quản trị           | BR18, BR20           | FR82–FR83               |
-| **UC21** Quản lý Customer             | BR15                 | FR67–FR69               |
-| **UC22** Quản lý Driver               | BR15                 | FR70–FR72               |
-| **UC23** Quản lý Vehicle              | BR15                 | FR73                    |
-| **UC24** Quản lý Trip                 | BR15                 | FR75–FR77               |
-| **UC25** Theo dõi chuyến đang diễn ra | BR16                 | FR75–FR77               |
-| **UC26** Xử lý chuyến bị lỗi          | BR16                 | FR78                    |
-| **UC27** Tra cứu giao dịch            | BR17                 | FR79–FR81               |
-| **UC28** Xem báo cáo hoạt động        | BR19                 | FR86, FR88–FR90         |
-| **UC29** Xem chỉ số kinh doanh        | BR19                 | FR87–FR90               |
-| **UC30** Xử lý thanh toán điện tử     | BR09                 | FR48–FR51               |
-| **UC31** Gửi thông báo                | BR11                 | FR55–FR61               |
-
----
-
-# 12.8. Các điểm cần xác nhận trước khi chuyển sang bước tiếp theo
-
-Sau khi đặc tả Use Case, vẫn còn một số điểm **không nên tự quyết định**:
-
-| ID       | Vấn đề          | Cần xác nhận                                                                 |
-| -------- | --------------- | ---------------------------------------------------------------------------- |
-| **UQ01** | Đăng ký Driver  | Driver tự đăng ký hay chỉ Operator tạo tài khoản? Hay hỗ trợ cả hai?         |
-| **UQ02** | Login           | Cơ chế đăng nhập của Customer, Driver và Operator có giống nhau không?       |
-| **UQ03** | Driver Matching | Tiêu chí chính xác để lựa chọn Driver là gì?                                 |
-| **UQ04** | Driver timeout  | Sau bao lâu không phản hồi thì chuyển sang Driver khác?                      |
-| **UQ05** | Matching        | Hệ thống gửi cho từng Driver tuần tự hay nhiều Driver cùng lúc?              |
-| **UQ06** | Trip status     | Có được phép quay ngược trạng thái hay chỉ đi theo một chiều?                |
-| **UQ07** | Fare            | Công thức tính cước cụ thể là gì?                                            |
-| **UQ08** | Payment         | Thanh toán tiền mặt được xác nhận bởi Driver, Customer hay Operator?         |
-| **UQ09** | Payment retry   | Cho phép thử lại thanh toán bao nhiêu lần?                                   |
-| **UQ10** | Cancellation    | Customer và Driver có được hủy chuyến không? Quy trình thế nào?              |
-| **UQ11** | Location        | Tần suất cập nhật vị trí Driver là bao nhiêu?                                |
-| **UQ12** | Notification    | Những kênh thông báo nào được triển khai trong phiên bản đầu tiên?           |
-| **UQ13** | Review          | Có giới hạn thời gian để Customer đánh giá không?                            |
-| **UQ14** | Vehicle         | Một Driver được quản lý bao nhiêu Vehicle?                                   |
-| **UQ15** | Operator        | Operator có những Role nào và quyền của từng Role ra sao?                    |
-| **UQ16** | Reporting       | Báo cáo cần lọc theo thời gian, khu vực, loại xe hay Driver không?           |
-| **UQ17** | Data retention  | Dữ liệu Trip, Payment, Location và Audit Log được lưu bao lâu?               |
-| **UQ18** | Network failure | Khi Customer/Driver mất mạng thì trạng thái và giao dịch được xử lý thế nào? |
-
----
-
-# 12.9. Kiểm tra tính đầy đủ của Use Case Model
-
-Trước khi chuyển sang các bước thiết kế tiếp theo, cần kiểm tra:
-
-* Mỗi Actor đều có Use Case phù hợp.
-* Mỗi Use Case đều có mục tiêu nghiệp vụ rõ ràng.
-* Mỗi Use Case có thể truy ngược về BR/FR.
-* Main Flow không chứa các Business Rule chưa được xác nhận.
-* Alternative Flow bao phủ các trường hợp lỗi quan trọng.
-* Các External System được xác định rõ.
-* Các Open Question được tách riêng, không biến thành giả định.
-* Các Use Case có thể dùng làm cơ sở xây dựng Sequence Diagram.
-* Các Use Case có thể dùng để xây dựng Acceptance Criteria và Test Case.
-
-> **Lưu ý quan trọng:** Use Case Specification không nên biến thành tài liệu
-> thiết kế kỹ thuật. Các chi tiết như REST API, database query, microservice,
-> Kafka, Redis, Docker... nên được xác định ở các bước System Design/Technical
-> Design, không đưa vào Main Flow của Use Case nếu khách hàng chưa yêu cầu.
-
----
-
-# 12.10. Recommended Next Step
-
-Sau bước 12, quy trình phân tích có thể tiếp tục theo hướng:
-
-```text
-Business Problem
-       ↓
-Business Goals
-       ↓
-Scope
-       ↓
-Business Requirements
-       ↓
-Functional Requirements
-       ↓
-Business Rules
-       ↓
-Data Modeling
-       ↓
-Non-Functional Requirements
-       ↓
-Use Case Modeling
-       ↓
-Use Case Specification
-       ↓
-Activity Diagram
-       ↓
-Sequence Diagram
-       ↓
-System / Component Design
-       ↓
-Database Design
-       ↓
-Acceptance Criteria
-       ↓
-Test Cases
-```
-
-13: Acceptance Criteria (AC) – Tiêu chí chấp nhận
-
-Acceptance Criteria (AC) là tập hợp các điều kiện và quy tắc cụ thể mà một chức năng phải đáp ứng để được xem là hoàn thành và được khách hàng/người dùng chấp nhận.
-
-Nói đơn giản:
-
-AC trả lời câu hỏi: “Làm đến mức nào thì User Story/Use Case này được coi là hoàn thành?”
-
-AC phải cụ thể, kiểm thử được và có kết quả rõ ràng, tránh các từ mơ hồ như nhanh, dễ sử dụng, hợp lý, tốt...
-
-1. Nguyên tắc xây dựng Acceptance Criteria
-
-Một AC tốt nên đáp ứng:
-
-Tiêu chí	Ý nghĩa
-Cụ thể	Nêu chính xác hệ thống phải làm gì
-Đo lường/kiểm thử được	Có thể kiểm tra Pass/Fail
-Không mơ hồ	Không dùng các từ như "nhanh", "tốt", "hợp lý"
-Có điều kiện	Xác định khi nào yêu cầu được thực hiện
-Có kết quả	Xác định hệ thống phải phản hồi như thế nào
-Bao gồm trường hợp lỗi	Xác định hệ thống xử lý khi điều kiện không thỏa mãn
-2. Cấu trúc Acceptance Criteria
-
-Có thể viết theo dạng:
-
-Given: Điều kiện ban đầu
-When: Người dùng thực hiện hành động
-Then: Hệ thống phải đưa ra kết quả
-
-Ví dụ:
-
-Given: Customer đã đăng nhập
-When: Customer nhập điểm đón và điểm đến hợp lệ
-Then: Hệ thống phải hiển thị thông tin chuyến và cho phép Customer xác nhận đặt chuyến.
-3. AC cho hệ thống đặt xe
-AC01 – Đăng ký tài khoản
-
-UC: Đăng ký tài khoản
-
-Customer phải nhập đầy đủ các thông tin bắt buộc.
-Số điện thoại phải đúng định dạng.
-Số điện thoại không được trùng với tài khoản đã tồn tại.
-Mật khẩu phải đáp ứng quy tắc bảo mật của hệ thống.
-Nếu thông tin hợp lệ, hệ thống phải tạo tài khoản Customer thành công.
-Nếu thông tin không hợp lệ, hệ thống phải hiển thị thông báo lỗi tương ứng.
-Sau khi đăng ký thành công, Customer có thể đăng nhập vào hệ thống.
-
-Kết thúc khi:
-→ Tài khoản được tạo thành công và có thể sử dụng để đăng nhập.
-
-4. AC02 – Đăng nhập
-
-UC: Đăng nhập
-
-Customer phải nhập số điện thoại/email và mật khẩu.
-Nếu thông tin đăng nhập chính xác, hệ thống cho phép Customer truy cập hệ thống.
-Nếu sai thông tin, hệ thống phải thông báo đăng nhập thất bại.
-Hệ thống không được cho phép truy cập vào tài khoản nếu thông tin xác thực không hợp lệ.
-
-Kết thúc khi:
-→ Customer đăng nhập thành công hoặc nhận được thông báo lỗi.
-
-5. AC03 – Đặt chuyến xe
-
-UC: Đặt chuyến
-
-Điều kiện thành công
-Customer phải đăng nhập trước khi đặt chuyến.
-Customer phải chọn điểm đón.
-Customer phải chọn điểm đến.
-Điểm đón và điểm đến phải hợp lệ.
-Hệ thống phải tính/hiển thị thông tin cước dự kiến trước khi Customer xác nhận.
-Customer phải xác nhận yêu cầu đặt chuyến.
-Sau khi xác nhận, hệ thống phải tạo chuyến ở trạng thái Waiting for Driver.
-Hệ thống phải bắt đầu tìm tài xế phù hợp.
-Trường hợp tìm được tài xế
-Hệ thống gửi yêu cầu chuyến đến tài xế phù hợp.
-Nếu tài xế chấp nhận, chuyến chuyển sang trạng thái Driver Accepted.
-Hệ thống phải thông báo thông tin tài xế cho Customer.
-Trường hợp không tìm được tài xế
-Hệ thống phải thông báo cho Customer rằng hiện tại không tìm thấy tài xế.
-Chuyến không được chuyển sang trạng thái đang thực hiện.
-
-Kết thúc khi:
-→ Chuyến được tạo và tài xế chấp nhận hoặc hệ thống xác định không có tài xế phù hợp.
-
-6. AC04 – Tìm tài xế
-
-UC: Tìm tài xế phù hợp
-
-Hệ thống chỉ tìm những tài xế đang ở trạng thái Available/Online.
-Tài xế phải phù hợp với loại chuyến/loại phương tiện được yêu cầu.
-Hệ thống phải ưu tiên các tài xế phù hợp theo quy tắc phân công đã xác định.
-Hệ thống không được gửi cùng một yêu cầu chuyến cho tài xế đã từ chối chuyến đó.
-Nếu tài xế từ chối, hệ thống phải tiếp tục tìm tài xế khác.
-Nếu không còn tài xế phù hợp, hệ thống phải thông báo cho Customer.
-
-Kết thúc khi:
-→ Một tài xế được phân công hoặc hệ thống xác định không còn tài xế phù hợp.
-
-7. AC05 – Nhận/chấp nhận chuyến
-
-UC: Xử lý yêu cầu chuyến
-
-Driver phải đang ở trạng thái có thể nhận chuyến.
-Driver có thể Accept hoặc Reject yêu cầu.
-Khi Driver Accept, hệ thống phải xác nhận Driver cho chuyến.
-Khi Driver Reject, hệ thống phải tìm Driver khác.
-Sau khi chuyến đã được Driver khác nhận, các Driver khác không được nhận cùng chuyến đó.
-Customer phải nhận được thông báo về kết quả.
-
-Kết thúc khi:
-→ Driver chấp nhận chuyến hoặc từ chối và hệ thống chuyển sang tìm Driver khác.
-
-8. AC06 – Thực hiện chuyến
-
-UC: Thực hiện chuyến
-
-Driver phải được xác nhận cho chuyến trước khi bắt đầu.
-Driver phải đến điểm đón.
-Driver phải xác nhận bắt đầu chuyến.
-Hệ thống phải cập nhật trạng thái chuyến thành In Progress.
-Customer có thể theo dõi trạng thái chuyến.
-Khi đến điểm đến, Driver có thể kết thúc chuyến.
-Hệ thống phải cập nhật trạng thái thành Completed.
-
-Kết thúc khi:
-→ Chuyến chuyển sang trạng thái Completed.
-
-9. AC07 – Hủy chuyến
-
-UC: Hủy chuyến
-
-Customer có thể yêu cầu hủy chuyến khi chuyến đang ở trạng thái cho phép hủy.
-Driver có thể yêu cầu hủy chuyến theo quy định.
-Hệ thống phải kiểm tra điều kiện hủy trước khi thực hiện.
-Nếu được phép hủy, trạng thái chuyến chuyển thành Cancelled.
-Hệ thống phải thông báo cho các bên liên quan.
-Nếu có phí hủy, hệ thống phải tính phí theo chính sách đã quy định.
-Nếu không được phép hủy, hệ thống phải thông báo lý do.
-
-Kết thúc khi:
-→ Chuyến được hủy thành công hoặc yêu cầu hủy bị từ chối.
-
-10. AC08 – Thanh toán
-
-UC: Thanh toán chuyến xe
-
-Customer chỉ được thanh toán đối với chuyến đã hoàn thành.
-Hệ thống phải xác định chính xác số tiền cần thanh toán.
-Customer phải chọn phương thức thanh toán hợp lệ.
-Hệ thống gửi yêu cầu thanh toán đến Payment Gateway.
-Nếu thanh toán thành công, trạng thái thanh toán chuyển thành Paid.
-Nếu thanh toán thất bại, hệ thống phải thông báo cho Customer.
-Customer có thể thực hiện lại thanh toán hoặc chọn phương thức khác.
-Hệ thống phải lưu lại lịch sử giao dịch.
-
-Kết thúc khi:
-→ Giao dịch thanh toán thành công hoặc được ghi nhận là thất bại.
-
-11. AC09 – Đánh giá chuyến xe
-
-UC: Đánh giá chuyến xe
-
-Customer chỉ được đánh giá chuyến đã hoàn thành.
-Customer chỉ được đánh giá mỗi chuyến theo số lần quy định.
-Điểm đánh giá phải nằm trong khoảng cho phép, ví dụ 1–5 sao.
-Customer có thể nhập nhận xét nếu hệ thống hỗ trợ.
-Hệ thống phải lưu đánh giá.
-Hệ thống phải cập nhật Rating của Driver sau khi đánh giá hợp lệ.
-
-Kết thúc khi:
-→ Đánh giá được lưu thành công.
-
-12. AC10 – Khiếu nại
-
-UC: Gửi khiếu nại
-
-Customer/Driver phải cung cấp thông tin liên quan đến khiếu nại.
-Hệ thống phải tạo một mã khiếu nại duy nhất.
-Khiếu nại phải được lưu với trạng thái Pending.
-Admin có thể xem và xử lý khiếu nại.
-Admin phải cập nhật kết quả xử lý.
-Người gửi khiếu nại phải nhận được thông báo kết quả.
-
-Kết thúc khi:
-→ Khiếu nại được xử lý và chuyển sang trạng thái Resolved/Closed.
-
-13. AC11 – Duyệt tài xế
-
-UC: Duyệt hồ sơ Driver
-
-Driver phải cung cấp đầy đủ thông tin và giấy tờ bắt buộc.
-Admin có thể xem hồ sơ Driver.
-Admin có thể Approve hoặc Reject.
-Nếu hồ sơ hợp lệ → Driver được kích hoạt.
-Nếu hồ sơ không hợp lệ → Driver bị từ chối hoặc yêu cầu bổ sung thông tin.
-Driver chưa được duyệt không được phép nhận chuyến.
-
-Kết thúc khi:
-→ Hồ sơ Driver được Approved hoặc Rejected.
-
-14. AC12 – Quản lý trạng thái tài xế
-
-UC: Quản lý trạng thái Driver
-
-Driver có thể chuyển trạng thái giữa Online và Offline.
-Driver chỉ có thể nhận chuyến khi ở trạng thái Available.
-Khi Driver đang thực hiện chuyến, hệ thống không được phân thêm chuyến mới cho Driver đó.
-Khi chuyến hoàn thành, Driver có thể trở lại trạng thái Available.
-Hệ thống phải cập nhật trạng thái theo thời gian thực hoặc theo khoảng thời gian đã quy định.
-
-Kết thúc khi:
-→ Trạng thái Driver được cập nhật thành công.
-
-15. Bảng tổng hợp AC
-UC	Chức năng	Điều kiện hoàn thành
-UC01	Đăng ký	Tạo tài khoản thành công
-UC02	Đăng nhập	Xác thực thành công
-UC03	Đặt chuyến	Tạo chuyến + tìm được tài xế hoặc xác định không có tài xế
-UC04	Tìm tài xế	Có tài xế được phân công hoặc không còn tài xế
-UC05	Nhận chuyến	Driver Accept/Reject và hệ thống xử lý đúng
-UC06	Thực hiện chuyến	Chuyến chuyển sang Completed
-UC07	Hủy chuyến	Chuyến chuyển sang Cancelled hoặc yêu cầu bị từ chối
-UC08	Thanh toán	Giao dịch được xác nhận thành công/thất bại
-UC09	Đánh giá	Đánh giá được lưu
-UC10	Khiếu nại	Khiếu nại được xử lý/đóng
-UC11	Duyệt Driver	Hồ sơ được Approved/Rejected
-UC12	Trạng thái Driver	Trạng thái được cập nhật hợp lệ
+**Luồng chính**
+
+1. Khách hàng gửi tọa độ, loại xe, `page` và `limit`.
+2. Hệ thống kiểm tra tọa độ, loại xe và phân trang.
+3. Hệ thống lọc tài xế `ACTIVE`, hồ sơ `APPROVED`, online, không bận, có xe phù hợp và vị trí không quá 120 giây.
+4. Hệ thống giữ tài xế cách tọa độ truy vấn không quá 1 km.
+5. Hệ thống sắp xếp khoảng cách tăng dần; bằng khoảng cách thì `driverId` tăng dần.
+6. Hệ thống trả trang kết quả và thông tin được phép hiển thị.
+
+**Thay thế / ngoại lệ**
+
+- Không có kết quả hoặc trang vượt dữ liệu: trả danh sách trống.
+- Input sai: từ chối.
+- Dữ liệu vị trí cũ: loại tài xế khỏi kết quả.
+
+**Hậu điều kiện:** không tạo booking, lời mời hoặc giữ chỗ tài xế.
+
+**Liên kết:** FR46; RULE06–RULE07, RULE13, RULE36.
+
+#### UC06 — Đặt xe
+
+| Mục            | Đặc tả                                        |
+| -------------- | --------------------------------------------- |
+| Actor chính    | CUSTOMER                                      |
+| Actor hỗ trợ   | DRIVER                                        |
+| Mục tiêu       | Tạo yêu cầu đặt xe và nhận kết quả tìm tài xế |
+| Tiền điều kiện | Khách hàng đã đăng nhập                       |
+| Kích hoạt      | Khách hàng xác nhận đặt xe                    |
+
+**Luồng chính**
+
+1. Khách hàng gửi điểm đón, điểm đến, loại xe và khóa idempotency.
+2. Hệ thống kiểm tra dữ liệu và khóa idempotency.
+3. Hệ thống tính khoảng cách Haversine, lưu thông số giá và tạo Booking `SEARCHING`.
+4. Hệ thống lập danh sách ban đầu tối đa 5 tài xế đủ điều kiện, theo thứ tự ưu tiên.
+5. Hệ thống tạo lời mời `PENDING` cho ứng viên đầu tiên, hiệu lực 30 giây.
+6. Tài xế chấp nhận qua UC18.
+7. Hệ thống kiểm tra lại điều kiện, xác nhận phân công và tạo một Trip `ASSIGNED`.
+8. Hệ thống chuyển Booking thành `ASSIGNED` và thông báo khách hàng.
+
+**Thay thế / ngoại lệ**
+
+- Cùng khóa và dữ liệu: trả booking đã tạo; không bắt đầu tìm kiếm mới.
+- Cùng khóa nhưng khác dữ liệu: từ chối xung đột.
+- Tài xế từ chối, timeout hoặc mất điều kiện: đóng lời mời và mời ứng viên tiếp theo.
+- Không có hoặc hết ứng viên: chuyển `NO_DRIVER`, thông báo khách hàng; không tạo trip.
+- Khách hàng hủy qua UC08: dừng tìm kiếm và đóng lời mời.
+- Lỗi phân công: không báo thành công khi chưa xác nhận được kết quả; xử lý lại an toàn.
+
+**Hậu điều kiện:** booking có kết quả `ASSIGNED`, `NO_DRIVER` hoặc `CANCELED`; trong lúc xử lý có thể còn `SEARCHING`.
+
+**Liên kết:** FR09–FR16; RULE05–RULE13, RULE40.
+
+#### UC07 — Theo dõi booking và chuyến đi
+
+| Mục            | Đặc tả                                    |
+| -------------- | ----------------------------------------- |
+| Actor chính    | CUSTOMER                                  |
+| Mục tiêu       | Biết tiến trình booking và trip liên quan |
+| Tiền điều kiện | Khách hàng đã đăng nhập                   |
+| Kích hoạt      | Khách hàng mở booking của mình            |
+
+**Luồng chính**
+
+1. Khách hàng yêu cầu chi tiết booking.
+2. Hệ thống kiểm tra quyền sở hữu.
+3. Hệ thống trả trạng thái booking và trip nếu đã phát sinh.
+4. Khi đã phân công, hệ thống trả thông tin tài xế và xe được phép hiển thị.
+5. Hệ thống cung cấp ETA khi đủ điều kiện và vị trí trip mới nhất nếu có.
+
+**Thay thế / ngoại lệ**
+
+- Chưa phân công: chưa có thông tin trip hoặc tài xế.
+- Thiếu vị trí hoặc vị trí quá cũ: trả trạng thái chưa có ETA.
+- Trip `ARRIVED`: ETA bằng 0.
+- ETA đến điểm đón không còn áp dụng khi trip đã bắt đầu hoặc kết thúc.
+- Booking không tồn tại hoặc không thuộc khách hàng: từ chối truy cập.
+
+**Hậu điều kiện:** không thay đổi trạng thái booking hoặc trip.
+
+**Liên kết:** FR18–FR19, FR47; RULE03, RULE13, RULE38.
+
+#### UC08 — Hủy booking hoặc chuyến đi
+
+| Mục            | Đặc tả                                           |
+| -------------- | ------------------------------------------------ |
+| Actor chính    | CUSTOMER                                         |
+| Mục tiêu       | Hủy yêu cầu hoặc chuyến theo trạng thái cho phép |
+| Tiền điều kiện | Khách hàng đã đăng nhập và có booking            |
+| Kích hoạt      | Khách hàng chọn hủy                              |
+
+**Luồng chính**
+
+1. Khách hàng nhập lý do hủy.
+2. Hệ thống kiểm tra quyền sở hữu, lý do và trạng thái được phép hủy.
+3. Hệ thống hiển thị phí hủy demo bằng 0 VND.
+4. Khách hàng xác nhận.
+5. Hệ thống kiểm tra lại trạng thái tại thời điểm xác nhận.
+6. Hệ thống lưu người hủy, lý do, thời điểm và phí.
+7. Hệ thống chuyển Booking sang `CANCELED`; hủy Trip nếu đã phân công.
+8. Hệ thống đóng lời mời hoặc giải phóng tài xế và thông báo các bên.
+
+**Thay thế / ngoại lệ**
+
+- Khách hàng không xác nhận: không hủy.
+- Trip đã chuyển `IN_PROGRESS` hoặc kết thúc: từ chối hủy thông thường.
+- Lý do rỗng hoặc quá 300 ký tự: từ chối.
+- Gửi lại lần hủy đã thành công: trả kết quả cũ, không đổi thời điểm hoặc lý do đã lưu.
+
+**Hậu điều kiện:** booking và trip liên quan được hủy khi hợp lệ; không tạo payment phí hủy.
+
+**Liên kết:** FR20–FR21; RULE16–RULE19, RULE39–RULE40.
+
+#### UC09 — Thanh toán chuyến đi
+
+| Mục            | Đặc tả                                                  |
+| -------------- | ------------------------------------------------------- |
+| Actor chính    | CUSTOMER                                                |
+| Actor hỗ trợ   | Payment Mock, DRIVER khi thanh toán tiền mặt            |
+| Mục tiêu       | Thanh toán khoản phải trả của trip                      |
+| Tiền điều kiện | Trip thuộc khách hàng, đã `COMPLETED` và có cước hợp lệ |
+| Kích hoạt      | Khách hàng mở phần thanh toán                           |
+
+**Luồng chính — thanh toán online**
+
+1. Hệ thống trả khoản phải trả và tình trạng thanh toán.
+2. Khách hàng chọn `MOCK_ONLINE`, gửi khóa idempotency.
+3. Hệ thống kiểm tra chưa thanh toán, không có payment `PENDING` và chưa vượt giới hạn khởi tạo.
+4. Hệ thống tạo Payment `PENDING` bằng số tiền do server xác định.
+5. Hệ thống gửi yêu cầu đến Payment Mock.
+6. Hệ thống nhận và xử lý callback qua UC27.
+7. Khách hàng tra cứu kết quả thanh toán.
+
+**Thay thế / ngoại lệ**
+
+- Chọn `CASH`: khách hàng thanh toán trực tiếp; tài xế xác nhận qua UC21. Lựa chọn của khách hàng chưa đủ để ghi nhận đã trả tiền.
+- Payment `FAILED`: cho khởi tạo lại bằng payment và khóa mới, tối đa 3 lần online gồm lần đầu.
+- Payment `PENDING`: chỉ tra cứu; không tạo lần thanh toán mới.
+- Các lần online đã `FAILED`: có thể chuyển tiền mặt.
+- Gửi lại cùng khóa và dữ liệu: trả kết quả cũ; khác dữ liệu: từ chối.
+- Trip đã thanh toán: trả thông tin đã thanh toán.
+
+**Hậu điều kiện:** payment có trạng thái đã ghi nhận; trip vẫn `COMPLETED` dù thanh toán thất bại hoặc đang chờ.
+
+**Liên kết:** FR23, FR25, FR27–FR28; RULE20–RULE27.
+
+#### UC10 — Xem lịch sử đặt xe
+
+| Mục            | Đặc tả                           |
+| -------------- | -------------------------------- |
+| Actor chính    | CUSTOMER                         |
+| Mục tiêu       | Xem booking và các trip trước đó |
+| Tiền điều kiện | Khách hàng đã đăng nhập          |
+| Kích hoạt      | Khách hàng mở lịch sử đặt xe     |
+
+**Luồng chính**
+
+1. Khách hàng gửi `page` và `limit`.
+2. Hệ thống kiểm tra tham số.
+3. Hệ thống lấy booking thuộc khách hàng.
+4. Hệ thống sắp xếp `createdAt` giảm dần; bằng thời điểm thì `bookingId` giảm dần.
+5. Hệ thống trả trang kết quả.
+6. Khi khách hàng chọn một booking, hệ thống trả chi tiết trip, cước và thanh toán liên quan.
+
+**Thay thế / ngoại lệ**
+
+- Không có dữ liệu: trả danh sách trống.
+- Booking hủy trước phân công hoặc `NO_DRIVER`: không có trip.
+- Phân trang sai hoặc truy cập booking của người khác: từ chối.
+
+**Hậu điều kiện:** dữ liệu không thay đổi.
+
+**Liên kết:** FR33; RULE03, RULE36–RULE37.
+
+#### UC11 — Đánh giá tài xế
+
+| Mục            | Đặc tả                                  |
+| -------------- | --------------------------------------- |
+| Actor chính    | CUSTOMER                                |
+| Mục tiêu       | Gửi đánh giá cho tài xế của trip        |
+| Tiền điều kiện | Trip thuộc khách hàng và đã `COMPLETED` |
+| Kích hoạt      | Khách hàng chọn đánh giá                |
+
+**Luồng chính**
+
+1. Khách hàng nhập điểm và nhận xét tùy chọn.
+2. Hệ thống kiểm tra quyền sở hữu, trạng thái trip và chưa có review.
+3. Hệ thống kiểm tra điểm nguyên từ 1–5, nhận xét tối đa 500 ký tự.
+4. Hệ thống lấy tài xế từ trip và tạo Review.
+5. Hệ thống trả kết quả thành công.
+
+**Thay thế / ngoại lệ**
+
+- Trip chưa hoàn thành, sai quyền hoặc dữ liệu sai: từ chối.
+- Trip đã có review: từ chối tạo thêm.
+- Payment chưa thành công: vẫn được đánh giá.
+- Không cung cấp chức năng sửa hoặc xóa review trong demo.
+
+**Hậu điều kiện:** trip có tối đa một review.
+
+**Liên kết:** FR34; RULE28–RULE29.
+
+### 12.4. Nhóm Use Case của Driver
+
+#### UC12 — Xác thực OTP đăng ký
+
+| Mục            | Đặc tả                            |
+| -------------- | --------------------------------- |
+| Actor chính    | Người đăng ký DRIVER              |
+| Mục tiêu       | Xác minh số điện thoại để đăng ký |
+| Tiền điều kiện | Không yêu cầu đăng nhập           |
+| Kích hoạt      | Người dùng yêu cầu OTP            |
+
+**Luồng chính**
+
+1. Người dùng gửi số điện thoại.
+2. Hệ thống kiểm tra định dạng và thời gian chờ giữa các lần yêu cầu.
+3. Hệ thống tạo OTP giả lập 6 chữ số, hiệu lực 5 phút; mã mới vô hiệu mã cũ.
+4. Người dùng nhập OTP.
+5. Hệ thống kiểm tra số điện thoại, mục đích, thời hạn và số lần nhập sai.
+6. Nếu đúng, hệ thống ghi nhận đã xác minh và trả bằng chứng dùng cho UC01.
+
+**Thay thế / ngoại lệ**
+
+- Yêu cầu mã mới trước 60 giây: từ chối.
+- OTP sai: tăng số lần nhập sai.
+- Hết hạn, đã dùng hoặc đạt 5 lần sai: từ chối xác minh.
+- Xác minh thành công không tự tạo tài khoản; bằng chứng chỉ được dùng đăng ký một lần.
+- Việc cung cấp OTP giả lập chỉ phục vụ môi trường demo.
+
+**Hậu điều kiện:** có bằng chứng xác minh hợp lệ khi thành công.
+
+**Liên kết:** FR43; RULE33.
+
+#### UC13 — Xem và cập nhật hồ sơ tài xế
+
+| Mục            | Đặc tả                                  |
+| -------------- | --------------------------------------- |
+| Actor chính    | DRIVER                                  |
+| Mục tiêu       | Hoàn thiện hồ sơ phục vụ xét duyệt      |
+| Tiền điều kiện | Tài xế đã đăng nhập và có DriverProfile |
+| Kích hoạt      | Tài xế mở hồ sơ                         |
+
+**Luồng chính**
+
+1. Hệ thống trả hồ sơ và kết quả duyệt hiện tại.
+2. Tài xế sửa thông tin hồ sơ khi ở `DRAFT` hoặc `REJECTED`.
+3. Hệ thống kiểm tra dữ liệu và các trường được phép sửa.
+4. Hệ thống lưu hồ sơ.
+
+**Thay thế / ngoại lệ**
+
+- Chỉ xem: không thay đổi dữ liệu.
+- Hồ sơ `PENDING` hoặc `APPROVED`: không cho sửa thông tin dùng để xét duyệt trong demo.
+- Tự sửa kết quả duyệt, người duyệt hoặc thời điểm duyệt: từ chối.
+- Hồ sơ `REJECTED`: hiển thị lý do để tài xế chỉnh sửa.
+
+**Hậu điều kiện:** hồ sơ được cập nhật nhưng chưa tự chuyển `PENDING` hoặc `APPROVED`.
+
+**Liên kết:** FR05; RULE03, RULE34.
+
+#### UC14 — Quản lý phương tiện
+
+| Mục            | Đặc tả                             |
+| -------------- | ---------------------------------- |
+| Actor chính    | DRIVER                             |
+| Mục tiêu       | Quản lý xe và chọn xe đang sử dụng |
+| Tiền điều kiện | Tài xế đã đăng nhập                |
+| Kích hoạt      | Tài xế mở quản lý phương tiện      |
+
+**Luồng chính**
+
+1. Hệ thống trả các xe thuộc tài xế.
+2. Tài xế chọn thêm xe, cập nhật xe hoặc chọn xe đang sử dụng.
+3. Hệ thống kiểm tra quyền sở hữu, dữ liệu và biển số đã chuẩn hóa.
+4. Hệ thống kiểm tra xe không bị khóa bởi trip chưa kết thúc.
+5. Hệ thống lưu dữ liệu và bảo đảm tối đa một xe `isActive = true`.
+
+**Thay thế / ngoại lệ**
+
+- Biển số trùng hoặc loại xe không hợp lệ: từ chối.
+- Xe không thuộc tài xế: từ chối.
+- Thay đổi xe đang dùng cho trip chưa kết thúc: từ chối.
+- Không có xe đang sử dụng hợp lệ: tài xế không đủ điều kiện online hoặc nhận chuyến.
+
+**Hậu điều kiện:** dữ liệu xe hợp lệ; không phát sinh hai xe đang sử dụng.
+
+**Liên kết:** FR06; RULE35.
+
+#### UC15 — Gửi hồ sơ để duyệt
+
+| Mục            | Đặc tả                                               |
+| -------------- | ---------------------------------------------------- |
+| Actor chính    | DRIVER                                               |
+| Mục tiêu       | Đưa hồ sơ hợp lệ vào danh sách chờ duyệt             |
+| Tiền điều kiện | Tài xế đã đăng nhập; hồ sơ ở `DRAFT` hoặc `REJECTED` |
+| Kích hoạt      | Tài xế chọn gửi duyệt                                |
+
+**Luồng chính**
+
+1. Tài xế xác nhận gửi hồ sơ.
+2. Hệ thống kiểm tra các thông tin hồ sơ bắt buộc và xe đang sử dụng.
+3. Hệ thống chuyển hồ sơ sang `PENDING`.
+4. Hệ thống lưu thời điểm gửi và trả kết quả.
+
+**Thay thế / ngoại lệ**
+
+- Thiếu hoặc sai thông tin hồ sơ, xe: từ chối và chỉ rõ dữ liệu cần bổ sung.
+- Hồ sơ đã `PENDING`: trả trạng thái hiện tại, không tạo yêu cầu duyệt thứ hai.
+- Hồ sơ `APPROVED`: không gửi duyệt lại trong demo.
+
+**Hậu điều kiện:** hồ sơ `PENDING`; tài xế chưa được online chỉ vì đã gửi duyệt.
+
+**Liên kết:** FR44; RULE34.
+
+#### UC16 — Chuyển online hoặc offline
+
+| Mục            | Đặc tả                            |
+| -------------- | --------------------------------- |
+| Actor chính    | DRIVER                            |
+| Mục tiêu       | Bật hoặc tắt việc nhận chuyến mới |
+| Tiền điều kiện | Tài xế đã đăng nhập               |
+| Kích hoạt      | Tài xế chọn online hoặc offline   |
+
+**Luồng chính**
+
+1. Tài xế gửi trạng thái mong muốn.
+2. Khi bật online, hệ thống kiểm tra hồ sơ `APPROVED`, xe đang sử dụng hợp lệ và vị trí không quá 120 giây.
+3. Hệ thống lưu `isOnline` và trả kết quả.
+
+**Thay thế / ngoại lệ**
+
+- Không đủ điều kiện online: từ chối và trả lý do.
+- Chuyển offline khi đang có trip: ngừng nhận chuyến mới, không tự hủy trip.
+- Gửi trạng thái đã có: trả trạng thái hiện tại.
+- Online nhưng đang bận: vẫn không được xét nhận thêm chuyến.
+
+**Hậu điều kiện:** trạng thái online được cập nhật; trạng thái trip giữ nguyên.
+
+**Liên kết:** FR07; RULE06, RULE13, RULE26.
+
+#### UC17 — Cập nhật vị trí tài xế
+
+| Mục            | Đặc tả                             |
+| -------------- | ---------------------------------- |
+| Actor chính    | DRIVER                             |
+| Mục tiêu       | Cung cấp vị trí hiện tại để tìm xe |
+| Tiền điều kiện | Tài xế đã đăng nhập                |
+| Kích hoạt      | Ứng dụng tài xế gửi tọa độ         |
+
+**Luồng chính**
+
+1. Tài xế gửi latitude và longitude.
+2. Hệ thống kiểm tra quyền và miền giá trị.
+3. Hệ thống lưu vị trí cùng thời điểm server nhận dữ liệu.
+4. Hệ thống trả kết quả.
+
+**Thay thế / ngoại lệ**
+
+- Tọa độ sai hoặc thiếu: từ chối; không ghi đè vị trí hợp lệ.
+- Cập nhật thay tài xế khác: từ chối.
+- Vị trí đã lưu quá 120 giây: không được dùng xét nearby hoặc phân công.
+
+**Hậu điều kiện:** có vị trí hiện tại mới nhất khi cập nhật thành công; không tự chuyển online.
+
+**Liên kết:** FR08; RULE03, RULE13.
+
+#### UC18 — Phản hồi lời mời nhận chuyến
+
+| Mục            | Đặc tả                                         |
+| -------------- | ---------------------------------------------- |
+| Actor chính    | DRIVER                                         |
+| Mục tiêu       | Chấp nhận hoặc từ chối lời mời                 |
+| Tiền điều kiện | Tài xế đã đăng nhập và có lời mời gửi cho mình |
+| Kích hoạt      | Tài xế gửi phản hồi                            |
+
+**Luồng chính — chấp nhận**
+
+1. Tài xế chọn chấp nhận lời mời.
+2. Hệ thống kiểm tra đúng người nhận, lời mời `PENDING`, thời gian hiện tại nhỏ hơn `expiresAt` và booking còn `SEARCHING`.
+3. Hệ thống kiểm tra lại điều kiện tài xế và xe.
+4. Hệ thống xác nhận quyền nhận chuyến, ngăn phân công đồng thời.
+5. Hệ thống tạo một Trip `ASSIGNED`, ghi nhận tài xế và xe.
+6. Hệ thống cập nhật lời mời `ACCEPTED`, booking `ASSIGNED` và tình trạng bận của tài xế.
+7. Hệ thống trả kết quả và thông báo khách hàng.
+
+**Thay thế / ngoại lệ**
+
+- Từ chối: chuyển lời mời `REJECTED`, xét ứng viên tiếp theo.
+- Hết hạn: từ chối chấp nhận; xử lý lời mời hết hạn.
+- Booking đã hủy, tài xế offline hoặc đã nhận trip khác: không phân công; tiếp tục tìm nếu booking còn hợp lệ.
+- Gửi lại cùng phản hồi đã thành công: trả kết quả cũ.
+- Đổi phản hồi sau khi lời mời đã có kết quả cuối: từ chối.
+
+**Hậu điều kiện:** phân công duy nhất khi chấp nhận thành công; từ chối không tạo trip.
+
+**Liên kết:** FR13–FR15; RULE06, RULE08–RULE11.
+
+#### UC19 — Cập nhật tiến trình chuyến
+
+| Mục            | Đặc tả                                            |
+| -------------- | ------------------------------------------------- |
+| Actor chính    | DRIVER                                            |
+| Mục tiêu       | Ghi nhận các mốc thực hiện trip                   |
+| Tiền điều kiện | Tài xế đã đăng nhập và được phân công trip        |
+| Kích hoạt      | Tài xế chọn đến điểm đón, bắt đầu hoặc hoàn thành |
+
+**Luồng chính**
+
+1. Tài xế gửi thao tác cập nhật.
+2. Hệ thống kiểm tra người được phân công và trạng thái hiện tại.
+3. Hệ thống thực hiện đúng chuyển trạng thái: `ASSIGNED → ARRIVED`, `ARRIVED → IN_PROGRESS` hoặc `IN_PROGRESS → COMPLETED`.
+4. Hệ thống lưu thời điểm mốc tương ứng.
+5. Khi hoàn thành, hệ thống tính và lưu cước từ dữ liệu cùng thông số giá đã ghi nhận.
+6. Hệ thống đồng bộ booking, giải phóng tài xế khi hoàn thành và tạo thông báo tương ứng.
+
+**Thay thế / ngoại lệ**
+
+- Sai thứ tự hoặc sai tài xế: từ chối.
+- Gửi lại mốc đã thành công: không tạo chuyển trạng thái hoặc đổi thời điểm.
+- Thiếu dữ liệu tính cước: giữ trip `COMPLETED`, chưa xác nhận khoản phải trả; ghi log để xử lý lại.
+- Chưa gặp khách: không bắt đầu hoặc tự ghi hoàn thành trip.
+
+**Hậu điều kiện:** trạng thái và thời điểm được lưu đúng; payment chưa thành công không giữ tài xế bận.
+
+**Liên kết:** FR17, FR22; RULE14–RULE15, RULE20, RULE26, RULE39–RULE40.
+
+#### UC20 — Cập nhật vị trí trong chuyến
+
+| Mục            | Đặc tả                                      |
+| -------------- | ------------------------------------------- |
+| Actor chính    | DRIVER                                      |
+| Mục tiêu       | Cung cấp vị trí để khách hàng theo dõi trip |
+| Tiền điều kiện | Tài xế được phân công và trip `IN_PROGRESS` |
+| Kích hoạt      | Ứng dụng tài xế gửi tọa độ gắn với trip     |
+
+**Luồng chính**
+
+1. Tài xế gửi tripId và tọa độ.
+2. Hệ thống kiểm tra quyền, trạng thái trip và tọa độ.
+3. Hệ thống lưu vị trí mới nhất và thời điểm server nhận.
+4. Hệ thống cập nhật vị trí hiện tại của tài xế từ bản cập nhật hợp lệ.
+5. Hệ thống trả kết quả.
+
+**Thay thế / ngoại lệ**
+
+- Sai quyền, tọa độ sai hoặc trip không `IN_PROGRESS`: từ chối.
+- Lỗi đồng bộ vị trí tài xế: ghi nhận để xử lý lại; không làm mất bản cập nhật trip đã lưu.
+
+**Hậu điều kiện:** trip có vị trí mới nhất; không lưu toàn bộ hành trình GPS trong demo.
+
+**Liên kết:** FR47; RULE15.
+
+#### UC21 — Xác nhận nhận tiền mặt
+
+| Mục            | Đặc tả                                                    |
+| -------------- | --------------------------------------------------------- |
+| Actor chính    | DRIVER                                                    |
+| Mục tiêu       | Ghi nhận tiền mặt thực tế đã nhận                         |
+| Tiền điều kiện | Tài xế được phân công; trip `COMPLETED` và có cước hợp lệ |
+| Kích hoạt      | Tài xế xác nhận đã nhận tiền                              |
+
+**Luồng chính**
+
+1. Tài xế chọn trip và xác nhận đã nhận tiền mặt.
+2. Hệ thống kiểm tra quyền và điều kiện thanh toán.
+3. Hệ thống kiểm tra chưa có payment `COMPLETED` hoặc online `PENDING`.
+4. Hệ thống ghi Payment `CASH`, trạng thái `COMPLETED`, số tiền do server xác định.
+5. Hệ thống lưu người xác nhận, thời điểm và thông báo khách hàng.
+
+**Thay thế / ngoại lệ**
+
+- Đã xác nhận tiền mặt thành công: trả kết quả cũ.
+- Có payment online `PENDING` hoặc đã thanh toán bằng phương thức khác: từ chối ghi thêm.
+- Sai tài xế hoặc chưa có cước: từ chối.
+
+**Hậu điều kiện:** trip được ghi nhận đã thanh toán một lần.
+
+**Liên kết:** FR24; RULE21–RULE22, RULE24.
+
+### 12.5. Nhóm Use Case của Admin
+
+#### UC22 — Tra cứu và duyệt hồ sơ tài xế
+
+| Mục            | Đặc tả                            |
+| -------------- | --------------------------------- |
+| Actor chính    | ADMIN                             |
+| Mục tiêu       | Xem và quyết định hồ sơ chờ duyệt |
+| Tiền điều kiện | ADMIN đã đăng nhập                |
+| Kích hoạt      | ADMIN mở quản lý hồ sơ tài xế     |
+
+**Luồng chính**
+
+1. ADMIN tra cứu danh sách và chọn hồ sơ.
+2. Hệ thống trả thông tin hồ sơ, xe và trạng thái duyệt.
+3. ADMIN chọn duyệt hoặc từ chối.
+4. Hệ thống kiểm tra hồ sơ vẫn `PENDING`.
+5. Nếu từ chối, hệ thống kiểm tra lý do từ 1–300 ký tự.
+6. Hệ thống lưu `APPROVED` hoặc `REJECTED`, người xử lý, thời điểm và lý do tương ứng.
+7. Hệ thống tạo thông báo cho tài xế.
+
+**Thay thế / ngoại lệ**
+
+- Chỉ tra cứu: không đổi hồ sơ.
+- Hồ sơ đã được người khác xử lý: từ chối quyết định mới.
+- Từ chối không có lý do hợp lệ: không lưu kết quả.
+- Lỗi thông báo: giữ kết quả duyệt và ghi log.
+
+**Hậu điều kiện:** hồ sơ có kết quả duyệt khi xử lý thành công; phê duyệt không tự bật online.
+
+**Liên kết:** FR05, FR45; RULE02, RULE34, RULE32.
+
+#### UC23 — Tra cứu khách hàng
+
+| Mục            | Đặc tả                           |
+| -------------- | -------------------------------- |
+| Actor chính    | ADMIN                            |
+| Mục tiêu       | Xem dữ liệu khách hàng được phép |
+| Tiền điều kiện | ADMIN đã đăng nhập               |
+| Kích hoạt      | ADMIN mở danh sách khách hàng    |
+
+**Luồng chính**
+
+1. ADMIN gửi yêu cầu danh sách hoặc chọn khách hàng.
+2. Hệ thống kiểm tra quyền.
+3. Hệ thống truy vấn và trả thông tin được phép hiển thị.
+
+**Thay thế / ngoại lệ**
+
+- Không có kết quả: trả danh sách trống.
+- Khách hàng không tồn tại: trả lỗi không tìm thấy.
+- Yêu cầu sửa hồ sơ khách hàng: không được hỗ trợ trong UC này.
+
+**Hậu điều kiện:** dữ liệu khách hàng không thay đổi.
+
+**Liên kết:** FR35; RULE03.
+
+#### UC24 — Theo dõi hoạt động vận hành
+
+| Mục            | Đặc tả                            |
+| -------------- | --------------------------------- |
+| Actor chính    | ADMIN                             |
+| Mục tiêu       | Xem tình trạng hoạt động hiện tại |
+| Tiền điều kiện | ADMIN đã đăng nhập                |
+| Kích hoạt      | ADMIN mở màn hình vận hành        |
+
+**Luồng chính**
+
+1. ADMIN yêu cầu dữ liệu hoạt động.
+2. Hệ thống lấy booking đang tìm hoặc đã phân công, trip chưa kết thúc và trạng thái tài xế.
+3. Hệ thống trả trạng thái cùng thời điểm cập nhật.
+
+**Thay thế / ngoại lệ**
+
+- Không có hoạt động: trả danh sách trống.
+- Một service không phản hồi: thể hiện phần dữ liệu chưa lấy được; không hiển thị dữ liệu thiếu như kết quả đầy đủ.
+- ADMIN yêu cầu sửa trạng thái cuối hoặc phân công thủ công: ngoài phạm vi.
+
+**Hậu điều kiện:** dữ liệu nghiệp vụ không thay đổi.
+
+**Liên kết:** FR36; RULE03, RULE19.
+
+#### UC25 — Tra cứu lịch sử booking và trip
+
+| Mục            | Đặc tả                                   |
+| -------------- | ---------------------------------------- |
+| Actor chính    | ADMIN                                    |
+| Mục tiêu       | Tra cứu booking và trip phục vụ kiểm tra |
+| Tiền điều kiện | ADMIN đã đăng nhập                       |
+| Kích hoạt      | ADMIN gửi điều kiện tra cứu              |
+
+**Luồng chính**
+
+1. ADMIN nhập bộ lọc khách hàng, tài xế hoặc trạng thái.
+2. Hệ thống kiểm tra dữ liệu lọc.
+3. Hệ thống truy vấn booking và trip liên quan.
+4. Hệ thống trả kết quả và chi tiết được phép xem.
+
+**Thay thế / ngoại lệ**
+
+- Bộ lọc sai: từ chối.
+- Không có kết quả: trả danh sách trống.
+- Booking không phát sinh trip: trả booking và thể hiện chưa có trip.
+
+**Hậu điều kiện:** không sửa lịch sử hoặc trạng thái cuối.
+
+**Liên kết:** FR37; RULE03, RULE19.
+
+#### UC26 — Tra cứu giao dịch thanh toán
+
+| Mục            | Đặc tả                                          |
+| -------------- | ----------------------------------------------- |
+| Actor chính    | ADMIN                                           |
+| Mục tiêu       | Xem các lần thanh toán đã ghi nhận              |
+| Tiền điều kiện | ADMIN đã đăng nhập                              |
+| Kích hoạt      | ADMIN tra cứu theo trip hoặc trạng thái payment |
+
+**Luồng chính**
+
+1. ADMIN gửi điều kiện tra cứu.
+2. Hệ thống kiểm tra quyền và bộ lọc.
+3. Hệ thống trả các payment, gồm phương thức, số tiền, trạng thái, mã tham chiếu và thời điểm.
+4. ADMIN chọn giao dịch để xem chi tiết.
+
+**Thay thế / ngoại lệ**
+
+- Không có kết quả: trả danh sách trống.
+- Giao dịch không tồn tại: trả lỗi không tìm thấy.
+- Yêu cầu tự sửa kết quả payment: từ chối.
+
+**Hậu điều kiện:** trạng thái payment không thay đổi.
+
+**Liên kết:** FR29; RULE03, RULE27.
+
+### 12.6. Tương tác với Payment Mock
+
+#### UC27 — Ghi nhận kết quả thanh toán giả lập
+
+| Mục            | Đặc tả                                     |
+| -------------- | ------------------------------------------ |
+| Actor chính    | Payment Mock                               |
+| Mục tiêu       | Gửi kết quả để CAB System cập nhật payment |
+| Tiền điều kiện | Payment online đã được CAB System tạo      |
+| Kích hoạt      | Payment Mock gửi callback                  |
+
+**Luồng chính**
+
+1. Payment Mock gửi paymentId, mã tham chiếu, số tiền, tiền tệ, kết quả và chữ ký.
+2. Hệ thống xác minh chữ ký và kiểm tra dữ liệu callback.
+3. Hệ thống tìm payment và đối chiếu mã tham chiếu, số tiền, tiền tệ.
+4. Hệ thống kiểm tra payment còn `PENDING`.
+5. Hệ thống cập nhật thành `COMPLETED` hoặc `FAILED`.
+6. Hệ thống lưu thời điểm kết quả và tạo thông báo cho khách hàng.
+7. Hệ thống trả xác nhận đã tiếp nhận callback.
+
+**Thay thế / ngoại lệ**
+
+- Sai chữ ký hoặc dữ liệu không khớp: từ chối, không đổi payment.
+- Callback trùng kết quả đã lưu: trả xác nhận, không xử lý thêm.
+- Callback trái kết quả cuối: từ chối thay đổi và ghi log.
+- Payment không tồn tại: trả lỗi.
+- Lỗi thông báo: giữ kết quả payment.
+
+**Hậu điều kiện:** kết quả thanh toán được lưu duy nhất; trip vẫn `COMPLETED`.
+
+**Liên kết:** FR26; RULE23–RULE26, RULE32.
+
+### 12.7. Điều kiện demo bổ sung cần đồng bộ
+
+Hai điều kiện sau được chốt cho đặc tả cơ bản và cần bổ sung vào Business Rules để tránh lệch giữa tài liệu và code:
+
+| Nội dung                    | Quy tắc demo                                                                                         |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Cập nhật hồ sơ xét duyệt    | DRIVER chỉ sửa thông tin xét duyệt khi `DRAFT` hoặc `REJECTED`; `PENDING` và `APPROVED` chỉ được xem |
+| Đổi số điện thoại đăng nhập | Ngoài phạm vi demo; UC03 chỉ cập nhật thông tin cá nhân được phép như họ tên và email                |
+
+## 13. Tiêu chí chấp nhận — Acceptance Criteria
+
+**AC xác định khi nào một yêu cầu được xem là đáp ứng, nhưng không đồng nghĩa toàn bộ tính năng đã hoàn tất.** Một tính năng chỉ được nghiệm thu khi các AC liên quan đều đạt, đáp ứng NFR áp dụng và có kết quả kiểm thử chứng minh.
+
+AC cần mô tả **điều kiện và kết quả có thể quan sát**, tránh những câu như “xử lý đúng”, “đầy đủ” hoặc “hoạt động tốt” mà không nêu rõ kết quả.
+
+### 13.1. Quy ước
+
+Các AC được viết theo cấu trúc:
+
+> **Given** — Điều kiện ban đầu.  
+> **When** — Hành động hoặc sự kiện xảy ra.  
+> **Then** — Kết quả hệ thống phải đáp ứng.
+
+Trong các bảng dưới đây:
+
+- **Điều kiện / hành động** tương ứng Given và When.
+- **Kết quả chấp nhận** tương ứng Then.
+- Khi thao tác bị từ chối, dữ liệu nghiệp vụ đang có không bị thay đổi.
+- Các API được bảo vệ áp dụng thêm AC về xác thực, phân quyền và quyền sở hữu tại mục 13.9.
+- Một AC có thể được kiểm tra bằng nhiều Test Case, đặc biệt với các giá trị biên.
+- Các AC dưới đây là điều kiện cần kiểm thử, **chưa được xem là đã đạt**.
+
+Để FR01 có thể kiểm thử đầy đủ, bổ sung **quy tắc demo đề xuất: mật khẩu dài từ 8–64 ký tự**. Quy tắc này cần được đồng bộ vào bước 8 và API specification.
+
+### 13.2. Tài khoản và thông tin cá nhân
+
+| Mã AC | FR / UC           | Điều kiện / hành động                                                                                                                 | Kết quả chấp nhận                                                                                                |
+| ----- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| AC01  | FR01 / UC01       | Người dùng đăng ký CUSTOMER với dữ liệu hợp lệ và số điện thoại chưa tồn tại                                                          | Tạo một Account `ACTIVE` có role `CUSTOMER` và một CustomerProfile liên kết; không tạo DriverProfile.            |
+| AC02  | FR01, FR43 / UC01 | Người dùng đăng ký DRIVER với bằng chứng OTP hợp lệ, đúng số điện thoại, đúng mục đích và chưa dùng                                   | Tạo một Account `ACTIVE` có role `DRIVER`, một DriverProfile `DRAFT` và ghi nhận bằng chứng OTP đã được sử dụng. |
+| AC03  | FR01 / UC01       | Đăng ký thiếu trường bắt buộc, số điện thoại không gồm 10 chữ số bắt đầu bằng `0`, mật khẩu ngoài 8–64 ký tự hoặc số điện thoại trùng | Từ chối đăng ký; không báo thành công hoặc tạo thêm tài khoản.                                                   |
+| AC04  | FR01 / UC01       | Yêu cầu đăng ký công khai role `ADMIN` hoặc vai trò không được hỗ trợ                                                                 | Từ chối; không tạo tài khoản với vai trò yêu cầu.                                                                |
+| AC05  | FR02 / UC02       | Đăng nhập đúng số điện thoại, mật khẩu và tài khoản `ACTIVE`                                                                          | Trả JWT có thời hạn hiệu lực và thông tin tài khoản được phép hiển thị.                                          |
+| AC06  | FR02 / UC02       | Đăng nhập sai thông tin hoặc tài khoản `DISABLED`                                                                                     | Không cấp JWT; lỗi đăng nhập không tiết lộ tài khoản có tồn tại hay không.                                       |
+| AC07  | FR03 / UC03       | Người dùng cập nhật họ tên hoặc email của mình bằng dữ liệu hợp lệ                                                                    | Lưu thay đổi và trả thông tin mới; vai trò, số điện thoại đăng nhập và trạng thái duyệt không đổi.               |
+| AC08  | FR03 / UC03       | Người dùng yêu cầu tự sửa role, quyền, trạng thái duyệt hoặc số điện thoại đăng nhập                                                  | Từ chối cập nhật các trường này; không áp dụng thay đổi trái quyền.                                              |
+
+### 13.3. OTP, hồ sơ tài xế và phương tiện
+
+| Mã AC | FR / UC     | Điều kiện / hành động                                                                           | Kết quả chấp nhận                                                                                         |
+| ----- | ----------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| AC09  | FR43 / UC12 | Yêu cầu OTP với số điện thoại hợp lệ và đáp ứng thời gian chờ                                   | Tạo OTP 6 chữ số, hiệu lực 5 phút; mã mới vô hiệu mã cũ.                                                  |
+| AC10  | FR43 / UC12 | Yêu cầu mã mới trước 60 giây kể từ lần tạo mã gần nhất                                          | Từ chối tạo mã mới; trả thông tin thời gian cần chờ.                                                      |
+| AC11  | FR43 / UC12 | Nhập đúng OTP trước thời điểm hết hạn và chưa đạt giới hạn nhập sai                             | Ghi nhận xác minh thành công; bằng chứng đăng ký gắn đúng số điện thoại và mục đích, chỉ sử dụng một lần. |
+| AC12  | FR43 / UC12 | Nhập OTP sai, hết hạn, bị vô hiệu hoặc đã sử dụng                                               | Không xác minh thành công. Mã sai tăng bộ đếm; sau 5 lần sai, mã đó không được tiếp tục xác minh.         |
+| AC13  | FR05 / UC13 | DRIVER cập nhật thông tin xét duyệt của hồ sơ `DRAFT` hoặc `REJECTED`                           | Lưu các trường hợp lệ; không tự chuyển hồ sơ sang `PENDING` hoặc `APPROVED`.                              |
+| AC14  | FR05 / UC13 | DRIVER sửa thông tin xét duyệt khi hồ sơ `PENDING` hoặc `APPROVED`                              | Từ chối; tài xế vẫn được xem hồ sơ và kết quả duyệt.                                                      |
+| AC15  | FR06 / UC14 | DRIVER thêm hoặc sửa xe với biển số chưa trùng sau chuẩn hóa và loại xe hợp lệ                  | Lưu xe thuộc tài xế; chỉ chấp nhận `MOTORBIKE` hoặc `CAR`.                                                |
+| AC16  | FR06 / UC14 | DRIVER chọn một xe đang sử dụng                                                                 | Sau khi thành công, tài xế có tối đa một xe `isActive = true`.                                            |
+| AC17  | FR06 / UC14 | DRIVER sửa xe đang dùng cho trip chưa kết thúc hoặc đổi sang xe khác trong lúc đang có trip     | Từ chối thay đổi; xe đã phân công cho trip giữ nguyên.                                                    |
+| AC18  | FR44 / UC15 | Hồ sơ `DRAFT` hoặc `REJECTED` có đủ thông tin bắt buộc và xe đang sử dụng hợp lệ được gửi duyệt | Chuyển hồ sơ sang `PENDING` và lưu thời điểm gửi.                                                         |
+| AC19  | FR44 / UC15 | Gửi duyệt khi thiếu hoặc sai thông tin hồ sơ, xe                                                | Từ chối; trả các thông tin cần bổ sung; không chuyển `PENDING`.                                           |
+| AC20  | FR45 / UC22 | ADMIN duyệt hồ sơ đang `PENDING`                                                                | Chuyển `APPROVED`, lưu người xử lý và thời điểm; tạo thông báo kết quả; không tự bật online.              |
+| AC21  | FR45 / UC22 | ADMIN từ chối hồ sơ `PENDING` với lý do hợp lệ                                                  | Chuyển `REJECTED`; lưu lý do 1–300 ký tự sau trim, người xử lý và thời điểm; tạo thông báo.               |
+| AC22  | FR45 / UC22 | Hồ sơ không còn `PENDING`, hoặc từ chối không có lý do hợp lệ                                   | Không ghi quyết định duyệt mới; giữ kết quả đang có.                                                      |
+
+### 13.4. Online, vị trí và nearby
+
+| Mã AC | FR / UC                 | Điều kiện / hành động                                                                                              | Kết quả chấp nhận                                                                                                                                      |
+| ----- | ----------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| AC23  | FR07 / UC16             | DRIVER có tài khoản `ACTIVE`, hồ sơ `APPROVED`, xe đang sử dụng hợp lệ và vị trí không quá 120 giây yêu cầu online | Lưu `isOnline = true`.                                                                                                                                 |
+| AC24  | FR07 / UC16             | DRIVER thiếu một điều kiện bật online                                                                              | Từ chối và trả lý do; không bật online.                                                                                                                |
+| AC25  | FR07 / UC16             | DRIVER đang có trip chuyển offline                                                                                 | Lưu `isOnline = false`; không nhận chuyến mới, nhưng trip đã nhận không bị tự hủy.                                                                     |
+| AC26  | FR08 / UC17             | DRIVER gửi latitude thuộc `[-90, 90]` và longitude thuộc `[-180, 180]`                                             | Lưu vị trí mới và thời điểm server nhận; không tự thay đổi trạng thái online.                                                                          |
+| AC27  | FR08 / UC17             | DRIVER gửi tọa độ thiếu hoặc ngoài miền giá trị                                                                    | Từ chối; vị trí hợp lệ trước đó và thời điểm của nó không bị ghi đè.                                                                                   |
+| AC28  | FR46 / UC05             | CUSTOMER truy vấn nearby bằng tọa độ, loại xe và phân trang hợp lệ                                                 | Chỉ trả tài xế đủ điều kiện, không bận, vị trí không quá 120 giây và khoảng cách không quá 1 km; không trả dữ liệu nhạy cảm.                           |
+| AC29  | FR46 / UC05             | Kết quả có nhiều tài xế hoặc khoảng cách bằng nhau                                                                 | Sắp xếp khoảng cách tăng dần, sau đó `driverId` tăng dần; phân trang theo thứ tự này.                                                                  |
+| AC30  | FR33, FR46 / UC05, UC10 | Truy vấn nearby hoặc Booking history                                                                               | Mặc định `page = 1`, `limit = 10`; chỉ nhận page nguyên ≥ 1 và limit nguyên từ 1–50. Input sai bị từ chối; trang không có dữ liệu trả danh sách trống. |
+
+### 13.5. Đặt xe và phân công tài xế
+
+| Mã AC | FR / UC                      | Điều kiện / hành động                                                                        | Kết quả chấp nhận                                                                                                                                       |
+| ----- | ---------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC31  | FR09 / UC06                  | CUSTOMER gửi điểm đón, điểm đến khác nhau, tọa độ hợp lệ, loại xe hỗ trợ và khóa idempotency | Tạo một Booking `SEARCHING`; server lưu khoảng cách Haversine và thông số giá áp dụng.                                                                  |
+| AC32  | FR09 / UC06                  | Gửi lại cùng khóa idempotency và cùng dữ liệu của khách hàng                                 | Trả booking đã tạo; không tạo booking hoặc vòng tìm kiếm mới. Cùng khóa nhưng khác dữ liệu bị từ chối xung đột.                                         |
+| AC33  | FR10–FR11 / UC06             | Hệ thống lập danh sách ứng viên                                                              | Chỉ chọn tài xế đủ điều kiện trong bán kính 1 km; sắp xếp khoảng cách tăng dần, sau đó `driverId` tăng dần; lưu tối đa 5 ứng viên ban đầu.              |
+| AC34  | FR12 / UC06                  | Booking còn `SEARCHING` và có ứng viên tiếp theo                                             | Tạo một lời mời `PENDING`, hiệu lực 30 giây theo thời gian server; booking không có hai lời mời còn hiệu lực.                                           |
+| AC35  | FR13 / UC18                  | Đúng tài xế phản hồi lời mời `PENDING` trước `expiresAt`                                     | Tiếp nhận chấp nhận hoặc từ chối. Phản hồi tại hoặc sau `expiresAt` không được dùng để phân công.                                                       |
+| AC36  | FR14 / UC06, UC18            | Tài xế chấp nhận và mọi điều kiện vẫn hợp lệ                                                 | Tạo đúng một Trip `ASSIGNED`; lưu tài xế, xe và snapshot cần thiết; booking `ASSIGNED`, lời mời `ACCEPTED`, tài xế được ghi nhận bận.                   |
+| AC37  | FR14 / UC18                  | Hai yêu cầu phân công cùng booking hoặc cùng tài xế được xử lý đồng thời                     | Không tạo hai trip cho một booking; không cho tài xế nhận hai trip chưa kết thúc. Yêu cầu không thành công không được trả kết quả phân công thành công. |
+| AC38  | FR13 / UC18                  | Gửi lại cùng phản hồi đã được xử lý thành công                                               | Trả kết quả đã lưu; không tạo thêm trip. Phản hồi trái kết quả cuối bị từ chối.                                                                         |
+| AC39  | FR15 / UC06, UC18            | Ứng viên từ chối, timeout hoặc mất điều kiện                                                 | Đóng lời mời và xét ứng viên tiếp theo trong danh sách ban đầu; không mời lại ứng viên đã xử lý.                                                        |
+| AC40  | FR16 / UC06                  | Không có hoặc đã hết ứng viên trong danh sách tối đa 5 tài xế                                | Booking chuyển `NO_DRIVER`; không tạo trip; tạo thông báo cho khách hàng.                                                                               |
+| AC41  | FR12–FR15, FR21 / UC06, UC08 | Booking bị hủy trong lúc tìm tài xế                                                          | Dừng tìm kiếm và đóng lời mời; phản hồi đến sau không tạo trip hoặc chuyển booking thành `ASSIGNED`.                                                    |
+
+### 13.6. Theo dõi, thực hiện và hủy chuyến
+
+| Mã AC | FR / UC                 | Điều kiện / hành động                                                             | Kết quả chấp nhận                                                                                                                          |
+| ----- | ----------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| AC42  | FR18 / UC07             | CUSTOMER xem booking của mình                                                     | Trả trạng thái booking, trip nếu có và thông tin tài xế, xe được phép xem; booking chưa phân công không có trip giả.                       |
+| AC43  | FR19 / UC07             | Trip `ASSIGNED` có vị trí tài xế không quá 120 giây                               | ETA bằng `ceil(distanceKm × 60 / 20)`, tính khoảng cách tài xế đến điểm đón; trip `ARRIVED` có ETA bằng 0.                                 |
+| AC44  | FR19 / UC07             | Chưa phân công, vị trí thiếu hoặc cũ, hoặc trip đã bắt đầu/kết thúc               | Thể hiện ETA chưa có hoặc không còn áp dụng; không trả số ước tính thiếu căn cứ.                                                           |
+| AC45  | FR17 / UC19             | Tài xế được phân công gửi thao tác đúng mốc                                       | Chỉ chuyển `ASSIGNED → ARRIVED → IN_PROGRESS → COMPLETED`, lưu thời điểm mốc và tạo thông báo tương ứng.                                   |
+| AC46  | FR17 / UC19             | Yêu cầu bỏ qua mốc, quay ngược hoặc cập nhật trip đã kết thúc                     | Từ chối; trạng thái và thời điểm đã lưu giữ nguyên. Gửi lại mốc đã thành công không tạo thêm lần chuyển trạng thái.                        |
+| AC47  | FR47 / UC20             | Tài xế được phân công gửi tọa độ hợp lệ khi trip `IN_PROGRESS`                    | Lưu vị trí trip mới nhất và thời điểm nhận; bản cập nhật hợp lệ được dùng để đồng bộ vị trí tài xế.                                        |
+| AC48  | FR47 / UC20             | Tọa độ sai, sai tài xế hoặc trip không `IN_PROGRESS`                              | Từ chối; không ghi đè vị trí trip.                                                                                                         |
+| AC49  | FR20 / UC08             | CUSTOMER yêu cầu hủy booking `SEARCHING` hoặc trip `ASSIGNED`, `ARRIVED` của mình | Kiểm tra lý do 1–300 ký tự sau trim và hiển thị phí hủy 0 VND; chưa hủy khi khách hàng chưa xác nhận.                                      |
+| AC50  | FR21 / UC08             | CUSTOMER xác nhận hủy và trạng thái vẫn cho phép                                  | Lưu người hủy, lý do, thời điểm và phí; booking `CANCELED`, trip liên quan `CANCELED`; đóng lời mời hoặc giải phóng tài xế; tạo thông báo. |
+| AC51  | FR20–FR21 / UC08        | Trip đã `IN_PROGRESS`, `COMPLETED`, hoặc booking `NO_DRIVER`                      | Từ chối hủy thông thường. Gửi lại thao tác hủy đã thành công trả kết quả cũ, không đổi thời điểm hoặc tạo phí mới.                         |
+| AC52  | FR17, FR21 / UC08, UC19 | Trip hoàn thành hoặc được hủy hợp lệ                                              | Booking chuyển trạng thái cuối tương ứng; tài xế không còn bận vì trip đó. Không giữ tài xế bận do payment chưa thành công.                |
+
+### 13.7. Cước và thanh toán
+
+| Mã AC | FR / UC          | Điều kiện / hành động                                                                 | Kết quả chấp nhận                                                                                                               |
+| ----- | ---------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| AC53  | FR22 / UC19      | Trip hoàn thành và có đủ dữ liệu tính cước                                            | Server tính cước từ khoảng cách, thông số giá đã lưu và làm tròn lên bội số 1.000 VND; không dùng số tiền client gửi.           |
+| AC54  | FR22 / UC19      | Khoảng cách chính xác 2 km, dùng thông số demo                                        | Cước MOTORBIKE là 20.000 VND; CAR là 40.000 VND. Không làm tròn khoảng cách trước khi tính.                                     |
+| AC55  | FR22 / UC19      | Trip hoàn thành nhưng thiếu dữ liệu tính cước                                         | Giữ `COMPLETED`, cước chưa xác định; không cho thanh toán; ghi log và có khả năng xử lý lại khi đủ dữ liệu.                     |
+| AC56  | FR23 / UC09      | CUSTOMER xem thanh toán của trip mình                                                 | Hiển thị cước do server lưu và các payment liên quan; chỉ cho thanh toán trip `COMPLETED` có cước hợp lệ.                       |
+| AC57  | FR24 / UC21      | Tài xế được phân công xác nhận tiền mặt, chưa thanh toán và không có online `PENDING` | Ghi payment `CASH`, `COMPLETED`, đúng số tiền; lưu người xác nhận và thời điểm.                                                 |
+| AC58  | FR24 / UC21      | Gửi lại xác nhận tiền mặt đã thành công hoặc trip đã thanh toán bằng phương thức khác | Không ghi thêm thanh toán; xác nhận lặp trả kết quả cũ, yêu cầu thanh toán thêm bị từ chối.                                     |
+| AC59  | FR25 / UC09      | CUSTOMER khởi tạo online khi đủ điều kiện                                             | Tạo Payment `PENDING`, phương thức `MOCK_ONLINE`, tiền tệ `VND`, mã tham chiếu và số tiền do server xác định.                   |
+| AC60  | FR25 / UC09      | Gửi lại cùng khóa và dữ liệu hoặc đang có payment `PENDING`                           | Yêu cầu lặp trả payment cũ; không tạo thêm payment khi đang chờ. Cùng khóa nhưng khác dữ liệu bị từ chối.                       |
+| AC61  | FR26 / UC27      | Callback có chữ ký hợp lệ và khớp paymentId, mã tham chiếu, số tiền, tiền tệ          | Cập nhật payment `PENDING` thành `COMPLETED` hoặc `FAILED` theo kết quả; lưu thời điểm và tạo thông báo.                        |
+| AC62  | FR26 / UC27      | Callback sai chữ ký, sai dữ liệu hoặc không tìm thấy giao dịch                        | Từ chối; không thay đổi payment hoặc ghi nhận đã thanh toán.                                                                    |
+| AC63  | FR26 / UC27      | Callback được gửi lặp hoặc trái kết quả cuối                                          | Callback trùng không xử lý thêm; callback trái kết quả cuối bị từ chối và ghi log; không có hai thanh toán thành công cho trip. |
+| AC64  | FR27 / UC09      | Payment online trước đó `FAILED`, chưa có thanh toán thành công và còn lượt khởi tạo  | Cho tạo payment mới bằng khóa mới; tổng tối đa 3 lần online, gồm lần đầu và 2 retry.                                            |
+| AC65  | FR27–FR28 / UC09 | Payment `PENDING`, `COMPLETED`, hoặc đã đủ 3 lần online                               | Không cho retry online. Khi mọi lần online đã `FAILED`, vẫn cho chuyển tiền mặt nếu đủ điều kiện.                               |
+| AC66  | FR28 / UC09      | CUSTOMER tra cứu payment của trip mình                                                | Trả trạng thái đã lưu; không tự chuyển `PENDING` thành `FAILED` chỉ vì chờ lâu hoặc client mất kết nối.                         |
+
+### 13.8. Thông báo, lịch sử, đánh giá và quản trị
+
+| Mã AC | FR / UC                            | Điều kiện / hành động                                                            | Kết quả chấp nhận                                                                                                                        |
+| ----- | ---------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| AC67  | FR30 / UC06–UC08, UC19             | Booking được tiếp nhận, tài xế được phân công, đến điểm đón, hoàn thành hoặc hủy | Tạo thông báo đúng khách hàng liên quan, nội dung phù hợp kết quả nghiệp vụ đã lưu.                                                      |
+| AC68  | FR31 / UC08, UC18–UC19             | Có thay đổi hoặc hủy chuyến liên quan tài xế                                     | Tạo thông báo đúng tài xế; lời mời nhận chuyến vẫn được quản lý bằng TripInvitation.                                                     |
+| AC69  | FR32 / UC09, UC21, UC27            | Payment được ghi nhận thành công hoặc thất bại                                   | Tạo thông báo đúng khách hàng, nhất quán trạng thái payment đã lưu.                                                                      |
+| AC70  | FR30–FR32, FR45 / Các UC liên quan | Cùng sự kiện thông báo được xử lý lại hoặc tạo thông báo lỗi                     | Không tạo thông báo trùng cho cùng người nhận và loại; lỗi thông báo được ghi log, không đảo ngược nghiệp vụ.                            |
+| AC71  | FR48 / UC04                        | Người dùng xem danh sách hoặc chi tiết thông báo                                 | Chỉ trả thông báo gửi cho tài khoản hiện tại; không trả thông báo của người khác.                                                        |
+| AC72  | FR33 / UC10                        | CUSTOMER xem Booking history                                                     | Chỉ trả booking thuộc mình, gồm cả kết quả hủy và `NO_DRIVER`; sắp xếp `createdAt` giảm dần, sau đó `bookingId` giảm dần; có phân trang. |
+| AC73  | FR34 / UC11                        | CUSTOMER của trip `COMPLETED` gửi đánh giá hợp lệ và trip chưa có review         | Tạo một Review cho đúng tài xế của trip; rating nguyên 1–5, comment tùy chọn tối đa 500 ký tự; không bắt buộc đã thanh toán.             |
+| AC74  | FR34 / UC11                        | Review sai quyền, sai điểm, quá dài, trip chưa hoàn thành hoặc đã có review      | Từ chối; không tạo hoặc sửa review đã lưu.                                                                                               |
+| AC75  | FR35 / UC23                        | ADMIN tra cứu khách hàng                                                         | Trả thông tin khách hàng được phép xem; không cung cấp quyền sửa hồ sơ khách hàng qua UC này.                                            |
+| AC76  | FR36 / UC24                        | ADMIN xem hoạt động vận hành                                                     | Trả booking, trip đang hoạt động và trạng thái tài xế cùng thời điểm cập nhật; phần dữ liệu không lấy được phải được thể hiện rõ.        |
+| AC77  | FR37 / UC25                        | ADMIN tra cứu lịch sử bằng bộ lọc hợp lệ                                         | Trả booking và trip phù hợp khách hàng, tài xế hoặc trạng thái; không thay đổi dữ liệu lịch sử.                                          |
+| AC78  | FR29 / UC26                        | ADMIN tra cứu payment                                                            | Trả các lần thanh toán phù hợp, gồm số tiền, phương thức, trạng thái, mã tham chiếu và thời điểm; không cho tự sửa kết quả.              |
+
+### 13.9. Quyền truy cập, log và tình trạng hệ thống
+
+| Mã AC | FR liên quan | Điều kiện / hành động                                                          | Kết quả chấp nhận                                                                                                   |
+| ----- | ------------ | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| AC79  | FR40         | Gọi API được bảo vệ khi thiếu JWT, JWT sai hoặc hết hạn                        | Trả `401`; không thực hiện thao tác nghiệp vụ.                                                                      |
+| AC80  | FR40         | Tài khoản bị vô hiệu hóa, sai vai trò hoặc không sở hữu đối tượng được yêu cầu | Từ chối truy cập theo hợp đồng API; không trả dữ liệu ngoài quyền và không thay đổi dữ liệu.                        |
+| AC81  | FR40         | Gọi trực tiếp service bằng yêu cầu thiếu quyền                                 | Service vẫn từ chối; không phụ thuộc duy nhất vào kiểm tra tại Gateway.                                             |
+| AC82  | FR41         | Có yêu cầu, chuyển trạng thái hoặc lỗi cần theo dõi                            | Log có thời điểm, service, mã liên kết yêu cầu, hành động và kết quả hoặc lỗi.                                      |
+| AC83  | FR41         | Kiểm tra log, phản hồi API và dữ liệu xác thực                                 | Không có mật khẩu, OTP, JWT hoặc secret dạng rõ trong log; API không trả giá trị băm, secret hoặc stack trace.      |
+| AC84  | FR49         | Thành phần đang chạy và được gọi `/health`                                     | Trả trạng thái tiến trình; không khẳng định sẵn sàng chỉ từ kết quả này.                                            |
+| AC85  | FR49         | Gọi `/ready` khi các phụ thuộc bắt buộc sẵn sàng hoặc chưa sẵn sàng            | Trả `200` khi sẵn sàng, `503` khi chưa sẵn sàng.                                                                    |
+| AC86  | FR49         | Gọi `/health/services` qua Gateway                                             | Cung cấp trạng thái các service; service lỗi không được hiển thị như đang khỏe; không lộ secret hoặc chuỗi kết nối. |
+
+### 13.10. Điều kiện kết thúc và nghiệm thu
+
+| Phạm vi          | Điều kiện được xem là đạt                                                                                         |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Một AC           | Kết quả thực tế khớp kết quả chấp nhận và có bằng chứng kiểm thử                                                  |
+| Một FR           | Tất cả AC liên quan đạt; không còn lỗi làm sai yêu cầu                                                            |
+| Một UC           | Luồng chính, luồng thay thế và ngoại lệ thuộc phạm vi đã được kiểm thử; trạng thái cuối phù hợp                   |
+| Một tính năng    | Các FR, AC và NFR áp dụng đều đạt; API và dữ liệu nhất quán                                                       |
+| Toàn bộ bản demo | Các tính năng trong phạm vi đạt; chạy được bằng Docker Compose; có Postman và kết quả đối chiếu 30 mục phiếu chấm |
+
+**Trường hợp chỉ chạy thành công luồng chính chưa đủ để kết thúc yêu cầu.** Ví dụ, thanh toán mock chỉ được chấp nhận khi xử lý đúng cả thành công, thất bại, retry, callback giả mạo, callback lặp và yêu cầu thanh toán đồng thời.
+
+## 14. Truy xuất nguồn gốc yêu cầu — Requirements Traceability
+
+**RTMatrix cần thể hiện quan hệ có căn cứ, không chỉ ghép các mã để bảng trông đầy đủ.** Một BG có thể được hỗ trợ bởi nhiều BR; một BR phân rã thành nhiều FR; một FR có thể liên quan nhiều UC và AC.
+
+SRS nguồn đang chứa bảng RT với các mã UC, AC của phiên bản trước. Bảng dưới đây sử dụng **FR tại bước 7, UC01–UC27 tại bước 11–12 và AC01–AC86 tại bước 13** để tránh trộn hai hệ mã.
+
+### 14.1. Chuỗi truy xuất
+
+| Thành phần                      | Ý nghĩa                              | Câu hỏi cần trả lời                         |
+| ------------------------------- | ------------------------------------ | ------------------------------------------- |
+| **BG — Business Goal**          | Mục tiêu kinh doanh                  | Vì sao cần khả năng này?                    |
+| **BR — Business Requirement**   | Yêu cầu nghiệp vụ hỗ trợ mục tiêu    | Doanh nghiệp cần làm được gì?               |
+| **FR — Functional Requirement** | Hành vi hệ thống đáp ứng nghiệp vụ   | Phần mềm phải thực hiện gì?                 |
+| **UC — Use Case**               | Cách Actor tương tác để đạt mục tiêu | Ai sử dụng và sử dụng như thế nào?          |
+| **AC — Acceptance Criteria**    | Điều kiện chấp nhận yêu cầu          | Kết quả nào được xem là đạt?                |
+| **TestCase**                    | Cách kiểm tra AC                     | Dùng dữ liệu và thao tác nào để chứng minh? |
+
+Truy xuất được thực hiện theo hai chiều:
+
+- **Xuôi:** BG → BR → FR → UC → AC → TestCase, để kiểm tra yêu cầu đã được triển khai và kiểm thử.
+- **Ngược:** TestCase → AC → FR → BR → BG, để xác định mục đích của chức năng và phạm vi ảnh hưởng khi thay đổi.
+
+UC và AC cùng liên kết với FR; **AC không chỉ áp dụng cho UC**, mà còn áp dụng cho yêu cầu kỹ thuật như log và healthcheck.
+
+### 14.2. Ánh xạ BG với BR
+
+Đây là các quan hệ đóng góp chính trong phạm vi demo. Liên kết không có nghĩa mục tiêu kinh doanh đã đạt về mặt thực tế.
+
+| BG   | Mục tiêu                                              | BR hỗ trợ                                |
+| ---- | ----------------------------------------------------- | ---------------------------------------- |
+| BG01 | Giảm thời gian tìm và phân công tài xế                | BR01, BR03, BR04, BR05, BR06, BR07       |
+| BG02 | Thanh toán thuận tiện và quản lý thanh toán tập trung | BR11, BR12, BR13, BR14, BR18             |
+| BG03 | Minh bạch quá trình phục vụ khách hàng                | BR08, BR09, BR10, BR14, BR15             |
+| BG04 | Nâng cao khả năng đáp ứng yêu cầu đặt xe              | BR01, BR04, BR05, BR06, BR07             |
+| BG05 | Nâng cao hiệu quả quản lý và vận hành                 | BR02, BR03, BR08, BR10, BR15, BR17, BR18 |
+| BG06 | Theo dõi và đánh giá chất lượng dịch vụ               | BR15, BR16                               |
+| BG07 | Hỗ trợ quyết định dựa trên báo cáo kinh doanh         | BR19 — ngoài phạm vi demo                |
+| BG08 | Hạn chế gián đoạn cung cấp dịch vụ                    | BR22; hỗ trợ BR01, BR05, BR12, BR14      |
+| BG09 | Giảm truy cập trái phép và sử dụng sai dữ liệu        | BR02, BR20, BR21                         |
+| BG10 | Tạo điều kiện mở rộng hệ thống                        | BR23                                     |
+
+**BG07 chưa được đáp ứng trong demo** vì report đã được loại khỏi phạm vi. BR21 chỉ được đáp ứng một phần bằng log kỹ thuật, chưa có chức năng tra cứu audit.
+
+### 14.3. Quy ước TestCase trong RTMatrix
+
+Các bước hiện tại chưa có đặc tả TestCase đầy đủ. Vì vậy:
+
+- `TC01` dự kiến kiểm tra `AC01`, `TC02` kiểm tra `AC02`… đến `TC86`.
+- Tất cả mã TC trong bảng là **dự kiến, chưa thực thi**.
+- Một AC có nhiều điều kiện sẽ được tách thành các trường hợp như `TC12-01`, `TC12-02` khi viết TestCase.
+- Ví dụ `TC12` cần kiểm tra riêng OTP sai, hết hạn, bị vô hiệu, đã dùng và vượt số lần nhập.
+- Khoảng mã `TC01–TC04` chỉ biểu thị các mã từ TC01 đến TC04, không khẳng định đã có đủ trường hợp kiểm thử.
+
+### 14.4. RTMatrix — Tài khoản, OTP, hồ sơ và xe
+
+| BG         | BR         | FR                                 | UC                | AC                                        | TestCase             |
+| ---------- | ---------- | ---------------------------------- | ----------------- | ----------------------------------------- | -------------------- |
+| BG05, BG09 | BR02, BR20 | FR01 — Đăng ký tài khoản           | UC01              | AC01–AC04                                 | TC01–TC04            |
+| BG09       | BR02, BR20 | FR02 — Đăng nhập                   | UC02              | AC05–AC06                                 | TC05–TC06            |
+| BG05, BG09 | BR02       | FR03 — Cập nhật thông tin cá nhân  | UC03              | AC07–AC08                                 | TC07–TC08            |
+| BG01, BG05 | BR03       | FR05 — Quản lý hồ sơ tài xế        | UC13, UC22        | AC13–AC14; AC20–AC22 khi tra cứu để duyệt | TC13–TC14, TC20–TC22 |
+| BG01, BG05 | BR03       | FR06 — Quản lý phương tiện         | UC14              | AC15–AC17                                 | TC15–TC17            |
+| BG05, BG09 | BR02, BR03 | FR43 — Xác thực OTP đăng ký tài xế | UC12; hỗ trợ UC01 | AC02, AC09–AC12                           | TC02, TC09–TC12      |
+| BG01, BG05 | BR03       | FR44 — Gửi hồ sơ để duyệt          | UC15              | AC18–AC19                                 | TC18–TC19            |
+| BG05, BG09 | BR03, BR17 | FR45 — Duyệt hoặc từ chối hồ sơ    | UC22              | AC20–AC22, AC70                           | TC20–TC22, TC70      |
+
+### 14.5. RTMatrix — Trạng thái và vị trí tài xế
+
+| BG         | BR         | FR                                     | UC   | AC        | TestCase  |
+| ---------- | ---------- | -------------------------------------- | ---- | --------- | --------- |
+| BG01, BG04 | BR04       | FR07 — Cập nhật trạng thái nhận chuyến | UC16 | AC23–AC25 | TC23–TC25 |
+| BG01, BG03 | BR04       | FR08 — Ghi nhận vị trí tài xế          | UC17 | AC26–AC27 | TC26–TC27 |
+| BG01, BG04 | BR04, BR05 | FR46 — Tra cứu tài xế nearby           | UC05 | AC28–AC30 | TC28–TC30 |
+
+FR46 là chức năng tra cứu. FR10 sử dụng cùng điều kiện lọc trong quy trình phân công, nhưng nearby không tạo booking hoặc giữ chỗ tài xế.
+
+### 14.6. RTMatrix — Đặt xe và phân công
+
+| BG         | BR         | FR                                        | UC                   | AC               | TestCase         |
+| ---------- | ---------- | ----------------------------------------- | -------------------- | ---------------- | ---------------- |
+| BG01, BG04 | BR01       | FR09 — Tạo yêu cầu đặt xe                 | UC06                 | AC31–AC32        | TC31–TC32        |
+| BG01, BG04 | BR05       | FR10 — Tìm tài xế phù hợp                 | UC06                 | AC33             | TC33             |
+| BG01       | BR05       | FR11 — Xếp thứ tự ưu tiên tài xế          | UC06                 | AC33             | TC33             |
+| BG01, BG04 | BR06, BR14 | FR12 — Gửi lời mời nhận chuyến            | UC06; tương tác UC18 | AC34, AC41       | TC34, TC41       |
+| BG01, BG04 | BR06       | FR13 — Phản hồi lời mời nhận chuyến       | UC18                 | AC35, AC38, AC41 | TC35, TC38, TC41 |
+| BG01, BG04 | BR05, BR06 | FR14 — Xác nhận phân công tài xế          | UC06, UC18           | AC36–AC37, AC41  | TC36–TC37, TC41  |
+| BG04       | BR07       | FR15 — Tìm tài xế thay thế                | UC06, UC18           | AC39, AC41       | TC39, TC41       |
+| BG03, BG04 | BR07       | FR16 — Kết thúc tìm kiếm không thành công | UC06                 | AC40             | TC40             |
+
+### 14.7. RTMatrix — Thực hiện, theo dõi và hủy chuyến
+
+| BG         | BR         | FR                                    | UC                          | AC              | TestCase        |
+| ---------- | ---------- | ------------------------------------- | --------------------------- | --------------- | --------------- |
+| BG03, BG05 | BR08       | FR17 — Cập nhật trạng thái chuyến     | UC19                        | AC45–AC46, AC52 | TC45–TC46, TC52 |
+| BG03       | BR09       | FR18 — Xem thông tin chuyến hiện tại  | UC07                        | AC42            | TC42            |
+| BG03       | BR09       | FR19 — Cung cấp thời gian đến dự kiến | UC07                        | AC43–AC44       | TC43–TC44       |
+| BG03, BG05 | BR10       | FR20 — Tiếp nhận yêu cầu hủy          | UC08                        | AC49, AC51      | TC49, TC51      |
+| BG03, BG05 | BR10       | FR21 — Xác nhận và xử lý hủy          | UC08                        | AC41, AC50–AC52 | TC41, TC50–TC52 |
+| BG03       | BR08, BR09 | FR47 — Ghi nhận vị trí trong chuyến   | UC20; kết quả dùng tại UC07 | AC47–AC48       | TC47–TC48       |
+
+### 14.8. RTMatrix — Cước và thanh toán
+
+| BG         | BR         | FR                                           | UC                          | AC        | TestCase  |
+| ---------- | ---------- | -------------------------------------------- | --------------------------- | --------- | --------- |
+| BG02       | BR11       | FR22 — Tính cước chuyến xe                   | UC19; kết quả dùng tại UC09 | AC53–AC55 | TC53–TC55 |
+| BG02       | BR11, BR12 | FR23 — Xem khoản phải trả và chọn thanh toán | UC09                        | AC56      | TC56      |
+| BG02       | BR12       | FR24 — Xác nhận thanh toán tiền mặt          | UC21; phối hợp UC09         | AC57–AC58 | TC57–TC58 |
+| BG02       | BR12       | FR25 — Khởi tạo thanh toán điện tử giả lập   | UC09                        | AC59–AC60 | TC59–TC60 |
+| BG02, BG09 | BR12, BR20 | FR26 — Ghi nhận callback thanh toán          | UC27                        | AC61–AC63 | TC61–TC63 |
+| BG02       | BR13       | FR27 — Xử lý thanh toán thất bại             | UC09                        | AC64–AC65 | TC64–TC65 |
+| BG02       | BR13       | FR28 — Kiểm tra giao dịch đang chờ kết quả   | UC09                        | AC65–AC66 | TC65–TC66 |
+| BG02, BG05 | BR18       | FR29 — Tra cứu giao dịch thanh toán          | UC26                        | AC78      | TC78      |
+
+AC52 và các tiêu chí tại UC09 cũng cần được kiểm tra phối hợp để chứng minh thanh toán đang chờ hoặc thất bại không làm trip hoàn thành quay lại trạng thái trước đó.
+
+### 14.9. RTMatrix — Thông báo, lịch sử và đánh giá
+
+| BG         | BR   | FR                                                | UC                             | AC         | TestCase   |
+| ---------- | ---- | ------------------------------------------------- | ------------------------------ | ---------- | ---------- |
+| BG03       | BR14 | FR30 — Thông báo tiến trình chuyến cho khách hàng | UC06, UC08, UC19; tra cứu UC04 | AC67, AC70 | TC67, TC70 |
+| BG03, BG05 | BR14 | FR31 — Thông báo thay đổi cho tài xế              | UC08, UC18, UC19; tra cứu UC04 | AC68, AC70 | TC68, TC70 |
+| BG02, BG03 | BR14 | FR32 — Thông báo kết quả thanh toán               | UC09, UC21, UC27; tra cứu UC04 | AC69–AC70  | TC69–TC70  |
+| BG03, BG06 | BR15 | FR33 — Xem lịch sử đặt xe và chuyến đi            | UC10                           | AC30, AC72 | TC30, TC72 |
+| BG06       | BR16 | FR34 — Gửi đánh giá tài xế                        | UC11                           | AC73–AC74  | TC73–TC74  |
+| BG03, BG05 | BR14 | FR48 — Tra cứu thông báo nội bộ                   | UC04                           | AC71       | TC71       |
+
+### 14.10. RTMatrix — Quản trị và yêu cầu kỹ thuật
+
+| BG         | BR                      | FR                                           | UC                            | AC        | TestCase  |
+| ---------- | ----------------------- | -------------------------------------------- | ----------------------------- | --------- | --------- |
+| BG05       | BR17                    | FR35 — Tra cứu khách hàng trong quản trị     | UC23                          | AC75      | TC75      |
+| BG05       | BR17                    | FR36 — Theo dõi hoạt động vận hành           | UC24                          | AC76      | TC76      |
+| BG05       | BR15, BR17              | FR37 — Tra cứu lịch sử chuyến trong quản trị | UC25                          | AC77      | TC77      |
+| BG09       | BR20                    | FR40 — Kiểm tra quyền truy cập               | Các UC được bảo vệ            | AC79–AC81 | TC79–TC81 |
+| BG05, BG09 | BR21 — đáp ứng một phần | FR41 — Ghi log kỹ thuật cần thiết            | Xuyên suốt; không có UC riêng | AC82–AC83 | TC82–TC83 |
+| BG05, BG08 | BR22                    | FR49 — Kiểm tra tình trạng hệ thống          | Không có UC nghiệp vụ riêng   | AC84–AC86 | TC84–TC86 |
+
+**AC79–AC81 áp dụng bổ sung cho mọi UC được bảo vệ.** Ví dụ TC kiểm tra UC11 không chỉ kiểm tra điểm đánh giá mà còn phải kiểm tra khách hàng có sở hữu trip hay không.
+
+### 14.11. Truy xuất NFR và ràng buộc kiến trúc
+
+BG08 và BG10 chủ yếu được hỗ trợ bởi NFR. Không tạo FR hoặc UC giả để lấp đầy các cột.
+
+Một số NFR tại bước 10 chưa có mã AC riêng trong bước 13. Bổ sung các mã sau để có thể truy xuất:
+
+| Mã AC bổ sung | Tiêu chí chấp nhận                                                                                                                                         |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC87          | API đọc thuộc NFR06 đạt p95 ≤ 2 giây với ít nhất 100 yêu cầu, tối đa 10 yêu cầu đồng thời, trên môi trường thử đã quy định; lưu kết quả đo.                |
+| AC88          | Sau khi các thành phần phục hồi, xử lý lại đưa booking, trip và tình trạng bận về kết quả đúng, không tạo dữ liệu trùng hoặc chuyển ngược trạng thái cuối. |
+| AC89          | Có đúng 8 service nghiệp vụ, mỗi service sở hữu database MongoDB riêng về mặt logic; không truy cập trực tiếp collection của service khác.                 |
+| AC90          | Với biến môi trường đã cấu hình, chạy được bằng Docker Compose; có seed ADMIN; dữ liệu còn sau khi dừng và khởi động lại mà không xóa volume.              |
+| AC91          | Đúng 10 file API YAML khớp endpoint, dữ liệu, quyền và mã phản hồi của bản triển khai.                                                                     |
+| AC92          | Vượt 10 yêu cầu đăng nhập/phút/IP bị giới hạn theo NFR04; yêu cầu bị chặn không tiếp tục xác thực.                                                         |
+
+Các mã TC87–TC92 cũng là **dự kiến, chưa thực thi**.
+
+| BG         | BR                      | FR                                  | UC                                             | AC                                | TestCase                          |
+| ---------- | ----------------------- | ----------------------------------- | ---------------------------------------------- | --------------------------------- | --------------------------------- |
+| BG01, BG08 | BR22                    | Không có FR riêng; NFR06            | UC05, UC07, UC10 và các UC đọc hồ sơ           | AC87                              | TC87                              |
+| BG08       | BR22                    | FR09, FR14, FR17, FR21; NFR10–NFR12 | UC06, UC08, UC18, UC19                         | AC32, AC37–AC38, AC46, AC52, AC88 | TC32, TC37–TC38, TC46, TC52, TC88 |
+| BG08       | BR22; hỗ trợ BR12, BR14 | FR26–FR28, FR30–FR32; NFR13         | UC09, UC21, UC27 và các UC phát sinh thông báo | AC61–AC66, AC70                   | TC61–TC66, TC70                   |
+| BG10       | BR23                    | Không có FR riêng; NFR15            | Không có UC riêng                              | AC89                              | TC89                              |
+| BG08, BG10 | BR22, BR23              | Không có FR riêng; NFR14, NFR16     | Toàn bộ bản demo                               | AC90                              | TC90                              |
+| BG05, BG10 | BR23                    | Không có FR riêng; NFR19            | Các UC sử dụng API                             | AC91                              | TC91                              |
+| BG09       | BR20                    | FR02; NFR04                         | UC02                                           | AC92                              | TC92                              |
+
+Đạt AC89–AC91 chứng minh **cấu trúc và khả năng triển khai của bản demo**, chưa chứng minh khả năng mở rộng tải lớn hoặc triển khai không gián đoạn.
+
+### 14.12. Yêu cầu ngoài phạm vi hoặc chỉ đáp ứng một phần
+
+| BG         | BR                                             | FR                   | UC                                  | AC                     | TestCase                     |
+| ---------- | ---------------------------------------------- | -------------------- | ----------------------------------- | ---------------------- | ---------------------------- |
+| BG05, BG09 | BR02 — phần tạo tài khoản tài xế bởi nhân viên | FR04 — ngoài phạm vi | Không áp dụng; thay bằng UC01, UC12 | Không áp dụng cho FR04 | Không lập TC nghiệm thu FR04 |
+| BG05       | BR17 — phần xử lý support case                 | FR38 — ngoài phạm vi | Không có UC xử lý sự cố riêng       | Không áp dụng          | Không lập TC                 |
+| BG07       | BR19 — ngoài phạm vi report                    | FR39 — ngoài phạm vi | Không có UC báo cáo                 | Không áp dụng          | Không lập TC                 |
+| BG09       | BR21 — phần tra cứu audit ngoài phạm vi        | FR42 — ngoài phạm vi | Không có UC audit query             | Không áp dụng          | Không lập TC                 |
+
+Các mã ngoài phạm vi được giữ để truy xuất tài liệu cũ, không tái sử dụng cho chức năng khác.
+
+### 14.13. Ví dụ đọc RTMatrix
+
+**Ví dụ 1 — Phân công tài xế**
+
+- **BG01, BG04:** phân công nhanh hơn và tăng khả năng tìm được tài xế.
+- **BR05, BR06:** tìm tài xế phù hợp và tiếp nhận phản hồi.
+- **FR14:** xác nhận phân công.
+- **UC06, UC18:** khách hàng đặt xe, tài xế chấp nhận lời mời.
+- **AC36–AC37:** tạo đúng một trip và ngăn phân công trùng.
+- **TC36–TC37:** kiểm thử phân công hợp lệ và các yêu cầu đồng thời.
+
+**Ví dụ 2 — Thanh toán callback**
+
+- **BG02, BG09:** thanh toán có thể quản lý và giảm rủi ro giả mạo.
+- **BR12, BR20:** ghi nhận thanh toán và bảo vệ truy cập.
+- **FR26:** xử lý callback.
+- **UC27:** Payment Mock gửi kết quả.
+- **AC61–AC63:** xác minh callback, chống gửi lặp và giữ kết quả cuối.
+- **TC61–TC63:** kiểm tra callback hợp lệ, giả mạo, trùng và trái kết quả.
+
+### 14.14. Trạng thái sử dụng ma trận
+
+Ma trận đã liên kết **45 FR trong phạm vi**, UC01–UC27 và AC01–AC86; bổ sung AC87–AC92 cho một số NFR và ràng buộc kiến trúc.
+
+**Trạng thái hiện tại là đã lập liên kết yêu cầu, chưa nghiệm thu.** Khi viết TestCase, cần bổ sung dữ liệu, bước thực hiện, kết quả mong đợi, kết quả thực tế và trạng thái Pass/Fail. Đạt các AC chức năng cũng chưa đủ để khẳng định BG01 giảm thời gian tìm xe hoặc BG04 tăng tỷ lệ nhận chuyến; các mục tiêu này cần số liệu đo riêng.

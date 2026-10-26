@@ -1,0 +1,1608 @@
+openapi: 3.0.3
+info:
+    title: CAB — Driver & Vehicle Management
+    version: 2.0.0-draft
+    description: Sở hữu hồ sơ, phương tiện, trạng thái nhận chuyến và vị trí. isBusy
+        do vòng đời phân công quyết định, tài xế không tự ghi đè. Nhóm tài liệu/module
+        đề xuất; không xác nhận bounded context hay microservice độc lập.
+servers:
+    - url: http://localhost:3000/api/v1
+      description: URL local đề xuất; thay bằng máy chủ thực tế khi có backend.
+security:
+    - BearerAuth: []
+x-source: 02-srs.md
+x-primary-fr-ids:
+    - FR05
+    - FR06
+    - FR07
+    - FR08
+x-related-fr-ids:
+    - FR05
+    - FR06
+    - FR07
+    - FR08
+    - FR09
+    - FR36
+    - FR40
+    - FR41
+x-ac-ids:
+    - AC09
+    - AC10
+    - AC11
+    - AC12
+    - AC13
+    - AC14
+    - AC15
+    - AC16
+    - AC17
+    - AC18
+    - AC56
+    - AC62
+    - AC63
+    - AC69
+x-ac-criteria:
+    AC09: Tài xế sửa được trường hồ sơ của mình được phép sửa; nhân viên sửa được hồ
+        sơ trong phạm vi quyền; dữ liệu hợp lệ được lưu.
+    AC10: Dữ liệu hồ sơ không hợp lệ hoặc thao tác ngoài quyền không làm thay đổi hồ
+        sơ đã lưu.
+    AC11: Phương tiện chỉ được tạo hoặc cập nhật khi biển số không trùng phương tiện
+        khác, loại xe và tài xế liên quan hợp lệ.
+    AC12: Tài xế không được cập nhật phương tiện ngoài quyền quản lý; thay đổi ảnh hưởng
+        chuyến đang diễn ra phải tuân thủ chính sách đã thống nhất.
+    AC13: Tài xế đủ điều kiện có thể bật sẵn sàng; khi chuyển sang không sẵn sàng, tài
+        xế không được xét cho chuyến mới.
+    AC14: Tài xế đang thực hiện chuyến không được coi là tài xế rảnh để nhận thêm; tắt
+        nhận chuyến mới không tự hủy chuyến đã nhận.
+    AC15: Vị trí tài xế hợp lệ được lưu cùng thời điểm cập nhật; vị trí không hợp lệ
+        không ghi đè vị trí hợp lệ đang có.
+    AC16: Vị trí không đáp ứng điều kiện về độ mới được xử lý theo chính sách; không
+        được mặc nhiên dùng như vị trí hiện tại hợp lệ.
+    AC17: Với điểm đón, điểm đến và loại xe hợp lệ, hệ thống ghi nhận yêu cầu đặt xe
+        và hiển thị trạng thái đang tìm tài xế.
+    AC18: Khi thông tin đặt xe không hợp lệ, hệ thống không đưa yêu cầu vào tìm tài
+        xế và thông báo trường cần sửa.
+    AC56: Nhân viên có quyền xem chuyến đang diễn ra, trạng thái tài xế và chi tiết
+        được phép; dữ liệu chưa cập nhật được nhận diện rõ.
+    AC62: Người chưa xác thực, phiên không hợp lệ hoặc không đủ quyền không được truy
+        cập chức năng và dữ liệu bị hạn chế, kể cả khi gọi trực tiếp API.
+    AC63: Thao tác thuộc danh sách lưu vết có bản ghi gồm người hoặc hệ thống thực hiện,
+        hành động, đối tượng, thời điểm và kết quả.
+    AC69: Phiên hết hạn hoặc bị thu hồi không truy cập được chức năng bảo vệ; quyền
+        được kiểm tra tại máy chủ.
+paths:
+    /drivers/me:
+        get:
+            tags:
+                - Driver & Vehicle Management
+            summary: Xem hồ sơ tài xế của mình
+            operationId: driverProfileGet
+            description: "Quyền: DRIVER. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR05
+                - FR40
+            x-ac-ids:
+                - AC09
+                - AC10
+                - AC62
+                - AC69
+            x-roles:
+                - DRIVER
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Xem hồ sơ tài xế của mình — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DriverProfile"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC10
+                - UC18
+        patch:
+            tags:
+                - Driver & Vehicle Management
+            summary: Cập nhật hồ sơ tài xế của mình
+            operationId: driverProfileUpdate
+            description: "Quyền: DRIVER. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR05
+                - FR40
+                - FR41
+            x-ac-ids:
+                - AC09
+                - AC10
+                - AC62
+                - AC63
+                - AC69
+            x-roles:
+                - DRIVER
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Cập nhật hồ sơ tài xế của mình — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DriverProfile"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "409":
+                    description: CONFLICT — trùng định danh, trạng thái, thao tác đồng thời,
+                        replay khác payload hoặc khoản đã thanh toán
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "422":
+                    description: BUSINESS_RULE_VIOLATION — không đáp ứng điều kiện nghiệp vụ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DriverProfileUpdate"
+            x-server-side-effects:
+                - FR41
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC10
+                - UC18
+    /admin/drivers:
+        get:
+            tags:
+                - Driver & Vehicle Management
+            summary: Tra cứu tài xế
+            operationId: adminDriverList
+            description: "Quyền: OPERATIONS. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR05
+                - FR36
+                - FR40
+            x-ac-ids:
+                - AC09
+                - AC10
+                - AC56
+                - AC62
+                - AC69
+            x-roles:
+                - OPERATIONS
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Tra cứu tài xế — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DriverProfilePage"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: pageSize
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 20
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: availabilityStatus
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC10
+                - UC18
+                - UC20
+            x-permission-required: Quyền cụ thể cho chức năng + phạm vi dữ liệu; role OPERATIONS
+                một mình không đủ.
+    /admin/drivers/{driverId}:
+        patch:
+            tags:
+                - Driver & Vehicle Management
+            summary: Cập nhật hồ sơ tài xế
+            operationId: adminDriverUpdate
+            description: "Quyền: OPERATIONS. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR05
+                - FR40
+                - FR41
+            x-ac-ids:
+                - AC09
+                - AC10
+                - AC62
+                - AC63
+                - AC69
+            x-roles:
+                - OPERATIONS
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Cập nhật hồ sơ tài xế — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DriverProfile"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "409":
+                    description: CONFLICT — trùng định danh, trạng thái, thao tác đồng thời,
+                        replay khác payload hoặc khoản đã thanh toán
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "422":
+                    description: BUSINESS_RULE_VIOLATION — không đáp ứng điều kiện nghiệp vụ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            parameters:
+                - name: driverId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DriverProfileUpdate"
+            x-server-side-effects:
+                - FR41
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC10
+                - UC18
+            x-permission-required: Quyền cụ thể cho chức năng + phạm vi dữ liệu; role OPERATIONS
+                một mình không đủ.
+    /vehicle-types:
+        get:
+            tags:
+                - Driver & Vehicle Management
+            summary: Xem loại xe được hỗ trợ
+            operationId: vehicleTypeList
+            description: "API hỗ trợ lựa chọn loại xe; chỉ trả loại đang được hỗ trợ trong
+                phạm vi quyền.
+
+
+                Quyền: CUSTOMER, DRIVER, OPERATIONS. Kiểm tra quyền và phạm vi dữ liệu tại
+                máy chủ."
+            x-fr-ids:
+                - FR06
+                - FR09
+                - FR40
+            x-ac-ids:
+                - AC11
+                - AC17
+                - AC18
+                - AC62
+                - AC69
+            x-roles:
+                - CUSTOMER
+                - DRIVER
+                - OPERATIONS
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Xem loại xe được hỗ trợ — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/VehicleTypePage"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: pageSize
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 20
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC04
+                - UC11
+                - UC19
+            x-permission-required: Quyền cụ thể cho chức năng + phạm vi dữ liệu; role OPERATIONS
+                một mình không đủ.
+    /drivers/me/availability:
+        put:
+            tags:
+                - Driver & Vehicle Management
+            summary: Bật hoặc tắt nhận chuyến
+            operationId: driverAvailabilityUpdate
+            description: "Sẵn sàng nhận chuyến và đang bận là hai thông tin riêng. Tắt nhận
+                chuyến không hủy chuyến đang có.
+
+
+                Quyền: DRIVER. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR07
+                - FR40
+                - FR41
+            x-ac-ids:
+                - AC13
+                - AC14
+                - AC62
+                - AC63
+                - AC69
+            x-roles:
+                - DRIVER
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Bật hoặc tắt nhận chuyến — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DriverProfile"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "409":
+                    description: CONFLICT — trùng định danh, trạng thái, thao tác đồng thời,
+                        replay khác payload hoặc khoản đã thanh toán
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "422":
+                    description: BUSINESS_RULE_VIOLATION — không đáp ứng điều kiện nghiệp vụ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AvailabilityInput"
+            x-server-side-effects:
+                - FR41
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC12
+    /drivers/me/location:
+        put:
+            tags:
+                - Driver & Vehicle Management
+            summary: Ghi nhận vị trí tài xế
+            operationId: driverLocationUpdate
+            description: "Lưu observedAt và receivedAt; không ghi đè vị trí mới bằng bản
+                cập nhật cũ hoặc sai tọa độ. Ngưỡng độ mới, clock skew và nguồn vị trí cần
+                chốt.
+
+
+                Quyền: DRIVER. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR08
+                - FR40
+                - FR41
+            x-ac-ids:
+                - AC15
+                - AC16
+                - AC62
+                - AC63
+                - AC69
+            x-roles:
+                - DRIVER
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Ghi nhận vị trí tài xế — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DriverLocation"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "409":
+                    description: CONFLICT — trùng định danh, trạng thái, thao tác đồng thời,
+                        replay khác payload hoặc khoản đã thanh toán
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "422":
+                    description: BUSINESS_RULE_VIOLATION — không đáp ứng điều kiện nghiệp vụ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/LocationInput"
+            x-server-side-effects:
+                - FR41
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC04
+                - UC05
+    /vehicles:
+        post:
+            tags:
+                - Driver & Vehicle Management
+            summary: Ghi nhận phương tiện
+            operationId: createVehicle
+            description: Dùng chung tài nguyên phương tiện. DRIVER chỉ tạo/xem/sửa xe thuộc
+                mình; OPERATIONS theo quyền riêng. Kiểm tra biển số duy nhất, driverId/loại
+                xe hợp lệ và thay đổi ảnh hưởng chuyến đang diễn ra. Không có API xóa/chuyển
+                chủ xe.
+            x-fr-ids:
+                - FR06
+                - FR40
+                - FR41
+            x-ac-ids:
+                - AC11
+                - AC12
+                - AC62
+                - AC63
+                - AC69
+            x-roles:
+                - DRIVER
+                - OPERATIONS
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "201":
+                    description: Ghi nhận phương tiện — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Vehicle"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "409":
+                    description: CONFLICT — trùng định danh, trạng thái, thao tác đồng thời,
+                        replay khác payload hoặc khoản đã thanh toán
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "422":
+                    description: BUSINESS_RULE_VIOLATION — không đáp ứng điều kiện nghiệp vụ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/VehicleCreate"
+            x-server-side-effects:
+                - FR41
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC11
+                - UC19
+            x-permission-policy:
+                DRIVER: Only own vehicles; actor driverId resolved from session.
+                OPERATIONS: Requires vehicles.read or vehicles.write and authorized data scope.
+            x-permission-required: Quyền cụ thể cho chức năng + phạm vi dữ liệu; role OPERATIONS
+                một mình không đủ.
+        get:
+            tags:
+                - Driver & Vehicle Management
+            summary: Tra cứu phương tiện
+            operationId: listVehicles
+            description: Dùng chung tài nguyên phương tiện. DRIVER chỉ tạo/xem/sửa xe thuộc
+                mình; OPERATIONS theo quyền riêng. Kiểm tra biển số duy nhất, driverId/loại
+                xe hợp lệ và thay đổi ảnh hưởng chuyến đang diễn ra. Không có API xóa/chuyển
+                chủ xe. Danh sách có dữ liệu chi tiết; lọc driverId không được mở rộng quyền
+                của tài xế.
+            x-fr-ids:
+                - FR06
+                - FR40
+            x-ac-ids:
+                - AC11
+                - AC12
+                - AC62
+                - AC69
+            x-roles:
+                - DRIVER
+                - OPERATIONS
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Tra cứu phương tiện — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/VehiclePage"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: pageSize
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 20
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: driverId
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                      format: uuid
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC11
+                - UC19
+            x-permission-policy:
+                DRIVER: Only own vehicles; actor driverId resolved from session.
+                OPERATIONS: Requires vehicles.read or vehicles.write and authorized data scope.
+            x-permission-required: Quyền cụ thể cho chức năng + phạm vi dữ liệu; role OPERATIONS
+                một mình không đủ.
+    /vehicles/{vehicleId}:
+        patch:
+            tags:
+                - Driver & Vehicle Management
+            summary: Cập nhật phương tiện
+            operationId: updateVehicle
+            description: Dùng chung tài nguyên phương tiện. DRIVER chỉ tạo/xem/sửa xe thuộc
+                mình; OPERATIONS theo quyền riêng. Kiểm tra biển số duy nhất, driverId/loại
+                xe hợp lệ và thay đổi ảnh hưởng chuyến đang diễn ra. Không có API xóa/chuyển
+                chủ xe.
+            x-fr-ids:
+                - FR06
+                - FR40
+                - FR41
+            x-ac-ids:
+                - AC11
+                - AC12
+                - AC62
+                - AC63
+                - AC69
+            x-roles:
+                - DRIVER
+                - OPERATIONS
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Cập nhật phương tiện — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Vehicle"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "409":
+                    description: CONFLICT — trùng định danh, trạng thái, thao tác đồng thời,
+                        replay khác payload hoặc khoản đã thanh toán
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "422":
+                    description: BUSINESS_RULE_VIOLATION — không đáp ứng điều kiện nghiệp vụ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            parameters:
+                - name: vehicleId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/VehicleUpdate"
+            x-server-side-effects:
+                - FR41
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC11
+                - UC19
+            x-permission-policy:
+                DRIVER: Only own vehicles; actor driverId resolved from session.
+                OPERATIONS: Requires vehicles.read or vehicles.write and authorized data scope.
+            x-permission-required: Quyền cụ thể cho chức năng + phạm vi dữ liệu; role OPERATIONS
+                một mình không đủ.
+components:
+    securitySchemes:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            description: Đề xuất bearer session token; máy chủ kiểm tra phiên hết hạn/thu
+                hồi và quyền ở từng API.
+        ProviderSignature:
+            type: apiKey
+            in: header
+            name: X-Provider-Signature
+            description: Tên header/chữ ký là đề xuất adapter, phải chốt theo provider.
+                Xác minh raw body và timestamp; không dùng JWT khách hàng.
+    schemas:
+        AvailabilityInput:
+            type: object
+            additionalProperties: false
+            properties:
+                availabilityStatus:
+                    type: string
+                    enum:
+                        - AVAILABLE
+                        - UNAVAILABLE
+            required:
+                - availabilityStatus
+        DriverLocation:
+            type: object
+            additionalProperties: false
+            properties:
+                latitude:
+                    type: number
+                    minimum: -90
+                    maximum: 90
+                longitude:
+                    type: number
+                    minimum: -180
+                    maximum: 180
+                observedAt:
+                    type: string
+                    format: date-time
+                receivedAt:
+                    type: string
+                    format: date-time
+                freshness:
+                    type: string
+                    enum:
+                        - FRESH
+                        - STALE
+                        - UNKNOWN
+            required:
+                - latitude
+                - longitude
+                - observedAt
+                - receivedAt
+                - freshness
+        DriverProfile:
+            type: object
+            additionalProperties: false
+            properties:
+                driverId:
+                    type: string
+                    format: uuid
+                userId:
+                    type: string
+                    format: uuid
+                licenseNumber:
+                    type: string
+                    minLength: 1
+                    nullable: true
+                availabilityStatus:
+                    type: string
+                    enum:
+                        - AVAILABLE
+                        - UNAVAILABLE
+                isBusy:
+                    type: boolean
+                location:
+                    $ref: "#/components/schemas/DriverLocation"
+            required:
+                - driverId
+                - userId
+                - availabilityStatus
+                - isBusy
+        DriverProfilePage:
+            type: object
+            additionalProperties: false
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/DriverProfile"
+                page:
+                    type: integer
+                    minimum: 1
+                pageSize:
+                    type: integer
+                    minimum: 1
+                    maximum: 100
+                totalItems:
+                    type: integer
+                    minimum: 0
+            required:
+                - items
+                - page
+                - pageSize
+                - totalItems
+        DriverProfileUpdate:
+            type: object
+            additionalProperties: false
+            properties:
+                licenseNumber: &id001
+                    type: string
+                    minLength: 1
+            required:
+                - licenseNumber
+            description: Các trường nghiệp vụ được sửa cần xác nhận; không cập nhật vị trí/trạng
+                thái nhận chuyến tại API hồ sơ.
+        Error:
+            type: object
+            additionalProperties: false
+            properties:
+                code: *id001
+                message: *id001
+                requestId: *id001
+                fieldErrors:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            field: *id001
+                            message: *id001
+                        required:
+                            - field
+                            - message
+            required:
+                - code
+                - message
+                - requestId
+        LocationInput:
+            type: object
+            additionalProperties: false
+            properties:
+                latitude:
+                    type: number
+                    minimum: -90
+                    maximum: 90
+                longitude:
+                    type: number
+                    minimum: -180
+                    maximum: 180
+                observedAt:
+                    type: string
+                    format: date-time
+            required:
+                - latitude
+                - longitude
+                - observedAt
+        Vehicle:
+            type: object
+            additionalProperties: false
+            properties:
+                vehicleId:
+                    type: string
+                    format: uuid
+                driverId:
+                    type: string
+                    format: uuid
+                vehicleTypeId:
+                    type: string
+                    format: uuid
+                plateNumber: *id001
+                model: *id001
+                vehicleStatus:
+                    type: string
+                    enum:
+                        - ACTIVE
+                        - INACTIVE
+            required:
+                - vehicleId
+                - driverId
+                - vehicleTypeId
+                - plateNumber
+                - model
+                - vehicleStatus
+        VehicleCreate:
+            type: object
+            additionalProperties: false
+            properties:
+                driverId:
+                    type: string
+                    format: uuid
+                    description: OPERATIONS bắt buộc gửi driverId hợp lệ theo quyền; DRIVER
+                        bỏ trường này hoặc chỉ gửi driverId của mình. Máy chủ kiểm tra ownership,
+                        không cho tài xế chọn chủ xe khác.
+                vehicleTypeId:
+                    type: string
+                    format: uuid
+                plateNumber: *id001
+                model: *id001
+            required:
+                - vehicleTypeId
+                - plateNumber
+                - model
+        VehiclePage:
+            type: object
+            additionalProperties: false
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Vehicle"
+                page:
+                    type: integer
+                    minimum: 1
+                pageSize:
+                    type: integer
+                    minimum: 1
+                    maximum: 100
+                totalItems:
+                    type: integer
+                    minimum: 0
+            required:
+                - items
+                - page
+                - pageSize
+                - totalItems
+        VehicleType:
+            type: object
+            additionalProperties: false
+            properties:
+                vehicleTypeId:
+                    type: string
+                    format: uuid
+                typeName: *id001
+                isActive:
+                    type: boolean
+            required:
+                - vehicleTypeId
+                - typeName
+                - isActive
+        VehicleTypePage:
+            type: object
+            additionalProperties: false
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/VehicleType"
+                page:
+                    type: integer
+                    minimum: 1
+                pageSize:
+                    type: integer
+                    minimum: 1
+                    maximum: 100
+                totalItems:
+                    type: integer
+                    minimum: 0
+            required:
+                - items
+                - page
+                - pageSize
+                - totalItems
+        VehicleUpdate:
+            type: object
+            additionalProperties: false
+            properties:
+                vehicleTypeId:
+                    type: string
+                    format: uuid
+                plateNumber: *id001
+                model: *id001
+            minProperties: 1

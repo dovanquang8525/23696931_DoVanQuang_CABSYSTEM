@@ -1,0 +1,393 @@
+openapi: 3.0.3
+info:
+    title: CAB — Customer Management
+    version: 2.0.0-draft
+    description: Tra cứu/cập nhật thông tin khách hàng trong phạm vi quyền. Trong bản
+        đơn giản dùng UserAccount như ERD, chưa có bằng chứng bắt buộc một bounded context/service
+        độc lập. UC03 hỗ trợ bởi Identity & Access /me. Nhóm tài liệu/module đề xuất;
+        không xác nhận bounded context hay microservice độc lập.
+servers:
+    - url: http://localhost:3000/api/v1
+      description: URL local đề xuất; thay bằng máy chủ thực tế khi có backend.
+security:
+    - BearerAuth: []
+x-source: 02-srs.md
+x-primary-fr-ids:
+    - FR35
+x-related-fr-ids:
+    - FR35
+    - FR40
+    - FR41
+x-ac-ids:
+    - AC55
+    - AC62
+    - AC63
+    - AC69
+x-ac-criteria:
+    AC55: Nhân viên có quyền tra cứu và cập nhật trường khách hàng được phép; thay đổi
+        hợp lệ được lưu và thao tác quan trọng được ghi vết.
+    AC62: Người chưa xác thực, phiên không hợp lệ hoặc không đủ quyền không được truy
+        cập chức năng và dữ liệu bị hạn chế, kể cả khi gọi trực tiếp API.
+    AC63: Thao tác thuộc danh sách lưu vết có bản ghi gồm người hoặc hệ thống thực hiện,
+        hành động, đối tượng, thời điểm và kết quả.
+    AC69: Phiên hết hạn hoặc bị thu hồi không truy cập được chức năng bảo vệ; quyền
+        được kiểm tra tại máy chủ.
+paths:
+    /admin/customers:
+        get:
+            tags:
+                - Customer Management
+            summary: Tra cứu khách hàng
+            operationId: adminCustomerList
+            description: "Quyền: OPERATIONS. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR35
+                - FR40
+            x-ac-ids:
+                - AC55
+                - AC62
+                - AC69
+            x-roles:
+                - OPERATIONS
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Tra cứu khách hàng — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UserPage"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: pageSize
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 20
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: phoneNumber
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC17
+            x-permission-required: Quyền cụ thể cho chức năng + phạm vi dữ liệu; role OPERATIONS
+                một mình không đủ.
+    /admin/customers/{customerId}:
+        patch:
+            tags:
+                - Customer Management
+            summary: Cập nhật thông tin khách hàng
+            operationId: adminCustomerUpdate
+            description: "Chỉ tài khoản CUSTOMER và trường cho phép; ghi audit thao tác
+                quan trọng.
+
+
+                Quyền: OPERATIONS. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR35
+                - FR40
+                - FR41
+            x-ac-ids:
+                - AC55
+                - AC62
+                - AC63
+                - AC69
+            x-roles:
+                - OPERATIONS
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Cập nhật thông tin khách hàng — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/User"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "409":
+                    description: CONFLICT — trùng định danh, trạng thái, thao tác đồng thời,
+                        replay khác payload hoặc khoản đã thanh toán
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "422":
+                    description: BUSINESS_RULE_VIOLATION — không đáp ứng điều kiện nghiệp vụ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            parameters:
+                - name: customerId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CustomerUpdate"
+            x-server-side-effects:
+                - FR41
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC17
+            x-permission-required: Quyền cụ thể cho chức năng + phạm vi dữ liệu; role OPERATIONS
+                một mình không đủ.
+components:
+    securitySchemes:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            description: Đề xuất bearer session token; máy chủ kiểm tra phiên hết hạn/thu
+                hồi và quyền ở từng API.
+        ProviderSignature:
+            type: apiKey
+            in: header
+            name: X-Provider-Signature
+            description: Tên header/chữ ký là đề xuất adapter, phải chốt theo provider.
+                Xác minh raw body và timestamp; không dùng JWT khách hàng.
+    schemas:
+        CustomerUpdate:
+            type: object
+            additionalProperties: false
+            properties:
+                fullName: &id001
+                    type: string
+                    minLength: 1
+                phoneNumber: &id002
+                    type: string
+                    minLength: 1
+                    description: Đề xuất định danh bằng số điện thoại theo ERD; chuẩn hóa và
+                        định dạng cần chốt, không đặt giới hạn số tùy ý.
+            minProperties: 1
+            description: Danh sách trường cho phép theo quyền vận hành cần chốt; không nâng
+                quyền bằng API này.
+        Error:
+            type: object
+            additionalProperties: false
+            properties:
+                code: *id001
+                message: *id001
+                requestId: *id001
+                fieldErrors:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            field: *id001
+                            message: *id001
+                        required:
+                            - field
+                            - message
+            required:
+                - code
+                - message
+                - requestId
+        User:
+            type: object
+            additionalProperties: false
+            properties:
+                userId:
+                    type: string
+                    format: uuid
+                fullName: *id001
+                phoneNumber: *id002
+                role:
+                    type: string
+                    enum:
+                        - CUSTOMER
+                        - DRIVER
+                        - OPERATIONS
+                accountStatus:
+                    type: string
+                    enum:
+                        - ACTIVE
+                        - INACTIVE
+                createdAt:
+                    type: string
+                    format: date-time
+            required:
+                - userId
+                - fullName
+                - phoneNumber
+                - role
+                - accountStatus
+                - createdAt
+        UserPage:
+            type: object
+            additionalProperties: false
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/User"
+                page:
+                    type: integer
+                    minimum: 1
+                pageSize:
+                    type: integer
+                    minimum: 1
+                    maximum: 100
+                totalItems:
+                    type: integer
+                    minimum: 0
+            required:
+                - items
+                - page
+                - pageSize
+                - totalItems

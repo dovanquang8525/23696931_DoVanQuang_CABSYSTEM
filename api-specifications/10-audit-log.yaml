@@ -1,0 +1,288 @@
+openapi: 3.0.3
+info:
+    title: CAB — Audit Log
+    version: 2.0.0-draft
+    description: FR41 ghi tự động theo policy; API chỉ tra cứu FR42, không sửa/xóa.
+        actorUserId=null phải có actorType=SYSTEM; không cho người dùng tự khai actor
+        ghi log. Nhóm tài liệu/module đề xuất; không xác nhận bounded context hay microservice
+        độc lập.
+servers:
+    - url: http://localhost:3000/api/v1
+      description: URL local đề xuất; thay bằng máy chủ thực tế khi có backend.
+security:
+    - BearerAuth: []
+x-source: 02-srs.md
+x-primary-fr-ids:
+    - FR41
+    - FR42
+x-related-fr-ids:
+    - FR40
+    - FR41
+    - FR42
+x-ac-ids:
+    - AC62
+    - AC64
+    - AC69
+    - AC71
+x-ac-criteria:
+    AC62: Người chưa xác thực, phiên không hợp lệ hoặc không đủ quyền không được truy
+        cập chức năng và dữ liệu bị hạn chế, kể cả khi gọi trực tiếp API.
+    AC64: Người có quyền tra cứu được lưu vết theo điều kiện; người không có quyền bị
+        từ chối; chức năng không cho phép sửa hoặc xóa lưu vết.
+    AC69: Phiên hết hạn hoặc bị thu hồi không truy cập được chức năng bảo vệ; quyền
+        được kiểm tra tại máy chủ.
+    AC71: Người dùng thông thường không sửa hoặc xóa được lưu vết; thời gian lưu tuân
+        thủ chính sách đã xác nhận.
+paths:
+    /admin/audit-logs:
+        get:
+            tags:
+                - Audit Log
+            summary: Tra cứu lưu vết
+            operationId: auditLogList
+            description: "Chỉ có quyền audit.read; không cung cấp sửa/xóa/ghi log từ người
+                dùng. FR41 được thực hiện tự động từ các thao tác quan trọng.
+
+
+                Quyền: OPERATIONS. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR40
+                - FR42
+            x-ac-ids:
+                - AC62
+                - AC64
+                - AC69
+                - AC71
+            x-roles:
+                - OPERATIONS
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Tra cứu lưu vết — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AuditLogPage"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: pageSize
+                  in: query
+                  required: false
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 20
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: from
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                      format: date-time
+                  description: Khoảng thời gian [from, to); from < to.
+                - name: to
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                      format: date-time
+                  description: Khoảng thời gian [from, to); from < to.
+                - name: actorUserId
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                      format: uuid
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: action
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: entityType
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+                - name: entityId
+                  in: query
+                  required: false
+                  schema:
+                      type: string
+                      format: uuid
+                  description: Điều kiện lọc; phạm vi dữ liệu vẫn do máy chủ kiểm tra.
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC25
+            x-permission-required: Quyền cụ thể cho chức năng + phạm vi dữ liệu; role OPERATIONS
+                một mình không đủ.
+components:
+    securitySchemes:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            description: Đề xuất bearer session token; máy chủ kiểm tra phiên hết hạn/thu
+                hồi và quyền ở từng API.
+        ProviderSignature:
+            type: apiKey
+            in: header
+            name: X-Provider-Signature
+            description: Tên header/chữ ký là đề xuất adapter, phải chốt theo provider.
+                Xác minh raw body và timestamp; không dùng JWT khách hàng.
+    schemas:
+        AuditLog:
+            type: object
+            additionalProperties: false
+            properties:
+                auditLogId:
+                    type: string
+                    format: uuid
+                actorUserId:
+                    type: string
+                    format: uuid
+                    nullable: true
+                actorType:
+                    type: string
+                    enum:
+                        - USER
+                        - SYSTEM
+                action: &id001
+                    type: string
+                    minLength: 1
+                entityType: *id001
+                entityId:
+                    type: string
+                    format: uuid
+                result: *id001
+                createdAt:
+                    type: string
+                    format: date-time
+                requestId: *id001
+            required:
+                - auditLogId
+                - actorType
+                - action
+                - entityType
+                - entityId
+                - result
+                - createdAt
+                - requestId
+        AuditLogPage:
+            type: object
+            additionalProperties: false
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AuditLog"
+                page:
+                    type: integer
+                    minimum: 1
+                pageSize:
+                    type: integer
+                    minimum: 1
+                    maximum: 100
+                totalItems:
+                    type: integer
+                    minimum: 0
+            required:
+                - items
+                - page
+                - pageSize
+                - totalItems
+        Error:
+            type: object
+            additionalProperties: false
+            properties:
+                code: *id001
+                message: *id001
+                requestId: *id001
+                fieldErrors:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            field: *id001
+                            message: *id001
+                        required:
+                            - field
+                            - message
+            required:
+                - code
+                - message
+                - requestId

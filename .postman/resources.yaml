@@ -1,0 +1,18 @@
+# Use this workspace to collaborate
+workspace:
+  id: a11bf7a4-50c9-4d39-8280-118e4c3e420f
+
+localResources:
+  specs:
+    - ../api-document/customer-authentication.yaml
+    - ../api-document/customer-login.yaml
+    - ../api-document/customer-profile-update.yaml
+    - ../api-document/customer-profile.yaml
+    - ../api-document/customer-registration-information.yaml
+    - ../api-document/customer-registration.yaml
+    - ../api-document/driver-account.yaml
+    - ../api-document/driver-authentication.yaml
+    - ../api-document/driver-login.yaml
+    - ../api-document/driver-profile.yaml
+    - ../api-document/driver-registration.yaml
+    - ../api-document/vehicle-management.yaml

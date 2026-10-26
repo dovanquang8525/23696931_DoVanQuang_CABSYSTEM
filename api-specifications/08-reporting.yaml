@@ -1,0 +1,256 @@
+openapi: 3.0.3
+info:
+    title: CAB — Reporting
+    version: 2.0.0-draft
+    description: Read model tổng hợp từ Trip và Payment; báo cáo không sửa nguồn dữ
+        liệu. Cần thống nhất doanh thu, tiền đã thu, tỷ lệ và mẫu số; 0 mẫu số trả null.
+        Chưa mặc định service độc lập. Nhóm tài liệu/module đề xuất; không xác nhận bounded
+        context hay microservice độc lập.
+servers:
+    - url: http://localhost:3000/api/v1
+      description: URL local đề xuất; thay bằng máy chủ thực tế khi có backend.
+security:
+    - BearerAuth: []
+x-source: 02-srs.md
+x-primary-fr-ids:
+    - FR39
+x-related-fr-ids:
+    - FR39
+    - FR40
+x-ac-ids:
+    - AC60
+    - AC61
+    - AC62
+    - AC69
+x-ac-criteria:
+    AC60: Báo cáo tính đúng các chỉ số theo công thức đã thống nhất trên bộ dữ liệu
+        kiểm thử và khoảng thời gian được chọn.
+    AC61: Khi không có dữ liệu hoặc mẫu số bằng 0, báo cáo hiển thị rõ tình trạng; không
+        phát sinh lỗi chia và không tạo tỷ lệ thiếu căn cứ.
+    AC62: Người chưa xác thực, phiên không hợp lệ hoặc không đủ quyền không được truy
+        cập chức năng và dữ liệu bị hạn chế, kể cả khi gọi trực tiếp API.
+    AC69: Phiên hết hạn hoặc bị thu hồi không truy cập được chức năng bảo vệ; quyền
+        được kiểm tra tại máy chủ.
+paths:
+    /admin/reports/operations:
+        get:
+            tags:
+                - Reporting
+            summary: Xem báo cáo hoạt động
+            operationId: operationsReportGet
+            description: "Cần quyền reports.read (ban lãnh đạo dùng tài khoản được cấp quyền
+                này; không tự thêm vai trò ERD). Báo cáo theo [from,to), công thức/mẫu số/hiệu
+                quả tài xế cần chốt. Mẫu số 0 trả null; items trống khi không có dữ liệu.
+
+
+                Quyền: OPERATIONS. Kiểm tra quyền và phạm vi dữ liệu tại máy chủ."
+            x-fr-ids:
+                - FR39
+                - FR40
+            x-ac-ids:
+                - AC60
+                - AC61
+                - AC62
+                - AC69
+            x-roles:
+                - OPERATIONS
+            x-source: 02-srs.md; §§7, 8, 9, 13, 14
+            responses:
+                "200":
+                    description: Xem báo cáo hoạt động — thành công
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Report"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "400":
+                    description: INVALID_REQUEST — dữ liệu/định dạng/khoảng thời gian không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "401":
+                    description: UNAUTHENTICATED — thông tin đăng nhập, phiên hoặc chữ ký không
+                        hợp lệ
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "403":
+                    description: FORBIDDEN — sai quyền, sai chủ sở hữu hoặc tài khoản không
+                        được phép hoạt động
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "404":
+                    description: NOT_FOUND — không tìm thấy tài nguyên trong phạm vi cho phép
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+                "500":
+                    description: INTERNAL_ERROR — lỗi không dự kiến; trả requestId, không lộ
+                        dữ liệu nhạy cảm
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                    headers:
+                        X-Request-Id:
+                            description: Mã liên kết yêu cầu và lỗi, không chứa dữ liệu nhạy cảm.
+                            schema:
+                                type: string
+            parameters:
+                - name: from
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      format: date-time
+                  description: Khoảng thời gian [from, to); from < to.
+                - name: to
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      format: date-time
+                  description: Khoảng thời gian [from, to); from < to.
+            x-acceptance-level: Mapping yêu cầu; cần backend và test case để nghiệm thu.
+            x-uc-ids:
+                - UC24
+            x-permission-required: Quyền cụ thể cho chức năng + phạm vi dữ liệu; role OPERATIONS
+                một mình không đủ.
+components:
+    securitySchemes:
+        BearerAuth:
+            type: http
+            scheme: bearer
+            description: Đề xuất bearer session token; máy chủ kiểm tra phiên hết hạn/thu
+                hồi và quyền ở từng API.
+        ProviderSignature:
+            type: apiKey
+            in: header
+            name: X-Provider-Signature
+            description: Tên header/chữ ký là đề xuất adapter, phải chốt theo provider.
+                Xác minh raw body và timestamp; không dùng JWT khách hàng.
+    schemas:
+        Error:
+            type: object
+            additionalProperties: false
+            properties:
+                code: &id001
+                    type: string
+                    minLength: 1
+                message: *id001
+                requestId: *id001
+                fieldErrors:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            field: *id001
+                            message: *id001
+                        required:
+                            - field
+                            - message
+            required:
+                - code
+                - message
+                - requestId
+        Report:
+            type: object
+            additionalProperties: false
+            properties:
+                from:
+                    type: string
+                    format: date-time
+                to:
+                    type: string
+                    format: date-time
+                policyVersion: *id001
+                hasData:
+                    type: boolean
+                totalTrips:
+                    type: integer
+                    minimum: 0
+                revenue: &id002
+                    type: number
+                    minimum: 0
+                    description: VND; quy tắc làm tròn do chính sách cước đã xác nhận quyết
+                        định.
+                collectedAmount: *id002
+                completionRate:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                    nullable: true
+                cancellationRate:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                    nullable: true
+                driverPerformance:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            driverId:
+                                type: string
+                                format: uuid
+                            assignedTrips:
+                                type: integer
+                                minimum: 0
+                            completedTrips:
+                                type: integer
+                                minimum: 0
+                            completionRate:
+                                type: number
+                                minimum: 0
+                                maximum: 1
+                                nullable: true
+                        required:
+                            - driverId
+                            - assignedTrips
+                            - completedTrips
+                            - completionRate
+            required:
+                - from
+                - to
+                - policyVersion
+                - hasData
+                - totalTrips
+                - revenue
+                - collectedAmount
+                - completionRate
+                - cancellationRate
+                - driverPerformance
+            description: Công thức báo cáo chưa chốt. Mẫu số bằng 0 trả tỷ lệ null, có cờ
+                hasData; doanh thu và tiền đã thu là hai chỉ số riêng.
