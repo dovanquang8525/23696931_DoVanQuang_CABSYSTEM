@@ -1,0 +1,111 @@
+syntax = "proto3";
+package cab.booking.v1;
+import "common.proto";
+// Deadline <=5s and forwarded remaining budget. JWT/internal identity in metadata.
+// Each method validates caller allowlist, types, enum values, role and ownership.
+message CreateBookingRequest {
+  cab.common.v1.Coordinates pickup = 1;
+  cab.common.v1.Coordinates destination = 2;
+  string idempotency_key = 3;
+}
+
+message BookingIdRequest {
+  string booking_id = 1;
+}
+
+message ListBookingsRequest {
+  cab.common.v1.PageRequest paging = 1;
+  optional string customer_id = 2;
+  optional string driver_id = 3;
+  optional cab.common.v1.Booking.Status status = 4;
+}
+
+message CancellationPreviewRequest {
+  string booking_id = 1;
+  string reason = 2;
+}
+
+message CancellationPreview {
+  string booking_id = 1;
+  bool allowed = 2;
+  int64 fee_amount = 3;
+  string currency = 4;
+}
+
+message CancelBookingRequest {
+  string booking_id = 1;
+  string reason = 2;
+  bool confirmed = 3;
+}
+
+message CancellationResult {
+  string booking_id = 1;
+  optional string trip_id = 2;
+  string status = 3;
+  string reason = 4;
+  int64 fee_amount = 5;
+  string canceled_at = 6;
+}
+
+message ListInvitationsRequest {
+  cab.common.v1.PageRequest paging = 1;
+  optional cab.common.v1.Invitation.Status status = 2;
+}
+
+message RespondInvitationRequest {
+  enum Decision {
+    DECISION_UNSPECIFIED = 0;
+    ACCEPT = 1;
+    REJECT = 2;
+  }
+  string invitation_id = 1;
+  Decision decision = 2;
+}
+
+message InvitationResult {
+  cab.common.v1.Invitation invitation = 1;
+  cab.common.v1.Booking booking = 2;
+  optional string trip_id = 3;
+}
+
+message AssignmentDecisionRequest {
+  string booking_id = 1;
+  string operation_id = 2;
+}
+
+message OperationIdRequest {
+  string operation_id = 1;
+}
+
+message AssignmentDecision {
+  string booking_id = 1;
+  string operation_id = 2;
+  string decision = 3;
+  string phase = 4;
+  optional string expected_trip_id = 5;
+  string driver_id = 6;
+  string vehicle_id = 7;
+}
+
+service BookingService {
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc CreateBooking (CreateBookingRequest) returns (cab.common.v1.Booking);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ListMyBookings (cab.common.v1.PageRequest) returns (cab.common.v1.BookingPage);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetBooking (BookingIdRequest) returns (cab.common.v1.BookingDetails);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc PreviewBookingCancellation (CancellationPreviewRequest) returns (CancellationPreview);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc CancelBooking (CancelBookingRequest) returns (CancellationResult);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ListBookings (ListBookingsRequest) returns (cab.common.v1.BookingPage);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ListMyInvitations (ListInvitationsRequest) returns (cab.common.v1.InvitationPage);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc RespondInvitation (RespondInvitationRequest) returns (InvitationResult);
+  // Allowed peer: trip_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetAssignmentDecision (AssignmentDecisionRequest) returns (AssignmentDecision);
+  // Allowed peer: booking_service (local worker only; prefer local method, not external RPC). Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetAssignmentOperation (OperationIdRequest) returns (AssignmentDecision);
+}

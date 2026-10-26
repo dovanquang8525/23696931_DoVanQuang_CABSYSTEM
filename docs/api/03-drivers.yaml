@@ -1,0 +1,1455 @@
+openapi: 3.0.3
+info:
+  title: CAB MVP — Drivers
+  version: 1.0.0
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa
+    triển khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+servers:
+- url: http://localhost:3000/api/v1
+  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+security:
+- BearerAuth: []
+tags:
+- name: Drivers
+paths:
+  /drivers/me:
+    get:
+      tags:
+      - Drivers
+      operationId: getMyDriver
+      summary: Xem hồ sơ Driver của mình
+      description: Xem hồ sơ Driver của mình
+      x-grpc: cab.driver.v1.DriverService/GetMyDriver
+      x-allowed-roles:
+      - DRIVER
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR05
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+      - Drivers
+      operationId: updateMyDriver
+      summary: Sửa hồ sơ xét duyệt DRAFT/REJECTED
+      description: Chỉ trường whitelist; PENDING/APPROVED không sửa dữ liệu xét duyệt. licenseNumber mã hóa
+        trước lưu DB, không ghi log.
+      x-grpc: cab.driver.v1.DriverService/UpdateMyDriver
+      x-allowed-roles:
+      - DRIVER
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR05
+      - AC13
+      - AC14
+      - AC93
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverUpdate'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value:
+                  fullName: Demo Driver
+                  licenseNumber: DEMO-LICENSE-001
+  /drivers/{driverId}:
+    get:
+      tags:
+      - Drivers
+      operationId: getDriverById
+      summary: Tra cứu Driver theo mã số
+      description: Tra cứu Driver theo mã số
+      x-grpc: cab.driver.v1.DriverService/GetDriver
+      x-allowed-roles:
+      - DRIVER
+      - ADMIN
+      x-ownership: Driver chủ hồ sơ hoặc ADMIN. Customer chỉ xem public snapshot qua nearby/Trip.
+      x-srs:
+      - FR05
+      - AC80
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: driverId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        description: ''
+  /drivers/me/vehicle:
+    get:
+      tags:
+      - Drivers
+      operationId: getMyVehicle
+      summary: Xem xe BIKE của Driver
+      description: 404 khi chưa có xe, khác 503 PROFILE_NOT_READY khi chưa có profile.
+      x-grpc: cab.driver.v1.DriverService/GetMyVehicle
+      x-allowed-roles:
+      - DRIVER
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR06
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+      - Drivers
+      operationId: upsertMyVehicle
+      summary: Tạo/cập nhật một xe BIKE
+      description: PUT idempotent; server gán BIKE/owner/isActive. Unique driverId/plateNumber; không đổi xe
+        khi giữ chỗ/Trip chưa kết thúc.
+      x-grpc: cab.driver.v1.DriverService/UpsertMyVehicle
+      x-allowed-roles:
+      - DRIVER
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR06
+      - AC15
+      - AC16
+      - AC17
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleInput'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value:
+                  plateNumber: DEMO001
+                  model: Demo Bike
+                  color: Black
+  /drivers/me/submissions:
+    post:
+      tags:
+      - Drivers
+      operationId: submitDriverProfile
+      summary: Gửi hồ sơ và xe sang PENDING
+      description: DRAFT/REJECTED và đủ fullName/licenseNumber/BIKE hợp lệ; không tự chuyển APPROVED.
+      x-grpc: cab.driver.v1.DriverService/SubmitDriver
+      x-allowed-roles:
+      - DRIVER
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR44
+      - AC18
+      - AC19
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmptyInput'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value: {}
+  /drivers/me/availability:
+    put:
+      tags:
+      - Drivers
+      operationId: setDriverAvailability
+      summary: Bật/tắt online
+      description: Online cần ACTIVE/APPROVED/BIKE/vị trí <=120 giây; offline không hủy Trip đang có.
+      x-grpc: cab.driver.v1.DriverService/SetAvailability
+      x-allowed-roles:
+      - DRIVER
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR07
+      - AC23
+      - AC24
+      - AC25
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Availability'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailabilityInput'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value:
+                  isOnline: true
+  /drivers/me/location:
+    put:
+      tags:
+      - Drivers
+      operationId: updateDriverLocation
+      summary: Cập nhật vị trí Driver
+      description: Thời điểm server; không tự thay đổi online hoặc location gắn Trip.
+      x-grpc: cab.driver.v1.DriverService/UpdateDriverLocation
+      x-allowed-roles:
+      - DRIVER
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR08
+      - AC26
+      - AC27
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Coordinates'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value:
+                  latitude: 10.8
+                  longitude: 106.7
+  /drivers/nearby:
+    get:
+      tags:
+      - Drivers
+      operationId: listNearbyDrivers
+      summary: Tìm Driver đủ điều kiện trong 1 km
+      description: Chỉ ACTIVE/APPROVED/online/BIKE/không bận/giữ chỗ/vị trí <=120 giây. Sort distanceKm rồi
+        driverId tăng; lỗi Auth không giả danh sách không có Driver.
+      x-grpc: cab.driver.v1.DriverService/ListNearbyDrivers
+      x-allowed-roles:
+      - CUSTOMER
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR46
+      - AC28
+      - AC29
+      - AC30
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NearbyPage'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: latitude
+        in: query
+        required: true
+        schema:
+          type: number
+          minimum: -90
+          maximum: 90
+        description: ''
+      - name: longitude
+        in: query
+        required: true
+        schema:
+          type: number
+          minimum: -180
+          maximum: 180
+        description: ''
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: ''
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
+        description: ''
+  /admin/drivers:
+    get:
+      tags:
+      - Drivers
+      operationId: listDrivers
+      summary: ADMIN tra cứu hồ sơ Driver
+      description: ADMIN tra cứu hồ sơ Driver
+      x-grpc: cab.driver.v1.DriverService/ListDrivers
+      x-allowed-roles:
+      - ADMIN
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR45
+      - AC20
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriverPage'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: ''
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
+        description: ''
+      - name: approvalStatus
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - DRAFT
+          - PENDING
+          - APPROVED
+          - REJECTED
+        description: ''
+  /admin/drivers/{driverId}/approval-decisions:
+    post:
+      tags:
+      - Drivers
+      operationId: decideDriverApproval
+      summary: ADMIN duyệt hoặc từ chối hồ sơ PENDING
+      description: REJECTED cần reason trim 1–300; APPROVED không nhận reason. Ghi người/thời điểm và event
+        driver.approval_changed; không tự online.
+      x-grpc: cab.driver.v1.DriverService/DecideDriverApproval
+      x-allowed-roles:
+      - ADMIN
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR45
+      - AC20
+      - AC21
+      - AC22
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: driverId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        description: ''
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalInput'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value:
+                  decision: APPROVED
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT HS256; verify signature, issuer=cab-auth, audience=cab-api, exp và sub; không chỉ decode.
+  schemas:
+    ApprovalInput:
+      type: object
+      additionalProperties: false
+      properties:
+        decision:
+          type: string
+          enum:
+          - APPROVED
+          - REJECTED
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 300
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+      oneOf:
+      - properties:
+          decision:
+            type: string
+            enum:
+            - APPROVED
+        not:
+          required:
+          - reason
+      - properties:
+          decision:
+            type: string
+            enum:
+            - REJECTED
+        required:
+        - reason
+      required:
+      - decision
+    Availability:
+      type: object
+      additionalProperties: false
+      properties:
+        driverId:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        isOnline:
+          type: boolean
+      required:
+      - driverId
+      - isOnline
+    AvailabilityInput:
+      type: object
+      additionalProperties: false
+      properties:
+        isOnline:
+          type: boolean
+      required:
+      - isOnline
+    Coordinates:
+      type: object
+      additionalProperties: false
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+      required:
+      - latitude
+      - longitude
+    Driver:
+      type: object
+      additionalProperties: false
+      properties:
+        driverId: &id001
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        accountId: *id001
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        email:
+          type: string
+          minLength: 1
+          maxLength: 254
+          format: email
+        licenseNumber:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Chỉ owner/ADMIN; DB lưu licenseNumberEncrypted, không plaintext.
+        approvalStatus:
+          type: string
+          enum:
+          - DRAFT
+          - PENDING
+          - APPROVED
+          - REJECTED
+        isOnline:
+          type: boolean
+        location:
+          $ref: '#/components/schemas/Location'
+        vehicle:
+          $ref: '#/components/schemas/Vehicle'
+        activeTripId: *id001
+        rejectionReason:
+          type: string
+          minLength: 1
+          maxLength: 300
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        submittedAt: &id002
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+        reviewedAt: *id002
+      required:
+      - driverId
+      - accountId
+      - fullName
+      - approvalStatus
+      - isOnline
+    DriverPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Driver'
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        totalItems:
+          type: integer
+          minimum: 0
+          maximum: 1000000000000
+      required:
+      - items
+      - page
+      - limit
+      - totalItems
+    DriverPublic:
+      type: object
+      additionalProperties: false
+      properties:
+        driverId:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        vehicle:
+          $ref: '#/components/schemas/Vehicle'
+      required:
+      - driverId
+      - fullName
+      - vehicle
+    DriverUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        email:
+          type: string
+          minLength: 1
+          maxLength: 254
+          format: email
+        licenseNumber:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+      minProperties: 1
+    EmptyInput:
+      type: object
+      additionalProperties: false
+      properties: {}
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+        requestId:
+          type: string
+          minLength: 1
+          maxLength: 128
+      required:
+      - code
+      - message
+      - requestId
+    Location:
+      type: object
+      additionalProperties: false
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+      required:
+      - latitude
+      - longitude
+      - updatedAt
+    NearbyDriver:
+      type: object
+      additionalProperties: false
+      properties:
+        driver:
+          $ref: '#/components/schemas/DriverPublic'
+        distanceKm:
+          type: number
+          minimum: 0
+          maximum: 1
+        location:
+          $ref: '#/components/schemas/Location'
+      required:
+      - driver
+      - distanceKm
+      - location
+    NearbyPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/NearbyDriver'
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        totalItems:
+          type: integer
+          minimum: 0
+          maximum: 1000000000000
+      required:
+      - items
+      - page
+      - limit
+      - totalItems
+    Vehicle:
+      type: object
+      additionalProperties: false
+      properties:
+        vehicleId: &id003
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        driverId: *id003
+        plateNumber:
+          type: string
+          minLength: 1
+          maxLength: 20
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        vehicleType:
+          type: string
+          enum:
+          - BIKE
+        model:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        color:
+          type: string
+          minLength: 1
+          maxLength: 30
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        isActive:
+          type: boolean
+          enum:
+          - true
+      required:
+      - vehicleId
+      - driverId
+      - plateNumber
+      - vehicleType
+      - model
+      - color
+      - isActive
+    VehicleInput:
+      type: object
+      additionalProperties: false
+      properties:
+        plateNumber:
+          type: string
+          minLength: 1
+          maxLength: 20
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        model:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        color:
+          type: string
+          minLength: 1
+          maxLength: 30
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+      required:
+      - plateNumber
+      - model
+      - color

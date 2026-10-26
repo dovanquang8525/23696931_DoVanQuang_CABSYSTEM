@@ -1,0 +1,56 @@
+syntax = "proto3";
+package cab.payment.v1;
+import "common.proto";
+// Deadline <=5s and forwarded remaining budget. JWT/internal identity in metadata.
+// Each method validates caller allowlist, types, enum values, role and ownership.
+message TripIdRequest {
+  string trip_id = 1;
+}
+
+message PaymentIdRequest {
+  string payment_id = 1;
+}
+
+message CreatePaymentRequest {
+  string trip_id = 1;
+  string idempotency_key = 2;
+}
+
+message RetryPaymentRequest {
+  string failed_payment_id = 1;
+  string idempotency_key = 2;
+}
+
+message MockCallbackRequest {
+  bytes raw_body = 1;
+  string signature = 2;
+  int64 timestamp = 3;
+}
+
+message CallbackAcknowledgement {
+  string payment_id = 1;
+  bool accepted = 2;
+  bool duplicate = 3;
+  cab.common.v1.Payment.Status status = 4;
+}
+
+message ListPaymentsRequest {
+  cab.common.v1.PageRequest paging = 1;
+  optional string trip_id = 2;
+  optional cab.common.v1.Payment.Status status = 3;
+}
+
+service PaymentService {
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc CreatePayment (CreatePaymentRequest) returns (cab.common.v1.Payment);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetPayment (PaymentIdRequest) returns (cab.common.v1.Payment);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc RetryPayment (RetryPaymentRequest) returns (cab.common.v1.Payment);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc HandleMockCallback (MockCallbackRequest) returns (CallbackAcknowledgement);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ListPayments (ListPaymentsRequest) returns (cab.common.v1.PaymentPage);
+  // Allowed peer: gateway,booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetPaymentSummary (TripIdRequest) returns (cab.common.v1.PaymentSummary);
+}

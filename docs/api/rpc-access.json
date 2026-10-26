@@ -1,0 +1,374 @@
+[
+  {
+    "method": "cab.auth.v1.AuthService/RequestOtp",
+    "allowedPeers": "gateway",
+    "requestType": "RequestOtpRequest",
+    "responseType": "OtpChallenge"
+  },
+  {
+    "method": "cab.auth.v1.AuthService/VerifyOtp",
+    "allowedPeers": "gateway",
+    "requestType": "VerifyOtpRequest",
+    "responseType": "OtpVerification"
+  },
+  {
+    "method": "cab.auth.v1.AuthService/Register",
+    "allowedPeers": "gateway",
+    "requestType": "RegisterRequest",
+    "responseType": "Registration"
+  },
+  {
+    "method": "cab.auth.v1.AuthService/Login",
+    "allowedPeers": "gateway",
+    "requestType": "LoginRequest",
+    "responseType": "Session"
+  },
+  {
+    "method": "cab.auth.v1.AuthService/GetIdentity",
+    "allowedPeers": "gateway",
+    "requestType": "cab.common.v1.Empty",
+    "responseType": "cab.common.v1.Account"
+  },
+  {
+    "method": "cab.auth.v1.AuthService/GetAccountAccess",
+    "allowedPeers": "customer_service,driver_service,booking_service,trip_service,payment_service,notification_service,rating_service",
+    "requestType": "AccountAccessRequest",
+    "responseType": "AccountAccess"
+  },
+  {
+    "method": "cab.customer.v1.CustomerService/GetMyCustomer",
+    "allowedPeers": "gateway",
+    "requestType": "cab.common.v1.Empty",
+    "responseType": "cab.common.v1.Customer"
+  },
+  {
+    "method": "cab.customer.v1.CustomerService/UpdateMyCustomer",
+    "allowedPeers": "gateway",
+    "requestType": "UpdateMyCustomerRequest",
+    "responseType": "cab.common.v1.Customer"
+  },
+  {
+    "method": "cab.customer.v1.CustomerService/GetCustomer",
+    "allowedPeers": "gateway",
+    "requestType": "CustomerIdRequest",
+    "responseType": "cab.common.v1.Customer"
+  },
+  {
+    "method": "cab.customer.v1.CustomerService/ListCustomers",
+    "allowedPeers": "gateway",
+    "requestType": "cab.common.v1.PageRequest",
+    "responseType": "cab.common.v1.CustomerPage"
+  },
+  {
+    "method": "cab.customer.v1.CustomerService/GetCustomerByAccount",
+    "allowedPeers": "booking_service",
+    "requestType": "AccountIdRequest",
+    "responseType": "cab.common.v1.Customer"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/GetMyDriver",
+    "allowedPeers": "gateway",
+    "requestType": "cab.common.v1.Empty",
+    "responseType": "cab.common.v1.Driver"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/UpdateMyDriver",
+    "allowedPeers": "gateway",
+    "requestType": "UpdateMyDriverRequest",
+    "responseType": "cab.common.v1.Driver"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/GetDriver",
+    "allowedPeers": "gateway",
+    "requestType": "DriverIdRequest",
+    "responseType": "cab.common.v1.Driver"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/GetMyVehicle",
+    "allowedPeers": "gateway",
+    "requestType": "cab.common.v1.Empty",
+    "responseType": "cab.common.v1.Vehicle"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/UpsertMyVehicle",
+    "allowedPeers": "gateway",
+    "requestType": "VehicleInput",
+    "responseType": "cab.common.v1.Vehicle"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/SubmitDriver",
+    "allowedPeers": "gateway",
+    "requestType": "cab.common.v1.Empty",
+    "responseType": "cab.common.v1.Driver"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/SetAvailability",
+    "allowedPeers": "gateway",
+    "requestType": "AvailabilityInput",
+    "responseType": "Availability"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/UpdateDriverLocation",
+    "allowedPeers": "gateway",
+    "requestType": "cab.common.v1.Coordinates",
+    "responseType": "cab.common.v1.Location"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/ListNearbyDrivers",
+    "allowedPeers": "gateway",
+    "requestType": "NearbyRequest",
+    "responseType": "cab.common.v1.NearbyPage"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/ListDrivers",
+    "allowedPeers": "gateway",
+    "requestType": "ListDriversRequest",
+    "responseType": "cab.common.v1.DriverPage"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/DecideDriverApproval",
+    "allowedPeers": "gateway",
+    "requestType": "ApprovalRequest",
+    "responseType": "cab.common.v1.Driver"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/GetDriverByAccount",
+    "allowedPeers": "booking_service",
+    "requestType": "AccountIdRequest",
+    "responseType": "DriverIdentity"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/FindCandidates",
+    "allowedPeers": "booking_service",
+    "requestType": "FindCandidatesRequest",
+    "responseType": "Candidates"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/GetDispatchData",
+    "allowedPeers": "booking_service",
+    "requestType": "DriverIdRequest",
+    "responseType": "DispatchData"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/ReserveDriver",
+    "allowedPeers": "booking_service",
+    "requestType": "ReservationRequest",
+    "responseType": "Reservation"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/ConfirmReservation",
+    "allowedPeers": "booking_service",
+    "requestType": "ConfirmReservationRequest",
+    "responseType": "Reservation"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/ReleaseReservation",
+    "allowedPeers": "booking_service",
+    "requestType": "ReleaseReservationRequest",
+    "responseType": "cab.common.v1.Empty"
+  },
+  {
+    "method": "cab.driver.v1.DriverService/UpdateLocationFromTrip",
+    "allowedPeers": "trip_service",
+    "requestType": "TripLocationRequest",
+    "responseType": "cab.common.v1.Location"
+  },
+  {
+    "method": "cab.booking.v1.BookingService/CreateBooking",
+    "allowedPeers": "gateway",
+    "requestType": "CreateBookingRequest",
+    "responseType": "cab.common.v1.Booking"
+  },
+  {
+    "method": "cab.booking.v1.BookingService/ListMyBookings",
+    "allowedPeers": "gateway",
+    "requestType": "cab.common.v1.PageRequest",
+    "responseType": "cab.common.v1.BookingPage"
+  },
+  {
+    "method": "cab.booking.v1.BookingService/GetBooking",
+    "allowedPeers": "gateway",
+    "requestType": "BookingIdRequest",
+    "responseType": "cab.common.v1.BookingDetails"
+  },
+  {
+    "method": "cab.booking.v1.BookingService/PreviewBookingCancellation",
+    "allowedPeers": "gateway",
+    "requestType": "CancellationPreviewRequest",
+    "responseType": "CancellationPreview"
+  },
+  {
+    "method": "cab.booking.v1.BookingService/CancelBooking",
+    "allowedPeers": "gateway",
+    "requestType": "CancelBookingRequest",
+    "responseType": "CancellationResult"
+  },
+  {
+    "method": "cab.booking.v1.BookingService/ListBookings",
+    "allowedPeers": "gateway",
+    "requestType": "ListBookingsRequest",
+    "responseType": "cab.common.v1.BookingPage"
+  },
+  {
+    "method": "cab.booking.v1.BookingService/ListMyInvitations",
+    "allowedPeers": "gateway",
+    "requestType": "ListInvitationsRequest",
+    "responseType": "cab.common.v1.InvitationPage"
+  },
+  {
+    "method": "cab.booking.v1.BookingService/RespondInvitation",
+    "allowedPeers": "gateway",
+    "requestType": "RespondInvitationRequest",
+    "responseType": "InvitationResult"
+  },
+  {
+    "method": "cab.booking.v1.BookingService/GetAssignmentDecision",
+    "allowedPeers": "trip_service",
+    "requestType": "AssignmentDecisionRequest",
+    "responseType": "AssignmentDecision"
+  },
+  {
+    "method": "cab.booking.v1.BookingService/GetAssignmentOperation",
+    "allowedPeers": "booking_service (local worker only; prefer local method, not external RPC)",
+    "requestType": "OperationIdRequest",
+    "responseType": "AssignmentDecision"
+  },
+  {
+    "method": "cab.trip.v1.TripService/GetTrip",
+    "allowedPeers": "gateway,booking_service",
+    "requestType": "TripIdRequest",
+    "responseType": "cab.common.v1.Trip"
+  },
+  {
+    "method": "cab.trip.v1.TripService/ArriveTrip",
+    "allowedPeers": "gateway",
+    "requestType": "TripIdRequest",
+    "responseType": "cab.common.v1.Trip"
+  },
+  {
+    "method": "cab.trip.v1.TripService/StartTrip",
+    "allowedPeers": "gateway",
+    "requestType": "TripIdRequest",
+    "responseType": "cab.common.v1.Trip"
+  },
+  {
+    "method": "cab.trip.v1.TripService/CompleteTrip",
+    "allowedPeers": "gateway",
+    "requestType": "TripIdRequest",
+    "responseType": "cab.common.v1.Trip"
+  },
+  {
+    "method": "cab.trip.v1.TripService/UpdateTripLocation",
+    "allowedPeers": "gateway",
+    "requestType": "UpdateTripLocationRequest",
+    "responseType": "cab.common.v1.Location"
+  },
+  {
+    "method": "cab.trip.v1.TripService/ListTrips",
+    "allowedPeers": "gateway",
+    "requestType": "ListTripsRequest",
+    "responseType": "cab.common.v1.TripPage"
+  },
+  {
+    "method": "cab.trip.v1.TripService/CreateTrip",
+    "allowedPeers": "booking_service",
+    "requestType": "CreateTripRequest",
+    "responseType": "AssignmentTrip"
+  },
+  {
+    "method": "cab.trip.v1.TripService/ActivateAssignment",
+    "allowedPeers": "booking_service",
+    "requestType": "AssignmentRequest",
+    "responseType": "AssignmentTrip"
+  },
+  {
+    "method": "cab.trip.v1.TripService/GetTripByBooking",
+    "allowedPeers": "booking_service",
+    "requestType": "BookingIdRequest",
+    "responseType": "AssignmentTrip"
+  },
+  {
+    "method": "cab.trip.v1.TripService/CancelTrip",
+    "allowedPeers": "booking_service with CUSTOMER JWT",
+    "requestType": "CancelTripRequest",
+    "responseType": "cab.common.v1.Trip"
+  },
+  {
+    "method": "cab.trip.v1.TripService/GetTripForPayment",
+    "allowedPeers": "payment_service",
+    "requestType": "TripIdRequest",
+    "responseType": "TripForPayment"
+  },
+  {
+    "method": "cab.trip.v1.TripService/GetTripForReview",
+    "allowedPeers": "rating_service",
+    "requestType": "TripIdRequest",
+    "responseType": "TripForReview"
+  },
+  {
+    "method": "cab.trip.v1.TripService/RecalculateFare",
+    "allowedPeers": "trip_service (local worker only; prefer local method, not external RPC)",
+    "requestType": "TripIdRequest",
+    "responseType": "cab.common.v1.Trip"
+  },
+  {
+    "method": "cab.payment.v1.PaymentService/CreatePayment",
+    "allowedPeers": "gateway",
+    "requestType": "CreatePaymentRequest",
+    "responseType": "cab.common.v1.Payment"
+  },
+  {
+    "method": "cab.payment.v1.PaymentService/GetPayment",
+    "allowedPeers": "gateway",
+    "requestType": "PaymentIdRequest",
+    "responseType": "cab.common.v1.Payment"
+  },
+  {
+    "method": "cab.payment.v1.PaymentService/RetryPayment",
+    "allowedPeers": "gateway",
+    "requestType": "RetryPaymentRequest",
+    "responseType": "cab.common.v1.Payment"
+  },
+  {
+    "method": "cab.payment.v1.PaymentService/HandleMockCallback",
+    "allowedPeers": "gateway",
+    "requestType": "MockCallbackRequest",
+    "responseType": "CallbackAcknowledgement"
+  },
+  {
+    "method": "cab.payment.v1.PaymentService/ListPayments",
+    "allowedPeers": "gateway",
+    "requestType": "ListPaymentsRequest",
+    "responseType": "cab.common.v1.PaymentPage"
+  },
+  {
+    "method": "cab.payment.v1.PaymentService/GetPaymentSummary",
+    "allowedPeers": "gateway,booking_service",
+    "requestType": "TripIdRequest",
+    "responseType": "cab.common.v1.PaymentSummary"
+  },
+  {
+    "method": "cab.notification.v1.NotificationService/ListMyNotifications",
+    "allowedPeers": "gateway",
+    "requestType": "cab.common.v1.PageRequest",
+    "responseType": "cab.common.v1.NotificationPage"
+  },
+  {
+    "method": "cab.notification.v1.NotificationService/GetNotification",
+    "allowedPeers": "gateway",
+    "requestType": "NotificationIdRequest",
+    "responseType": "cab.common.v1.Notification"
+  },
+  {
+    "method": "cab.rating.v1.RatingService/CreateReview",
+    "allowedPeers": "gateway",
+    "requestType": "CreateReviewRequest",
+    "responseType": "cab.common.v1.Review"
+  },
+  {
+    "method": "cab.rating.v1.RatingService/GetReviewByTrip",
+    "allowedPeers": "gateway",
+    "requestType": "TripIdRequest",
+    "responseType": "cab.common.v1.Review"
+  }
+]

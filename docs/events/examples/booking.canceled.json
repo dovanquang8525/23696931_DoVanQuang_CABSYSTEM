@@ -1,0 +1,15 @@
+{
+  "eventId": "ca610e54-f19e-55f8-8cfc-5edbddabc1e6",
+  "eventType": "booking.canceled",
+  "occurredAt": "2026-10-27T00:00:00Z",
+  "producer": "booking_service",
+  "aggregateId": "000000000000000000000005",
+  "aggregateVersion": 1,
+  "correlationId": "demo-contract-validation",
+  "payload": {
+    "bookingId": "000000000000000000000005",
+    "customerAccountId": "000000000000000000000002",
+    "reason": "Change of plan",
+    "canceledAt": "2026-10-27T00:00:00Z"
+  }
+}

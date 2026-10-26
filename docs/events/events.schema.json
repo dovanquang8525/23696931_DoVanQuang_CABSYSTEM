@@ -1,0 +1,1070 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cab.example/contracts/events.schema.json",
+  "title": "CAB MVP RabbitMQ domain events",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/account_registered"
+    },
+    {
+      "$ref": "#/$defs/driver_approval_changed"
+    },
+    {
+      "$ref": "#/$defs/booking_created"
+    },
+    {
+      "$ref": "#/$defs/booking_invitation_created"
+    },
+    {
+      "$ref": "#/$defs/booking_assigned"
+    },
+    {
+      "$ref": "#/$defs/booking_canceled"
+    },
+    {
+      "$ref": "#/$defs/booking_no_driver"
+    },
+    {
+      "$ref": "#/$defs/trip_arrived"
+    },
+    {
+      "$ref": "#/$defs/trip_completed"
+    },
+    {
+      "$ref": "#/$defs/trip_canceled"
+    },
+    {
+      "$ref": "#/$defs/payment_completed"
+    },
+    {
+      "$ref": "#/$defs/payment_failed"
+    }
+  ],
+  "$defs": {
+    "account_registered": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "account.registered"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "auth_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "accountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "role": {
+              "enum": [
+                "CUSTOMER",
+                "DRIVER"
+              ]
+            },
+            "fullName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[^<>]*$"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "maxLength": 254
+            }
+          },
+          "required": [
+            "accountId",
+            "role",
+            "fullName"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "driver_approval_changed": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "driver.approval_changed"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "driver_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "driverId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "recipientAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "approvalStatus": {
+              "enum": [
+                "APPROVED",
+                "REJECTED"
+              ]
+            },
+            "reviewedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "rejectionReason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300,
+              "pattern": "^[^<>]*$"
+            }
+          },
+          "required": [
+            "driverId",
+            "recipientAccountId",
+            "approvalStatus",
+            "reviewedAt"
+          ],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "approvalStatus": {
+                    "const": "REJECTED"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "rejectionReason"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "booking_created": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "booking.created"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "booking_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "bookingId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "customerAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "status": {
+              "const": "SEARCHING"
+            }
+          },
+          "required": [
+            "bookingId",
+            "customerAccountId",
+            "status"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "booking_invitation_created": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "booking.invitation_created"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "booking_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "invitationId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "bookingId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "driverAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "expiresAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "invitationId",
+            "bookingId",
+            "driverAccountId",
+            "expiresAt"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "booking_assigned": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "booking.assigned"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "booking_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "bookingId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "tripId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "customerAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "driverAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "driverPublicSnapshot": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "driverId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{24}$"
+                },
+                "fullName": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100,
+                  "pattern": "^[^<>]*$"
+                },
+                "vehicle": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "vehicleId": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{24}$"
+                    },
+                    "driverId": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{24}$"
+                    },
+                    "plateNumber": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 20,
+                      "pattern": "^[^<>]*$"
+                    },
+                    "vehicleType": {
+                      "const": "BIKE"
+                    },
+                    "model": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100,
+                      "pattern": "^[^<>]*$"
+                    },
+                    "color": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 30,
+                      "pattern": "^[^<>]*$"
+                    },
+                    "isActive": {
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "vehicleId",
+                    "driverId",
+                    "plateNumber",
+                    "vehicleType",
+                    "model",
+                    "color",
+                    "isActive"
+                  ]
+                }
+              },
+              "required": [
+                "driverId",
+                "fullName",
+                "vehicle"
+              ]
+            }
+          },
+          "required": [
+            "bookingId",
+            "tripId",
+            "customerAccountId",
+            "driverAccountId",
+            "driverPublicSnapshot"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "booking_canceled": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "booking.canceled"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "booking_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "bookingId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "customerAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "invitedDriverAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300,
+              "pattern": "^[^<>]*$"
+            },
+            "canceledAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "bookingId",
+            "customerAccountId",
+            "reason",
+            "canceledAt"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "booking_no_driver": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "booking.no_driver"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "booking_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "bookingId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "customerAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "status": {
+              "const": "NO_DRIVER"
+            }
+          },
+          "required": [
+            "bookingId",
+            "customerAccountId",
+            "status"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "trip_arrived": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "trip.arrived"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "trip_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tripId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "bookingId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "driverId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "customerAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "driverAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "arrivedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "tripId",
+            "bookingId",
+            "driverId",
+            "customerAccountId",
+            "driverAccountId",
+            "arrivedAt"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "trip_completed": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "trip.completed"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "trip_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tripId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "bookingId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "driverId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "customerAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "driverAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "completedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "fareAmount": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1000000000000
+            },
+            "aggregateVersion": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "tripId",
+            "bookingId",
+            "driverId",
+            "customerAccountId",
+            "driverAccountId",
+            "completedAt",
+            "fareAmount",
+            "aggregateVersion"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "trip_canceled": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "trip.canceled"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "trip_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tripId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "bookingId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "driverId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "customerAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "driverAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300,
+              "pattern": "^[^<>]*$"
+            },
+            "canceledAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "fee": {
+              "const": 0
+            },
+            "aggregateVersion": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "tripId",
+            "bookingId",
+            "driverId",
+            "customerAccountId",
+            "driverAccountId",
+            "reason",
+            "canceledAt",
+            "fee",
+            "aggregateVersion"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "payment_completed": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "payment.completed"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "payment_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "paymentId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "tripId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "customerAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000000
+            },
+            "currency": {
+              "const": "VND"
+            },
+            "completedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "paymentId",
+            "tripId",
+            "customerAccountId",
+            "amount",
+            "currency",
+            "completedAt"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    },
+    "payment_failed": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "eventType": {
+          "const": "payment.failed"
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "const": "payment_service"
+        },
+        "aggregateId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{24}$"
+        },
+        "aggregateVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "correlationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "paymentId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "tripId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "customerAccountId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{24}$"
+            },
+            "attemptNumber": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3
+            },
+            "failureCode": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "failedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "paymentId",
+            "tripId",
+            "customerAccountId",
+            "attemptNumber",
+            "failureCode",
+            "failedAt"
+          ]
+        }
+      },
+      "required": [
+        "eventId",
+        "eventType",
+        "occurredAt",
+        "producer",
+        "aggregateId",
+        "aggregateVersion",
+        "correlationId",
+        "payload"
+      ]
+    }
+  }
+}

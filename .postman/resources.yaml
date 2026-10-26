@@ -4,15 +4,13 @@ workspace:
 
 localResources:
   specs:
-    - ../api-document/customer-authentication.yaml
-    - ../api-document/customer-login.yaml
-    - ../api-document/customer-profile-update.yaml
-    - ../api-document/customer-profile.yaml
-    - ../api-document/customer-registration-information.yaml
-    - ../api-document/customer-registration.yaml
-    - ../api-document/driver-account.yaml
-    - ../api-document/driver-authentication.yaml
-    - ../api-document/driver-login.yaml
-    - ../api-document/driver-profile.yaml
-    - ../api-document/driver-registration.yaml
-    - ../api-document/vehicle-management.yaml
+    - ../docs/api/01-auth.yaml
+    - ../docs/api/02-customers.yaml
+    - ../docs/api/03-drivers.yaml
+    - ../docs/api/04-bookings.yaml
+    - ../docs/api/05-invitations.yaml
+    - ../docs/api/06-trips.yaml
+    - ../docs/api/07-payments.yaml
+    - ../docs/api/08-notifications.yaml
+    - ../docs/api/09-ratings.yaml
+    - ../docs/api/10-health.yaml

@@ -1,0 +1,89 @@
+{
+  "exchange": {
+    "name": "cab.events",
+    "type": "topic",
+    "durable": true
+  },
+  "delivery": "at-least-once",
+  "persistentMessages": true,
+  "publisherConfirms": true,
+  "queues": [
+    {
+      "name": "customer.events",
+      "durable": true,
+      "bindings": [
+        "account.registered"
+      ],
+      "consumer": "customer_service",
+      "ack": "after-local-transaction-and-inbox",
+      "retryDelaysSeconds": [
+        1,
+        5,
+        15
+      ],
+      "maxRetriesAfterInitial": 3,
+      "deadLetterQueue": "customer.events.dlq"
+    },
+    {
+      "name": "driver.events",
+      "durable": true,
+      "bindings": [
+        "account.registered",
+        "trip.completed",
+        "trip.canceled"
+      ],
+      "consumer": "driver_service",
+      "ack": "after-local-transaction-and-inbox",
+      "retryDelaysSeconds": [
+        1,
+        5,
+        15
+      ],
+      "maxRetriesAfterInitial": 3,
+      "deadLetterQueue": "driver.events.dlq"
+    },
+    {
+      "name": "booking.events",
+      "durable": true,
+      "bindings": [
+        "trip.completed",
+        "trip.canceled"
+      ],
+      "consumer": "booking_service",
+      "ack": "after-local-transaction-and-inbox",
+      "retryDelaysSeconds": [
+        1,
+        5,
+        15
+      ],
+      "maxRetriesAfterInitial": 3,
+      "deadLetterQueue": "booking.events.dlq"
+    },
+    {
+      "name": "notification.events",
+      "durable": true,
+      "bindings": [
+        "driver.approval_changed",
+        "booking.created",
+        "booking.invitation_created",
+        "booking.assigned",
+        "booking.canceled",
+        "booking.no_driver",
+        "trip.arrived",
+        "trip.completed",
+        "trip.canceled",
+        "payment.completed",
+        "payment.failed"
+      ],
+      "consumer": "notification_service",
+      "ack": "after-local-transaction-and-inbox",
+      "retryDelaysSeconds": [
+        1,
+        5,
+        15
+      ],
+      "maxRetriesAfterInitial": 3,
+      "deadLetterQueue": "notification.events.dlq"
+    }
+  ]
+}

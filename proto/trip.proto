@@ -1,0 +1,97 @@
+syntax = "proto3";
+package cab.trip.v1;
+import "common.proto";
+// Deadline <=5s and forwarded remaining budget. JWT/internal identity in metadata.
+// Each method validates caller allowlist, types, enum values, role and ownership.
+message TripIdRequest {
+  string trip_id = 1;
+}
+
+message BookingIdRequest {
+  string booking_id = 1;
+}
+
+message UpdateTripLocationRequest {
+  string trip_id = 1;
+  cab.common.v1.Coordinates location = 2;
+}
+
+message ListTripsRequest {
+  cab.common.v1.PageRequest paging = 1;
+  optional string customer_id = 2;
+  optional string driver_id = 3;
+  optional cab.common.v1.Trip.Status status = 4;
+}
+
+message CreateTripRequest {
+  string operation_id = 1;
+  string booking_id = 2;
+  string customer_id = 3;
+  string customer_account_id = 4;
+  string driver_id = 5;
+  string driver_account_id = 6;
+  string vehicle_id = 7;
+  cab.common.v1.Coordinates pickup = 8;
+  cab.common.v1.Coordinates destination = 9;
+  double distance_km = 10;
+  cab.common.v1.PricingSnapshot pricing_snapshot = 11;
+  cab.common.v1.DriverPublic driver_snapshot = 12;
+}
+
+message AssignmentRequest {
+  string operation_id = 1;
+  string booking_id = 2;
+  string trip_id = 3;
+}
+
+message AssignmentTrip {
+  cab.common.v1.Trip trip = 1;
+  bool assignment_confirmed = 2;
+  string operation_id = 3;
+}
+
+message CancelTripRequest {
+  string trip_id = 1;
+  string reason = 2;
+}
+
+message TripForPayment {
+  cab.common.v1.Trip trip = 1;
+  string customer_account_id = 2;
+  string driver_account_id = 3;
+}
+
+message TripForReview {
+  cab.common.v1.Trip trip = 1;
+  string customer_account_id = 2;
+  string driver_account_id = 3;
+}
+
+service TripService {
+  // Allowed peer: gateway,booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetTrip (TripIdRequest) returns (cab.common.v1.Trip);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ArriveTrip (TripIdRequest) returns (cab.common.v1.Trip);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc StartTrip (TripIdRequest) returns (cab.common.v1.Trip);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc CompleteTrip (TripIdRequest) returns (cab.common.v1.Trip);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc UpdateTripLocation (UpdateTripLocationRequest) returns (cab.common.v1.Location);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ListTrips (ListTripsRequest) returns (cab.common.v1.TripPage);
+  // Allowed peer: booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc CreateTrip (CreateTripRequest) returns (AssignmentTrip);
+  // Allowed peer: booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ActivateAssignment (AssignmentRequest) returns (AssignmentTrip);
+  // Allowed peer: booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetTripByBooking (BookingIdRequest) returns (AssignmentTrip);
+  // Allowed peer: booking_service with CUSTOMER JWT. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc CancelTrip (CancelTripRequest) returns (cab.common.v1.Trip);
+  // Allowed peer: payment_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetTripForPayment (TripIdRequest) returns (TripForPayment);
+  // Allowed peer: rating_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetTripForReview (TripIdRequest) returns (TripForReview);
+  // Allowed peer: trip_service (local worker only; prefer local method, not external RPC). Errors use gRPC status + cab-error-code trailing metadata.
+  rpc RecalculateFare (TripIdRequest) returns (cab.common.v1.Trip);
+}

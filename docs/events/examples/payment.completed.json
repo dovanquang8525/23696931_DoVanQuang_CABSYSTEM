@@ -1,0 +1,17 @@
+{
+  "eventId": "6468a3fa-bc60-51d4-bc2b-a113da64c82c",
+  "eventType": "payment.completed",
+  "occurredAt": "2026-10-27T00:00:00Z",
+  "producer": "payment_service",
+  "aggregateId": "000000000000000000000008",
+  "aggregateVersion": 1,
+  "correlationId": "demo-contract-validation",
+  "payload": {
+    "paymentId": "000000000000000000000008",
+    "tripId": "000000000000000000000007",
+    "customerAccountId": "000000000000000000000002",
+    "amount": 20000,
+    "currency": "VND",
+    "completedAt": "2026-10-27T00:00:00Z"
+  }
+}

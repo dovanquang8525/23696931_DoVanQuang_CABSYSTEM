@@ -1,0 +1,15 @@
+{
+  "eventId": "966fbb98-b80a-5840-ab01-d7c0578b8617",
+  "eventType": "driver.approval_changed",
+  "occurredAt": "2026-10-27T00:00:00Z",
+  "producer": "driver_service",
+  "aggregateId": "000000000000000000000004",
+  "aggregateVersion": 1,
+  "correlationId": "demo-contract-validation",
+  "payload": {
+    "driverId": "000000000000000000000004",
+    "recipientAccountId": "000000000000000000000003",
+    "approvalStatus": "APPROVED",
+    "reviewedAt": "2026-10-27T00:00:00Z"
+  }
+}

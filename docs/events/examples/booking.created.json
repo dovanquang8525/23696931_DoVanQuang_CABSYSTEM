@@ -1,0 +1,14 @@
+{
+  "eventId": "47aece11-e69d-50d7-acb4-8f46c633f58d",
+  "eventType": "booking.created",
+  "occurredAt": "2026-10-27T00:00:00Z",
+  "producer": "booking_service",
+  "aggregateId": "000000000000000000000005",
+  "aggregateVersion": 1,
+  "correlationId": "demo-contract-validation",
+  "payload": {
+    "bookingId": "000000000000000000000005",
+    "customerAccountId": "000000000000000000000002",
+    "status": "SEARCHING"
+  }
+}

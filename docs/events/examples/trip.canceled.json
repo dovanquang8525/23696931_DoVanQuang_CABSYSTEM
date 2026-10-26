@@ -1,0 +1,20 @@
+{
+  "eventId": "a4dd0d42-f689-5ca8-9809-cdf9b716242b",
+  "eventType": "trip.canceled",
+  "occurredAt": "2026-10-27T00:00:00Z",
+  "producer": "trip_service",
+  "aggregateId": "000000000000000000000007",
+  "aggregateVersion": 1,
+  "correlationId": "demo-contract-validation",
+  "payload": {
+    "tripId": "000000000000000000000007",
+    "bookingId": "000000000000000000000005",
+    "driverId": "000000000000000000000004",
+    "customerAccountId": "000000000000000000000002",
+    "driverAccountId": "000000000000000000000003",
+    "reason": "Change of plan",
+    "canceledAt": "2026-10-27T00:00:00Z",
+    "fee": 0,
+    "aggregateVersion": 1
+  }
+}

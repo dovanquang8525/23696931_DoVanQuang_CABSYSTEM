@@ -1,0 +1,26 @@
+{
+  "runId": "",
+  "codeVersion": "",
+  "executedAt": "",
+  "environmentDescription": "",
+  "testCaseId": "",
+  "variantId": "",
+  "criterionNumbers": [],
+  "fixtureIds": {
+    "accountId": "",
+    "customerId": "",
+    "driverId": "",
+    "bookingId": "",
+    "tripId": "",
+    "paymentId": ""
+  },
+  "preconditionsMet": false,
+  "expected": "",
+  "actual": null,
+  "status": "BLOCKED",
+  "blockedReason": "Backend/fixture/dependency chưa sẵn sàng",
+  "commandsOrRequests": [],
+  "httpStatus": null,
+  "evidencePaths": [],
+  "secretsRedacted": true
+}

@@ -1,0 +1,15 @@
+{
+  "eventId": "cbec488b-0f65-54a4-9440-6e07e4d6550f",
+  "eventType": "booking.invitation_created",
+  "occurredAt": "2026-10-27T00:00:00Z",
+  "producer": "booking_service",
+  "aggregateId": "000000000000000000000005",
+  "aggregateVersion": 1,
+  "correlationId": "demo-contract-validation",
+  "payload": {
+    "invitationId": "000000000000000000000006",
+    "bookingId": "000000000000000000000005",
+    "driverAccountId": "000000000000000000000003",
+    "expiresAt": "2026-10-27T00:00:30Z"
+  }
+}

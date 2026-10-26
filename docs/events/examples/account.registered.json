@@ -1,0 +1,14 @@
+{
+  "eventId": "f7817673-d709-542e-b5b7-d6f91db8e202",
+  "eventType": "account.registered",
+  "occurredAt": "2026-10-27T00:00:00Z",
+  "producer": "auth_service",
+  "aggregateId": "000000000000000000000001",
+  "aggregateVersion": 1,
+  "correlationId": "demo-contract-validation",
+  "payload": {
+    "accountId": "000000000000000000000001",
+    "role": "CUSTOMER",
+    "fullName": "Demo Customer"
+  }
+}

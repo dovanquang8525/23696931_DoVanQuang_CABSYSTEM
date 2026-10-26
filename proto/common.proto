@@ -1,0 +1,324 @@
+syntax = "proto3";
+package cab.common.v1;
+// Internal data contracts. Gateway maps snake_case to REST camelCase explicitly.
+// IDs: 24 lower-case hex ObjectId strings; all dates: RFC3339 UTC strings.
+// Validate semantics at service boundaries; protobuf does not enforce lengths/ranges.
+// Optional fare_amount absent -> JSON null; never default it to 0.
+enum VehicleType { VEHICLE_TYPE_UNSPECIFIED = 0; BIKE = 1; }
+enum PaymentMethod { PAYMENT_METHOD_UNSPECIFIED = 0; MOCK_ONLINE = 1; }
+enum Currency { CURRENCY_UNSPECIFIED = 0; VND = 1; }
+message Empty {
+}
+
+message PageRequest {
+  int32 page = 1;
+  int32 limit = 2;
+}
+
+message Coordinates {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message Location {
+  double latitude = 1;
+  double longitude = 2;
+  string updated_at = 3;
+}
+
+message Account {
+  enum Role {
+    ROLE_UNSPECIFIED = 0;
+    CUSTOMER = 1;
+    DRIVER = 2;
+    ADMIN = 3;
+  }
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    ACTIVE = 1;
+    DISABLED = 2;
+  }
+  string account_id = 1;
+  string phone = 2;
+  Role role = 3;
+  Status status = 4;
+}
+
+message Customer {
+  string customer_id = 1;
+  string account_id = 2;
+  string full_name = 3;
+  optional string email = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message Vehicle {
+  string vehicle_id = 1;
+  string driver_id = 2;
+  string plate_number = 3;
+  VehicleType vehicle_type = 4;
+  string model = 5;
+  string color = 6;
+  bool is_active = 7;
+}
+
+message DriverPublic {
+  string driver_id = 1;
+  string full_name = 2;
+  Vehicle vehicle = 3;
+}
+
+message Driver {
+  enum ApprovalStatus {
+    APPROVAL_STATUS_UNSPECIFIED = 0;
+    DRAFT = 1;
+    PENDING = 2;
+    APPROVED = 3;
+    REJECTED = 4;
+  }
+  string driver_id = 1;
+  string account_id = 2;
+  string full_name = 3;
+  optional string email = 4;
+  optional string license_number = 5;
+  ApprovalStatus approval_status = 6;
+  bool is_online = 7;
+  Location location = 8;
+  Vehicle vehicle = 9;
+  optional string active_trip_id = 10;
+  optional string rejection_reason = 11;
+  optional string submitted_at = 12;
+  optional string reviewed_at = 13;
+}
+
+message NearbyDriver {
+  DriverPublic driver = 1;
+  double distance_km = 2;
+  Location location = 3;
+}
+
+message PricingSnapshot {
+  int64 base_fare = 1;
+  int64 rate_per_km = 2;
+  int64 rounding_unit = 3;
+}
+
+message Booking {
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    SEARCHING = 1;
+    ASSIGNED = 2;
+    COMPLETED = 3;
+    CANCELED = 4;
+    NO_DRIVER = 5;
+  }
+  string booking_id = 1;
+  string customer_id = 2;
+  VehicleType vehicle_type = 3;
+  Coordinates pickup = 4;
+  Coordinates destination = 5;
+  Status status = 6;
+  double distance_km = 7;
+  PricingSnapshot pricing_snapshot = 8;
+  optional string trip_id = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message Trip {
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    ASSIGNED = 1;
+    ARRIVED = 2;
+    IN_PROGRESS = 3;
+    COMPLETED = 4;
+    CANCELED = 5;
+  }
+  string trip_id = 1;
+  string booking_id = 2;
+  string customer_id = 3;
+  string driver_id = 4;
+  string vehicle_id = 5;
+  Status status = 6;
+  Coordinates pickup = 7;
+  Coordinates destination = 8;
+  VehicleType vehicle_type = 9;
+  DriverPublic driver = 10;
+  double distance_km = 11;
+  optional int64 fare_amount = 12;
+  Currency currency = 13;
+  Location latest_location = 14;
+  string assigned_at = 15;
+  optional string arrived_at = 16;
+  optional string started_at = 17;
+  optional string completed_at = 18;
+  optional string canceled_at = 19;
+}
+
+message Payment {
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    PENDING = 1;
+    COMPLETED = 2;
+    FAILED = 3;
+  }
+  string payment_id = 1;
+  string trip_id = 2;
+  PaymentMethod method = 3;
+  Status status = 4;
+  int64 amount = 5;
+  Currency currency = 6;
+  string reference_code = 7;
+  int32 attempt_number = 8;
+  string created_at = 9;
+  optional string confirmed_at = 10;
+  optional string failure_code = 11;
+}
+
+message PaymentSummary {
+  enum LatestStatus {
+    LATEST_STATUS_UNSPECIFIED = 0;
+    NOT_STARTED = 1;
+    PENDING = 2;
+    COMPLETED = 3;
+    FAILED = 4;
+  }
+  string trip_id = 1;
+  optional int64 fare_amount = 2;
+  Currency currency = 3;
+  bool has_completed = 4;
+  LatestStatus latest_status = 5;
+  repeated Payment attempts = 6;
+}
+
+message Eta {
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    AVAILABLE = 1;
+    UNAVAILABLE = 2;
+    NOT_APPLICABLE = 3;
+  }
+  Status status = 1;
+  optional int32 minutes = 2;
+  optional string calculated_at = 3;
+}
+
+message BookingDetails {
+  enum TripAvailability {
+    TRIP_AVAILABILITY_UNSPECIFIED = 0;
+    TRIP_AVAILABLE = 1;
+    NOT_CREATED = 2;
+    TRIP_UNAVAILABLE = 3;
+  }
+  enum PaymentAvailability {
+    PAYMENT_AVAILABILITY_UNSPECIFIED = 0;
+    PAYMENT_AVAILABLE = 1;
+    NOT_APPLICABLE = 2;
+    PAYMENT_UNAVAILABLE = 3;
+  }
+  Booking booking = 1;
+  TripAvailability trip_availability = 2;
+  Trip trip = 3;
+  PaymentAvailability payment_availability = 4;
+  PaymentSummary payment_summary = 5;
+  Eta eta = 6;
+}
+
+message Invitation {
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    PENDING = 1;
+    ACCEPTED = 2;
+    REJECTED = 3;
+    EXPIRED = 4;
+    CANCELED = 5;
+  }
+  string invitation_id = 1;
+  string booking_id = 2;
+  string driver_id = 3;
+  Coordinates pickup = 4;
+  Coordinates destination = 5;
+  VehicleType vehicle_type = 6;
+  Status status = 7;
+  string expires_at = 8;
+  optional string responded_at = 9;
+}
+
+message Review {
+  string review_id = 1;
+  string trip_id = 2;
+  string customer_id = 3;
+  string driver_id = 4;
+  int32 rating = 5;
+  optional string comment = 6;
+  string created_at = 7;
+}
+
+message Notification {
+  string notification_id = 1;
+  string recipient_account_id = 2;
+  string event_id = 3;
+  string type = 4;
+  string content = 5;
+  string related_entity_type = 6;
+  string related_entity_id = 7;
+  string occurred_at = 8;
+  string created_at = 9;
+}
+
+message CustomerPage {
+  repeated Customer items = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int64 total_items = 4;
+}
+
+message DriverPage {
+  repeated Driver items = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int64 total_items = 4;
+}
+
+message NearbyPage {
+  repeated NearbyDriver items = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int64 total_items = 4;
+}
+
+message BookingPage {
+  repeated Booking items = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int64 total_items = 4;
+}
+
+message TripPage {
+  repeated Trip items = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int64 total_items = 4;
+}
+
+message InvitationPage {
+  repeated Invitation items = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int64 total_items = 4;
+}
+
+message PaymentPage {
+  repeated Payment items = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int64 total_items = 4;
+}
+
+message NotificationPage {
+  repeated Notification items = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int64 total_items = 4;
+}

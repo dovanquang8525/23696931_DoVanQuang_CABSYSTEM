@@ -1,0 +1,437 @@
+[
+  {
+    "criterion": 1,
+    "title": "Mô tả kiến trúc tổ chức source code",
+    "requirements": "NFR15, NFR28",
+    "testCases": [
+      "TC89",
+      "TC101"
+    ],
+    "requiredEvidence": "Cây source, giải thích trách nhiệm; TC101",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 2,
+    "title": "Kiểm tra .gitignore và .env trên github",
+    "requirements": "NFR02, NFR28",
+    "testCases": [
+      "TC93",
+      "TC101"
+    ],
+    "requiredEvidence": "Git tracked files/lịch sử, .env.example; không in secret",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 3,
+    "title": "Mô tả nhiệm vụ gateway trong hệ thống",
+    "requirements": "NFR26; mục 4.6",
+    "testCases": [
+      "TC98"
+    ],
+    "requiredEvidence": "REST→gRPC, JWT, Redis, error/health; source và trace",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 4,
+    "title": "Mô tả IPC của các microservice",
+    "requirements": "NFR08, NFR26–NFR27",
+    "testCases": [
+      "TC98",
+      "TC99",
+      "TC100"
+    ],
+    "requiredEvidence": "Proto, RPC, event routing; không REST nội bộ",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 5,
+    "title": "Compose hệ thống và liệt kê các container",
+    "requirements": "NFR14, NFR16, NFR29",
+    "testCases": [
+      "TC90",
+      "TC102"
+    ],
+    "requiredEvidence": "Compose config/ps, network, volumes, DB init",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 6,
+    "title": "API health check",
+    "requirements": "FR49, NFR17",
+    "testCases": [
+      "TC84",
+      "TC85",
+      "TC86"
+    ],
+    "requiredEvidence": "/health, /ready, /health/services; healthy/dependency down",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 7,
+    "title": "Kiểm tra hệ thống Kafka / Rabbit MQ",
+    "requirements": "NFR27; chỉ RabbitMQ",
+    "testCases": [
+      "TC99",
+      "TC100"
+    ],
+    "requiredEvidence": "Exchange/queue/binding, publish/consume/redelivery/DLQ",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 8,
+    "title": "Kiểm tra mọi request đều phải đi qua Gateway",
+    "requirements": "NFR26",
+    "testCases": [
+      "TC98"
+    ],
+    "requiredEvidence": "Client qua Gateway; port gRPC không publish; internal RPC vẫn trực tiếp",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 9,
+    "title": "Đăng ký tài khoản khách hàng",
+    "requirements": "FR01; UC01",
+    "testCases": [
+      "TC01",
+      "TC03",
+      "TC04"
+    ],
+    "requiredEvidence": "Postman đăng ký→profile→login; DB account/profile",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 10,
+    "title": "Đăng nhập khách hàng",
+    "requirements": "FR02; UC02",
+    "testCases": [
+      "TC05",
+      "TC06"
+    ],
+    "requiredEvidence": "Postman đúng/sai; JWT hợp lệ, không lộ secret",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 11,
+    "title": "Lấy thông tin khách hàng với mã số",
+    "requirements": "FR03, FR35; UC03, UC23",
+    "testCases": [
+      "TC07",
+      "TC08",
+      "TC75",
+      "TC80"
+    ],
+    "requiredEvidence": "GET theo customerId với token và kiểm tra ownership",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 12,
+    "title": "Lấy thông tin tài xế với mã số",
+    "requirements": "FR05, FR18, FR45; UC13, UC22",
+    "testCases": [
+      "TC13",
+      "TC14",
+      "TC42",
+      "TC80"
+    ],
+    "requiredEvidence": "GET theo driverId đúng phạm vi; không lộ licenseNumber trong nearby",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 13,
+    "title": "Liệt kê danh sách tài xế tại khu vực",
+    "requirements": "FR46; UC05; NFR29",
+    "testCases": [
+      "TC28",
+      "TC29",
+      "TC30",
+      "TC103"
+    ],
+    "requiredEvidence": "Ít nhất 5 Driver khác trạng thái; 1 km, limit/paging, vị trí mới",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 14,
+    "title": "Liệt kê danh sách các booking của Customer",
+    "requirements": "FR33; UC10; NFR29",
+    "testCases": [
+      "TC30",
+      "TC72",
+      "TC103"
+    ],
+    "requiredEvidence": "Ít nhất 5 Booking, đúng Customer, thứ tự, limit/paging",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 15,
+    "title": "Đặt xe",
+    "requirements": "FR09–FR12, FR15–FR16; UC06",
+    "testCases": [
+      "TC31",
+      "TC32",
+      "TC33",
+      "TC34",
+      "TC39",
+      "TC40",
+      "TC41"
+    ],
+    "requiredEvidence": "Booking SEARCHING→offer, BIKE server, chưa tạo Trip sớm",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 16,
+    "title": "Tài xế nhận chuyến",
+    "requirements": "FR13–FR14; UC18",
+    "testCases": [
+      "TC35",
+      "TC36",
+      "TC37",
+      "TC38"
+    ],
+    "requiredEvidence": "Nhận lời mời→Trip ASSIGNED; khách thấy Driver; cạnh tranh không trùng",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 17,
+    "title": "Cập nhật trạng thái chuyến",
+    "requirements": "FR17, FR22, FR47; UC19–UC20",
+    "testCases": [
+      "TC45",
+      "TC46",
+      "TC47",
+      "TC48",
+      "TC52",
+      "TC53",
+      "TC54",
+      "TC55"
+    ],
+    "requiredEvidence": "ARRIVED→IN_PROGRESS→location→COMPLETED, cước đúng",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 18,
+    "title": "Hủy chuyến",
+    "requirements": "FR20–FR21; UC08",
+    "testCases": [
+      "TC49",
+      "TC50",
+      "TC51",
+      "TC52"
+    ],
+    "requiredEvidence": "Trip đã phân công→CANCELED; lý do, notification và release; thêm hủy SEARCHING",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 19,
+    "title": "Thanh toán online",
+    "requirements": "FR23, FR25–FR28; UC09, UC27",
+    "testCases": [
+      "TC56",
+      "TC59",
+      "TC60",
+      "TC61",
+      "TC62",
+      "TC63",
+      "TC64",
+      "TC65",
+      "TC66",
+      "TC105"
+    ],
+    "requiredEvidence": "Sau COMPLETED; callback→Payment COMPLETED; view chuyến ghi đã thanh toán",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 20,
+    "title": "Đánh giá chuyến đi",
+    "requirements": "FR34; UC11",
+    "testCases": [
+      "TC73",
+      "TC74"
+    ],
+    "requiredEvidence": "Review đúng Trip, sao 1–5, một review/trip",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 21,
+    "title": "Đăng ký tài xế",
+    "requirements": "FR01, FR43–FR44; UC01, UC12–UC15",
+    "testCases": [
+      "TC02",
+      "TC09",
+      "TC10",
+      "TC11",
+      "TC12",
+      "TC13",
+      "TC14",
+      "TC15",
+      "TC16",
+      "TC17",
+      "TC18",
+      "TC19"
+    ],
+    "requiredEvidence": "Phone→OTP mock→hồ sơ/BIKE→gửi PENDING, không dừng ở DRAFT",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 22,
+    "title": "Duyệt hồ sơ tài xế",
+    "requirements": "FR45, FR48; UC22, UC04",
+    "testCases": [
+      "TC20",
+      "TC21",
+      "TC22",
+      "TC70",
+      "TC71"
+    ],
+    "requiredEvidence": "ADMIN list/detail/approve/reject; Driver đọc kết quả",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 23,
+    "title": "Bật/tắt trạng thái nhận chuyến",
+    "requirements": "FR07; UC16",
+    "testCases": [
+      "TC23",
+      "TC24",
+      "TC25"
+    ],
+    "requiredEvidence": "Online đủ điều kiện, offline lưu, không tự hủy Trip",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 24,
+    "title": "Data encryption at rest",
+    "requirements": "NFR02, NFR21",
+    "testCases": [
+      "TC93"
+    ],
+    "requiredEvidence": "Postman + MongoDB + key config; phân biệt hash và encryption",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 25,
+    "title": "SQL injection attempt",
+    "requirements": "NFR22; FR02",
+    "testCases": [
+      "TC94"
+    ],
+    "requiredEvidence": "SQL string và NoSQL object không bypass, 400/401",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 26,
+    "title": "XSS input test",
+    "requirements": "NFR23",
+    "testCases": [
+      "TC96"
+    ],
+    "requiredEvidence": "Payload script→400, JSON/escape; harness kiểm tra không execute",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 27,
+    "title": "JWT tampering",
+    "requirements": "NFR24; FR40",
+    "testCases": [
+      "TC79",
+      "TC95"
+    ],
+    "requiredEvidence": "Token sửa sub/role, sai chữ ký →401; không nhầm decode với verify",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 28,
+    "title": "Unauthorized API access",
+    "requirements": "NFR01, NFR24; FR40",
+    "testCases": [
+      "TC80",
+      "TC81"
+    ],
+    "requiredEvidence": "Customer gọi thao tác Driver→403; thêm ownership theo ID",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 29,
+    "title": "Rate limit attack",
+    "requirements": "NFR04, NFR25",
+    "testCases": [
+      "TC92",
+      "TC97"
+    ],
+    "requiredEvidence": "Redis TTL/429/Retry-After; công cụ tải riêng >1000 req/s có actual",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  },
+  {
+    "criterion": 30,
+    "title": "Replay attack (idempotency)",
+    "requirements": "FR25–FR27; NFR10–NFR11",
+    "testCases": [
+      "TC60",
+      "TC63",
+      "TC64",
+      "TC65",
+      "TC105"
+    ],
+    "requiredEvidence": "Request/callback lặp và đồng thời; trả cũ; không double charge",
+    "status": "BLOCKED",
+    "actual": null,
+    "evidence": []
+  }
+]

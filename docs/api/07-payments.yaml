@@ -1,0 +1,931 @@
+openapi: 3.0.3
+info:
+  title: CAB MVP — Payments
+  version: 1.0.0
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa
+    triển khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+servers:
+- url: http://localhost:3000/api/v1
+  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+security:
+- BearerAuth: []
+tags:
+- name: Payments
+paths:
+  /trips/{tripId}/payment-summary:
+    get:
+      tags:
+      - Payments
+      operationId: getPaymentSummary
+      summary: Xem cước và các attempt mock
+      description: Xem cước và các attempt mock
+      x-grpc: cab.payment.v1.PaymentService/GetPaymentSummary
+      x-allowed-roles:
+      - CUSTOMER
+      - ADMIN
+      x-ownership: Customer của Trip hoặc ADMIN; amount từ Trip, chưa có cước là null, chưa thanh toán là NOT_STARTED.
+      x-srs:
+      - FR23
+      - AC56
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentSummary'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: tripId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        description: ''
+  /trips/{tripId}/payments:
+    post:
+      tags:
+      - Payments
+      operationId: createPayment
+      summary: Customer khởi tạo MOCK_ONLINE sau COMPLETED
+      description: Trip COMPLETED/cước hợp lệ/đúng chủ. Không nhận amount/method/status. PENDING/COMPLETED
+        với key khác 409. Chỉ CreatePayment attempt 1; sau FAILED dùng endpoint retry. Replay key cũ trả resource
+        cũ trước kiểm điều kiện lượt.
+      x-grpc: cab.payment.v1.PaymentService/CreatePayment
+      x-allowed-roles:
+      - CUSTOMER
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR25
+      - AC59
+      - AC60
+      - AC105
+      responses:
+        '201':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '200':
+          description: 'Replay cùng khóa và payload: trả resource đã tạo, cùng ID, không tạo thêm.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: tripId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        description: ''
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[!-~]+$
+        description: Cùng caller/đối tượng và payload trả kết quả cũ; khác payload 409. Giữ khóa suốt vòng
+          đời dữ liệu demo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmptyInput'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value: {}
+      x-idempotency:
+        required: true
+        replayStatus: 200
+        conflictStatus: 409
+        retention: lifetime-of-demo-data
+  /payments/{paymentId}:
+    get:
+      tags:
+      - Payments
+      operationId: getPayment
+      summary: Tra cứu attempt đã ghi nhận
+      description: Tra cứu attempt đã ghi nhận
+      x-grpc: cab.payment.v1.PaymentService/GetPayment
+      x-allowed-roles:
+      - CUSTOMER
+      - ADMIN
+      x-ownership: Customer sở hữu hoặc ADMIN; PENDING không tự thành FAILED vì chờ lâu.
+      x-srs:
+      - FR28
+      - AC66
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: paymentId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        description: ''
+  /payments/{paymentId}/retries:
+    post:
+      tags:
+      - Payments
+      operationId: retryPayment
+      summary: Retry attempt FAILED với key mới
+      description: paymentId là attempt FAILED mới nhất, không còn PENDING/COMPLETED, tổng <=3. Key replay
+        trả attempt đã tạo; key mới tạo paymentId/attempt mới. Hết lượt 409, không có CASH.
+      x-grpc: cab.payment.v1.PaymentService/RetryPayment
+      x-allowed-roles:
+      - CUSTOMER
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR27
+      - AC64
+      - AC65
+      - AC105
+      responses:
+        '201':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '200':
+          description: 'Replay cùng khóa và payload: trả resource đã tạo, cùng ID, không tạo thêm.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: paymentId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        description: ''
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[!-~]+$
+        description: Cùng caller/đối tượng và payload trả kết quả cũ; khác payload 409. Giữ khóa suốt vòng
+          đời dữ liệu demo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmptyInput'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value: {}
+      x-idempotency:
+        required: true
+        replayStatus: 200
+        conflictStatus: 409
+        retention: lifetime-of-demo-data
+  /payments/mock/callback:
+    post:
+      tags:
+      - Payments
+      operationId: handleMockCallback
+      summary: Tiếp nhận callback mock đã ký
+      description: Không dùng JWT Customer. HMAC-SHA256 trên ASCII(timestamp)+LF+raw UTF-8 body; X-Mock-Timestamp
+        bằng body.timestamp. Gateway giữ raw bytes và chuyển gRPC. Sai chữ ký 401; mismatch/timestamp mới quá
+        ±300 giây 400; trái kết quả cuối 409. Duplicate hợp lệ trả 200/duplicate=true trước kiểm tuổi event
+        đã xử lý; luôn verify signature. Script mock giữ secret ngoài Git/Postman.
+      x-grpc: cab.payment.v1.PaymentService/HandleMockCallback
+      x-allowed-roles: []
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR26
+      - AC61
+      - AC62
+      - AC63
+      - AC105
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallbackAcknowledgement'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+      - MockSignature: []
+      parameters:
+      - name: X-Mock-Signature
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 71
+          maxLength: 71
+          pattern: ^sha256=[0-9a-f]{64}$
+        description: ''
+      - name: X-Mock-Timestamp
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: ^[0-9]+$
+        description: ''
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MockCallback'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value:
+                  eventId: demo-callback-1
+                  paymentId: 000000000000000000000008
+                  referenceCode: MOCK-DEMO-1
+                  amount: 20000
+                  currency: VND
+                  result: COMPLETED
+                  timestamp: 1793059200
+  /admin/payments:
+    get:
+      tags:
+      - Payments
+      operationId: listPayments
+      summary: ADMIN tra cứu các Payment attempt
+      description: ADMIN tra cứu các Payment attempt
+      x-grpc: cab.payment.v1.PaymentService/ListPayments
+      x-allowed-roles:
+      - ADMIN
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR29
+      - AC78
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentPage'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: ''
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
+        description: ''
+      - name: tripId
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        description: ''
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - PENDING
+          - COMPLETED
+          - FAILED
+        description: ''
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT HS256; verify signature, issuer=cab-auth, audience=cab-api, exp và sub; không chỉ decode.
+    MockSignature:
+      type: apiKey
+      in: header
+      name: X-Mock-Signature
+      description: Chữ ký mock; không phải token người dùng. Công thức trong docs/contracts.md.
+  schemas:
+    CallbackAcknowledgement:
+      type: object
+      additionalProperties: false
+      properties:
+        paymentId:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        accepted:
+          type: boolean
+          enum:
+          - true
+        duplicate:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - COMPLETED
+          - FAILED
+      required:
+      - paymentId
+      - accepted
+      - duplicate
+      - status
+    EmptyInput:
+      type: object
+      additionalProperties: false
+      properties: {}
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+        requestId:
+          type: string
+          minLength: 1
+          maxLength: 128
+      required:
+      - code
+      - message
+      - requestId
+    Fare:
+      type: integer
+      minimum: 0
+      maximum: 1000000000000
+      nullable: true
+      description: null khi chưa xác định; không dùng 0 để thay null.
+    MockCallback:
+      type: object
+      additionalProperties: false
+      properties:
+        eventId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        paymentId:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        referenceCode:
+          type: string
+          minLength: 1
+          maxLength: 128
+        amount:
+          type: integer
+          minimum: 0
+          maximum: 1000000000000
+        currency:
+          type: string
+          enum:
+          - VND
+        result:
+          type: string
+          enum:
+          - COMPLETED
+          - FAILED
+        timestamp:
+          type: integer
+          minimum: 0
+          maximum: 9999999999
+      required:
+      - eventId
+      - paymentId
+      - referenceCode
+      - amount
+      - currency
+      - result
+      - timestamp
+    Payment:
+      type: object
+      additionalProperties: false
+      properties:
+        paymentId: &id001
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        tripId: *id001
+        method:
+          type: string
+          enum:
+          - MOCK_ONLINE
+        status:
+          type: string
+          enum:
+          - PENDING
+          - COMPLETED
+          - FAILED
+        amount:
+          type: integer
+          minimum: 0
+          maximum: 1000000000000
+        currency:
+          type: string
+          enum:
+          - VND
+        referenceCode:
+          type: string
+          minLength: 1
+          maxLength: 128
+        attemptNumber:
+          type: integer
+          minimum: 1
+          maximum: 3
+        createdAt: &id002
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+        confirmedAt: *id002
+        failureCode:
+          type: string
+          minLength: 1
+          maxLength: 64
+      required:
+      - paymentId
+      - tripId
+      - method
+      - status
+      - amount
+      - currency
+      - referenceCode
+      - attemptNumber
+      - createdAt
+    PaymentPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        totalItems:
+          type: integer
+          minimum: 0
+          maximum: 1000000000000
+      required:
+      - items
+      - page
+      - limit
+      - totalItems
+    PaymentSummary:
+      type: object
+      additionalProperties: false
+      properties:
+        tripId:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        fareAmount:
+          $ref: '#/components/schemas/Fare'
+        currency:
+          type: string
+          enum:
+          - VND
+        hasCompleted:
+          type: boolean
+        latestStatus:
+          type: string
+          enum:
+          - NOT_STARTED
+          - PENDING
+          - COMPLETED
+          - FAILED
+        attempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Payment'
+          maxItems: 3
+      required:
+      - tripId
+      - fareAmount
+      - currency
+      - hasCompleted
+      - latestStatus
+      - attempts

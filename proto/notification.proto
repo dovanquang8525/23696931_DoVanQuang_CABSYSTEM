@@ -1,0 +1,15 @@
+syntax = "proto3";
+package cab.notification.v1;
+import "common.proto";
+// Deadline <=5s and forwarded remaining budget. JWT/internal identity in metadata.
+// Each method validates caller allowlist, types, enum values, role and ownership.
+message NotificationIdRequest {
+  string notification_id = 1;
+}
+
+service NotificationService {
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ListMyNotifications (cab.common.v1.PageRequest) returns (cab.common.v1.NotificationPage);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetNotification (NotificationIdRequest) returns (cab.common.v1.Notification);
+}

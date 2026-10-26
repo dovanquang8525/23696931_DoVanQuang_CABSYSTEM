@@ -1,0 +1,1958 @@
+[
+  {
+    "testCaseId": "TC01",
+    "acceptanceCriterion": "AC01",
+    "requirements": "FR01 / UC01",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Số mới, password 8–64 ký tự; profile consumer khỏe",
+    "steps": [
+      "POST /auth/register role CUSTOMER",
+      "login",
+      "poll GET /customers/me",
+      "đối chiếu một Account và một CustomerProfile, không DriverProfile."
+    ],
+    "expectedResult": "Tạo Account ACTIVE role CUSTOMER; profileStatus=PENDING khi chưa đồng bộ; trong 5 giây khi khỏe có một CustomerProfile liên kết và không có DriverProfile.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC02",
+    "acceptanceCriterion": "AC02",
+    "requirements": "FR01, FR43 / UC01",
+    "category": "positive",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Phone Driver mới, OTP mock verified/chưa dùng",
+    "steps": [
+      "Register DRIVER kèm otpId",
+      "login",
+      "poll profile DRAFT/offline",
+      "kiểm consumedAt tại Auth và một DriverProfile."
+    ],
+    "expectedResult": "Tạo Account ACTIVE role DRIVER, tiêu thụ OTP cục bộ; trong 5 giây khi khỏe có một DriverProfile DRAFT/offline. Trả trạng thái profile chờ nếu consumer chưa hoàn tất.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC03",
+    "acceptanceCriterion": "AC03",
+    "requirements": "FR01 / UC01",
+    "category": "negative/boundary",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Tách dữ liệu từng lần; không dùng phone đã tồn tại cho mọi biến thể",
+    "steps": [
+      "Thử thiếu phone",
+      "phone 9/11 số hoặc không bắt đầu 0",
+      "password 7/65 ký tự",
+      "phone trùng. Mỗi biến thể 400 hoặc 409 đúng lỗi, không có Account mới."
+    ],
+    "expectedResult": "Từ chối đăng ký; không báo thành công hoặc tạo thêm tài khoản.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC04",
+    "acceptanceCriterion": "AC04",
+    "requirements": "FR01 / UC01",
+    "category": "security",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Phone mới hợp lệ để không bị lỗi duplicate che mất kiểm role",
+    "steps": [
+      "Register ADMIN và role lạ",
+      "kỳ vọng 400, không tạo Account quyền cao."
+    ],
+    "expectedResult": "Từ chối; không tạo tài khoản với vai trò yêu cầu.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC05",
+    "acceptanceCriterion": "AC05",
+    "requirements": "FR02 / UC02",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Seed CUSTOMER ACTIVE, credential local đúng",
+    "steps": [
+      "POST /auth/login",
+      "kiểm 200, accessToken, tokenType Bearer, exp, Account role",
+      "dùng token GET /auth/me."
+    ],
+    "expectedResult": "Trả JWT có thời hạn hiệu lực và thông tin tài khoản được phép hiển thị.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC06",
+    "acceptanceCriterion": "AC06",
+    "requirements": "FR02 / UC02",
+    "category": "negative",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Tài khoản ACTIVE, DISABLED và số chưa tồn tại được chuẩn bị riêng",
+    "steps": [
+      "Login sai password",
+      "số chưa có",
+      "tài khoản DISABLED. Không có JWT, lỗi không tiết lộ sự tồn tại",
+      "ghi mã theo hợp đồng."
+    ],
+    "expectedResult": "Không cấp JWT; lỗi đăng nhập không tiết lộ tài khoản có tồn tại hay không.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC07",
+    "acceptanceCriterion": "AC07",
+    "requirements": "FR03 / UC03",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "CUSTOMER đã có profile, token owner hợp lệ",
+    "steps": [
+      "PATCH fullName/email hợp lệ rồi GET /customers/me",
+      "chỉ hai field thay đổi, ID/role/phone không đổi."
+    ],
+    "expectedResult": "Lưu thay đổi và trả thông tin mới; vai trò, số điện thoại đăng nhập và trạng thái duyệt không đổi.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC08",
+    "acceptanceCriterion": "AC08",
+    "requirements": "FR03 / UC03",
+    "category": "security",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Token owner hợp lệ",
+    "steps": [
+      "PATCH role, permissions, approvalStatus, phone/accountId từng biến thể",
+      "400 unknown field, GET lại không đổi."
+    ],
+    "expectedResult": "Từ chối cập nhật các trường này; không áp dụng thay đổi trái quyền.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC09",
+    "acceptanceCriterion": "AC09",
+    "requirements": "FR43 / UC12",
+    "category": "positive/boundary",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "OTP_MOCK_MODE=true, phone mới, ngoài cooldown",
+    "steps": [
+      "Request OTP",
+      "kiểm 6 số và expiresAt 5 phút",
+      "sau cooldown xin mã mới",
+      "thử mã cũ thất bại, kiểm invalidatedAt/codeHash."
+    ],
+    "expectedResult": "Tạo OTP 6 chữ số, hiệu lực 5 phút; mã mới vô hiệu mã cũ.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC10",
+    "acceptanceCriterion": "AC10",
+    "requirements": "FR43 / UC12",
+    "category": "negative/boundary",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Vừa RequestOtp cho phone mới",
+    "steps": [
+      "Gửi RequestOtp lần nữa trước 60 giây",
+      "kỳ vọng 429/Retry-After, không tạo challenge mới. Sau 60 giây thử lại",
+      "không để IP counter che test per-phone."
+    ],
+    "expectedResult": "Từ chối tạo mã mới; trả thông tin thời gian cần chờ.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC11",
+    "acceptanceCriterion": "AC11",
+    "requirements": "FR43 / UC12",
+    "category": "positive",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "OTP còn hạn, chưa sai 5 lần",
+    "steps": [
+      "Verify đúng phone/code/otpId",
+      "Register đúng phone với otpId đó",
+      "kiểm verifiedAt và consumedAt",
+      "không dùng lần hai."
+    ],
+    "expectedResult": "Ghi nhận xác minh thành công; bằng chứng đăng ký gắn đúng số điện thoại và mục đích, chỉ sử dụng một lần.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC12",
+    "acceptanceCriterion": "AC12",
+    "requirements": "FR43 / UC12",
+    "category": "negative/boundary",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Challenge độc lập cho từng biến thể, không làm chung OTP đã bị khóa",
+    "steps": [
+      "Chạy riêng sai mã",
+      "hết 5 phút",
+      "bị vô hiệu bởi mã mới",
+      "đã dùng đăng ký",
+      "5 lần sai rồi thử mã đúng. Không verified",
+      "counter tăng đúng."
+    ],
+    "expectedResult": "Không xác minh thành công. Mã sai tăng bộ đếm; sau 5 lần sai, mã đó không được tiếp tục xác minh.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC13",
+    "acceptanceCriterion": "AC13",
+    "requirements": "FR05 / UC13",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Driver DRAFT và Driver REJECTED độc lập",
+    "steps": [
+      "PATCH fullName/licenseNumber hợp lệ",
+      "GET đúng owner",
+      "dữ liệu lưu, trạng thái vẫn DRAFT/REJECTED."
+    ],
+    "expectedResult": "Lưu các trường hợp lệ; không tự chuyển hồ sơ sang `PENDING` hoặc `APPROVED`.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC14",
+    "acceptanceCriterion": "AC14",
+    "requirements": "FR05 / UC13",
+    "category": "negative",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Driver PENDING và APPROVED độc lập",
+    "steps": [
+      "PATCH field xét duyệt",
+      "kỳ vọng 409 INVALID_STATE",
+      "GET không đổi, không nâng quyền."
+    ],
+    "expectedResult": "Từ chối; tài xế vẫn được xem hồ sơ và kết quả duyệt.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC15",
+    "acceptanceCriterion": "AC15",
+    "requirements": "FR06 / UC14",
+    "category": "positive/negative",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Driver chưa có xe, profile có quyền, plate demo chưa trùng",
+    "steps": [
+      "PUT /drivers/me/vehicle plate/model/color",
+      "server BIKE/owner. Thử plate trùng hoặc thêm vehicleType CAR",
+      "không ghi sai."
+    ],
+    "expectedResult": "Lưu xe thuộc tài xế; chỉ chấp nhận `BIKE`.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC16",
+    "acceptanceCriterion": "AC16",
+    "requirements": "FR06 / UC14",
+    "category": "boundary",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Driver một Vehicle hiện tại, không bận",
+    "steps": [
+      "PUT lại xe hợp lệ",
+      "kiểm một vehicleId/driverId duy nhất. Gửi hai PUT cạnh tranh và đếm Vehicle tại driver_db."
+    ],
+    "expectedResult": "Sau khi thành công, tài xế có một xe BIKE isActive=true; không tạo thêm Vehicle cho cùng Driver trong MVP.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC17",
+    "acceptanceCriterion": "AC17",
+    "requirements": "FR06 / UC14",
+    "category": "negative",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Driver đang giữ reservation hoặc Trip chưa kết thúc",
+    "steps": [
+      "PUT đổi plate/model",
+      "kỳ vọng 409",
+      "snapshot Trip và Vehicle không đổi. Kiểm thêm race cập nhật xe/nhận chuyến bằng integration test."
+    ],
+    "expectedResult": "Từ chối thay đổi; xe đã phân công cho trip giữ nguyên.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC18",
+    "acceptanceCriterion": "AC18",
+    "requirements": "FR44 / UC15",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Driver DRAFT/REJECTED đủ fullName/licenseNumber/BIKE",
+    "steps": [
+      "POST submissions {}",
+      "kiểm PENDING, submittedAt",
+      "không coi DRAFT lúc Register là đã đạt mục 21."
+    ],
+    "expectedResult": "Chuyển hồ sơ sang `PENDING` và lưu thời điểm gửi.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC19",
+    "acceptanceCriterion": "AC19",
+    "requirements": "FR44 / UC15",
+    "category": "negative",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Driver DRAFT thiếu license hoặc Vehicle; fixture độc lập cho từng thiếu sót",
+    "steps": [
+      "POST submissions body {}",
+      "hồ sơ/xe chưa đủ là 409 INVALID_STATE và không chuyển PENDING. Trường input lạ là test validation riêng trả 400, không dùng 500/503 để thay lỗi nghiệp vụ."
+    ],
+    "expectedResult": "Từ chối; trả các thông tin cần bổ sung; không chuyển `PENDING`.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC20",
+    "acceptanceCriterion": "AC20",
+    "requirements": "FR45 / UC22",
+    "category": "positive",
+    "executionMode": "POSTMAN+EVENT",
+    "preconditionsAndData": "ADMIN token hợp lệ, Driver PENDING",
+    "steps": [
+      "ADMIN GET /admin/drivers và GET /drivers/{id}",
+      "POST APPROVED",
+      "kiểm reviewedAt, không online",
+      "Driver poll thông báo approval_changed."
+    ],
+    "expectedResult": "Chuyển `APPROVED`, lưu người xử lý và thời điểm; tạo thông báo kết quả; không tự bật online.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC21",
+    "acceptanceCriterion": "AC21",
+    "requirements": "FR45 / UC22",
+    "category": "positive/boundary",
+    "executionMode": "POSTMAN+EVENT",
+    "preconditionsAndData": "Driver PENDING, ADMIN",
+    "steps": [
+      "POST REJECTED với reason 1 và 300 ký tự sau trim trên fixture riêng",
+      "kiểm REJECTED, lý do, reviewer và Notification."
+    ],
+    "expectedResult": "Chuyển `REJECTED`; lưu lý do 1–300 ký tự sau trim, người xử lý và thời điểm; tạo thông báo.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC22",
+    "acceptanceCriterion": "AC22",
+    "requirements": "FR45 / UC22",
+    "category": "negative",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Hồ sơ đã APPROVED/REJECTED hoặc reason rỗng",
+    "steps": [
+      "Thử quyết định khi không PENDING (409)",
+      "thử REJECTED thiếu/whitespace reason (400)",
+      "giữ nguyên kết quả."
+    ],
+    "expectedResult": "Không ghi quyết định duyệt mới; giữ kết quả đang có.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC23",
+    "acceptanceCriterion": "AC23",
+    "requirements": "FR07 / UC16",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "ACTIVE/APPROVED/BIKE/không thiếu vị trí; vị trí vừa refresh",
+    "steps": [
+      "PUT location rồi availability isOnline=true",
+      "GET Driver xác nhận true, không tự tạo Trip."
+    ],
+    "expectedResult": "Lưu `isOnline = true`.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC24",
+    "acceptanceCriterion": "AC24",
+    "requirements": "FR07 / UC16",
+    "category": "negative",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Fixture riêng: DRAFT/PENDING/REJECTED, không xe, vị trí stale, Account DISABLED",
+    "steps": [
+      "Thử online với từng thiếu điều kiện",
+      "409 cho điều kiện nghiệp vụ, 403 Account DISABLED",
+      "không online."
+    ],
+    "expectedResult": "Từ chối và trả lý do; không bật online.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC25",
+    "acceptanceCriterion": "AC25",
+    "requirements": "FR07 / UC16",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Driver có Trip ASSIGNED/ARRIVED/IN_PROGRESS",
+    "steps": [
+      "PUT isOnline=false",
+      "Trip vẫn trạng thái trước đó, không nhận thêm booking mới",
+      "vẫn thực hiện được Trip đã phân công."
+    ],
+    "expectedResult": "Lưu `isOnline = false`; không nhận chuyến mới, nhưng trip đã nhận không bị tự hủy.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC26",
+    "acceptanceCriterion": "AC26",
+    "requirements": "FR08 / UC17",
+    "category": "boundary",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Driver token hợp lệ",
+    "steps": [
+      "PUT location ở [-90,90]/[-180,180] gồm biên",
+      "kiểm timestamp server và online không tự đổi. Dùng fixture khác cho tọa độ cực để không phá Happy path."
+    ],
+    "expectedResult": "Lưu vị trí mới và thời điểm server nhận; không tự thay đổi trạng thái online.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC27",
+    "acceptanceCriterion": "AC27",
+    "requirements": "FR08 / UC17",
+    "category": "negative/boundary",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Đã lưu một vị trí hợp lệ",
+    "steps": [
+      "Gửi thiếu latitude",
+      "latitude 90.0001",
+      "longitude -180.0001",
+      "string thay number. 400, GET giữ vị trí và timestamp cũ."
+    ],
+    "expectedResult": "Từ chối; vị trí hợp lệ trước đó và thời điểm của nó không bị ghi đè.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC28",
+    "acceptanceCriterion": "AC28",
+    "requirements": "FR46 / UC05",
+    "category": "positive/boundary",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": ">=5 Driver khác điều kiện, vị trí mới; tính fixture Haversine 0.999/1.001 km",
+    "steps": [
+      "GET nearby",
+      "chỉ đủ điều kiện và <=1 km, không license/hash. Kiểm Driver stale/busy/offline/rejected ngoài danh sách."
+    ],
+    "expectedResult": "Chỉ trả tài xế đủ điều kiện, không bận, vị trí không quá 120 giây và khoảng cách không quá 1 km; không trả dữ liệu nhạy cảm.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC29",
+    "acceptanceCriterion": "AC29",
+    "requirements": "FR46 / UC05",
+    "category": "boundary",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": ">=3 Driver eligible; hai vị trí trùng để tie distance; ID biết trước",
+    "steps": [
+      "GET nearby page 1/2 limit 1/2",
+      "ghép danh sách và so distance tăng, tie driverId tăng",
+      "không đảo thứ tự trên cùng snapshot."
+    ],
+    "expectedResult": "Sắp xếp khoảng cách tăng dần, sau đó `driverId` tăng dần; phân trang theo thứ tự này.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC30",
+    "acceptanceCriterion": "AC30",
+    "requirements": "FR33, FR46 / UC05, UC10",
+    "category": "negative/boundary/empty",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Seed >=5 Booking của Customer; eligible Driver đủ phân trang",
+    "steps": [
+      "Thử mặc định",
+      "page=1, limit=1/50",
+      "page=0/1.5, limit=0/51/string",
+      "trang xa không có dữ liệu. Đúng 400 hoặc items=[] theo từng input."
+    ],
+    "expectedResult": "Mặc định `page = 1`, `limit = 10`; chỉ nhận page nguyên ≥ 1 và limit nguyên từ 1–50. Input sai bị từ chối; trang không có dữ liệu trả danh sách trống.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC31",
+    "acceptanceCriterion": "AC31",
+    "requirements": "FR09 / UC06",
+    "category": "positive/negative",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Customer profile ready, coords khác nhau, key mới",
+    "steps": [
+      "POST Booking tọa độ HCM demo",
+      "201 SEARCHING/BIKE, snapshot giá. Thử tọa độ trùng, vehicleType/amount/client owner hoặc tọa độ sai",
+      "400, không ghi."
+    ],
+    "expectedResult": "Tạo một Booking `SEARCHING`; server lưu khoảng cách Haversine và thông số giá áp dụng.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC32",
+    "acceptanceCriterion": "AC32",
+    "requirements": "FR09 / UC06",
+    "category": "replay",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Booking đã tạo, giữ nguyên key/body/snapshot phản hồi gốc",
+    "steps": [
+      "Replay key/body ->200 cùng snapshot/ID",
+      "cùng key đổi destination hợp lệ ->409 IDEMPOTENCY_CONFLICT",
+      "đếm Booking, không mở tìm lại."
+    ],
+    "expectedResult": "Trả booking đã tạo; không tạo booking hoặc vòng tìm kiếm mới. Cùng khóa nhưng khác dữ liệu bị từ chối xung đột.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC33",
+    "acceptanceCriterion": "AC33",
+    "requirements": "FR10–FR11 / UC06",
+    "category": "positive/boundary",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": ">=6 Driver eligible ở khoảng cách biết trước, thêm Driver bị loại",
+    "steps": [
+      "Tạo Booking, kiểm candidateDriverIds tối đa 5 theo distance/driverId",
+      "mọi candidate đều qua điều kiện, không bỏ sót lọc ACTIVE."
+    ],
+    "expectedResult": "Chỉ chọn tài xế đủ điều kiện trong bán kính 1 km; sắp xếp khoảng cách tăng dần, sau đó `driverId` tăng dần; lưu tối đa 5 ứng viên ban đầu.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC34",
+    "acceptanceCriterion": "AC34",
+    "requirements": "FR12 / UC06",
+    "category": "positive",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Booking SEARCHING, ứng viên còn",
+    "steps": [
+      "Poll lời mời",
+      "kiểm expiresAt 30 giây, chỉ một invitation PENDING. Đếm DB khi worker chuyển ứng viên."
+    ],
+    "expectedResult": "Tạo một lời mời `PENDING`, hiệu lực 30 giây theo thời gian server; booking không có hai lời mời còn hiệu lực.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC35",
+    "acceptanceCriterion": "AC35",
+    "requirements": "FR13 / UC18",
+    "category": "boundary",
+    "executionMode": "POSTMAN+INTEGRATION",
+    "preconditionsAndData": "Driver đúng, invitation trước expiry; fixture clock cho biên chính xác",
+    "steps": [
+      "ACCEPT trước expiresAt thành công",
+      "sai Driver 403",
+      "tại/sau expiresAt 409. Postman chờ >30 giây kiểm muộn, integration clock kiểm đúng thời điểm biên."
+    ],
+    "expectedResult": "Tiếp nhận chấp nhận hoặc từ chối. Phản hồi tại hoặc sau `expiresAt` không được dùng để phân công.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC36",
+    "acceptanceCriterion": "AC36",
+    "requirements": "FR14 / UC06, UC18",
+    "category": "positive",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Invitation hợp lệ, Driver không bận",
+    "steps": [
+      "ACCEPT",
+      "kiểm Booking ASSIGNED, Trip ASSIGNED có snapshots/IDs đúng, Driver activeTripId đúng",
+      "chỉ một Trip/Booking."
+    ],
+    "expectedResult": "Tạo đúng một Trip `ASSIGNED`; lưu tài xế, xe và snapshot cần thiết; booking `ASSIGNED`, lời mời `ACCEPTED`, tài xế được ghi nhận bận.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC37",
+    "acceptanceCriterion": "AC37",
+    "requirements": "FR14 / UC18",
+    "category": "concurrency",
+    "executionMode": "CONCURRENCY+DB",
+    "preconditionsAndData": "Hai request cùng Booking; sau đó hai Booking mời cùng Driver, fixture độc lập",
+    "steps": [
+      "Gửi đồng thời bằng integration/ThreadPool. Tra cứu sau khi hết uncertainty",
+      "không hai Trip/Booking hoặc hai active Trip/Driver. Không chỉ nhìn HTTP 200."
+    ],
+    "expectedResult": "Không tạo hai trip cho một booking; không cho tài xế nhận hai trip chưa kết thúc. Yêu cầu không thành công không được trả kết quả phân công thành công.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC38",
+    "acceptanceCriterion": "AC38",
+    "requirements": "FR13 / UC18",
+    "category": "replay",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "ACCEPT đã thành công, invitation ID cũ",
+    "steps": [
+      "Gửi ACCEPT lần nữa ->200 kết quả đã lưu",
+      "đổi REJECT ->409",
+      "đếm Trip/notification không tăng sai."
+    ],
+    "expectedResult": "Trả kết quả đã lưu; không tạo thêm trip. Phản hồi trái kết quả cuối bị từ chối.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC39",
+    "acceptanceCriterion": "AC39",
+    "requirements": "FR15 / UC06, UC18",
+    "category": "exception",
+    "executionMode": "POSTMAN+WORKER",
+    "preconditionsAndData": "Hai ứng viên đủ điều kiện; Fixture reject, timeout, mất điều kiện riêng",
+    "steps": [
+      "REJECT hoặc không trả lời 30 giây hoặc cho Driver offline trước ACCEPT",
+      "worker đóng lời mời và mời ứng viên tiếp theo",
+      "không mời lại người đã xử lý."
+    ],
+    "expectedResult": "Đóng lời mời và xét ứng viên tiếp theo trong danh sách ban đầu; không mời lại ứng viên đã xử lý.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC40",
+    "acceptanceCriterion": "AC40",
+    "requirements": "FR16 / UC06",
+    "category": "empty/exception",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Không ứng viên hoặc tất cả 5 người từ chối/timeout",
+    "steps": [
+      "Tạo Booking",
+      "poll đến NO_DRIVER, không có Trip",
+      "Customer nhận thông báo",
+      "không dùng lỗi Auth/Driver down thay no_driver."
+    ],
+    "expectedResult": "Booking chuyển `NO_DRIVER`; không tạo trip; tạo thông báo cho khách hàng.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC41",
+    "acceptanceCriterion": "AC41",
+    "requirements": "FR12–FR15, FR21 / UC06, UC08",
+    "category": "concurrency/cancel",
+    "executionMode": "POSTMAN+CONCURRENCY",
+    "preconditionsAndData": "Booking SEARCHING, invitation PENDING",
+    "steps": [
+      "Customer xác nhận hủy",
+      "Driver ACCEPT muộn ->409, không Trip. Chạy race cancel/accept và kiểm đúng một kết quả cuối sau recovery."
+    ],
+    "expectedResult": "Dừng tìm kiếm và đóng lời mời; phản hồi đến sau không tạo trip hoặc chuyển booking thành `ASSIGNED`.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC42",
+    "acceptanceCriterion": "AC42",
+    "requirements": "FR18 / UC07",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Booking trước và sau phân công thuộc Customer",
+    "steps": [
+      "GET Booking trước có tripAvailability=NOT_CREATED",
+      "sau ASSIGNED có Trip/Driver public data",
+      "Customer khác 403, không có Trip giả."
+    ],
+    "expectedResult": "Trả trạng thái booking, trip nếu có và thông tin tài xế, xe được phép xem; booking chưa phân công không có trip giả.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC43",
+    "acceptanceCriterion": "AC43",
+    "requirements": "FR19 / UC07",
+    "category": "boundary",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Trip ASSIGNED, Driver location mới, sau đó ARRIVED",
+    "steps": [
+      "GET Booking",
+      "so ETA=ceil(distanceDriverPickup*60/20)",
+      "ARRIVED có minutes=0, không hứa tuyến đường thật."
+    ],
+    "expectedResult": "ETA bằng `ceil(distanceKm × 60 / 20)`, tính khoảng cách tài xế đến điểm đón; trip `ARRIVED` có ETA bằng 0.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC44",
+    "acceptanceCriterion": "AC44",
+    "requirements": "FR19 / UC07",
+    "category": "empty/exception",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Fixture chưa phân công, location stale, Trip IN_PROGRESS/COMPLETED/CANCELED",
+    "steps": [
+      "GET Booking",
+      "ETA UNAVAILABLE/NOT_APPLICABLE và không bịa minutes=0. So trạng thái phù hợp từng fixture."
+    ],
+    "expectedResult": "Thể hiện ETA chưa có hoặc không còn áp dụng; không trả số ước tính thiếu căn cứ.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC45",
+    "acceptanceCriterion": "AC45",
+    "requirements": "FR17 / UC19",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Trip ASSIGNED confirmed, Driver đúng",
+    "steps": [
+      "arrival ->ARRIVED",
+      "start ->IN_PROGRESS",
+      "location",
+      "completion ->COMPLETED",
+      "thời điểm server tuần tự, notification theo mốc bắt buộc."
+    ],
+    "expectedResult": "Chỉ chuyển `ASSIGNED → ARRIVED → IN_PROGRESS → COMPLETED`, lưu thời điểm mốc và tạo thông báo tương ứng.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC46",
+    "acceptanceCriterion": "AC46",
+    "requirements": "FR17 / UC19",
+    "category": "negative/replay",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Trip ASSIGNED chưa từng start; Trip CANCELED; Trip COMPLETED có lịch sử action",
+    "steps": [
+      "Thử start khi chưa ARRIVED",
+      "start Trip đã CANCELED ->409",
+      "replay action đã thành công ->200 kết quả cũ, không timestamp/event mới. Không nhầm replay start sau COMPLETED với hành động chưa từng thành công."
+    ],
+    "expectedResult": "Từ chối; trạng thái và thời điểm đã lưu giữ nguyên. Gửi lại mốc đã thành công không tạo thêm lần chuyển trạng thái.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC47",
+    "acceptanceCriterion": "AC47",
+    "requirements": "FR47 / UC20",
+    "category": "positive",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Trip IN_PROGRESS, Driver được phân công",
+    "steps": [
+      "PUT Trip location",
+      "GET Trip thấy latestLocation/time",
+      "Driver location đồng bộ",
+      "nếu RPC sync lỗi có pending để retry."
+    ],
+    "expectedResult": "Lưu vị trí trip mới nhất và thời điểm nhận; bản cập nhật hợp lệ được dùng để đồng bộ vị trí tài xế.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC48",
+    "acceptanceCriterion": "AC48",
+    "requirements": "FR47 / UC20",
+    "category": "negative",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Trip chưa bắt đầu/đã kết thúc, Driver khác, hoặc tọa độ sai",
+    "steps": [
+      "Gửi location theo từng biến thể",
+      "409/403/400 tương ứng",
+      "snapshot vị trí trước không bị ghi đè."
+    ],
+    "expectedResult": "Từ chối; không ghi đè vị trí trip.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC49",
+    "acceptanceCriterion": "AC49",
+    "requirements": "FR20 / UC08",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Booking SEARCHING hoặc Trip ASSIGNED/ARRIVED thuộc Customer",
+    "steps": [
+      "Preview reason hợp lệ ->allowed=true fee=0",
+      "GET vẫn chưa hủy. Lý do whitespace bị 400",
+      "ngoài quyền 403."
+    ],
+    "expectedResult": "Kiểm tra lý do 1–300 ký tự sau trim và hiển thị phí hủy 0 VND; chưa hủy khi khách hàng chưa xác nhận.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC50",
+    "acceptanceCriterion": "AC50",
+    "requirements": "FR21 / UC08",
+    "category": "positive",
+    "executionMode": "POSTMAN+EVENT",
+    "preconditionsAndData": "Trip ASSIGNED hoặc ARRIVED riêng, owner Customer",
+    "steps": [
+      "Preview rồi cancel confirmed=true",
+      "Trip CANCELED, Booking đồng bộ CANCELED, Driver release, Notification",
+      "không có Payment, fee=0."
+    ],
+    "expectedResult": "Lưu người hủy, lý do, thời điểm và phí; booking `CANCELED`, trip liên quan `CANCELED`; đóng lời mời hoặc giải phóng tài xế; tạo thông báo.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC51",
+    "acceptanceCriterion": "AC51",
+    "requirements": "FR20–FR21 / UC08",
+    "category": "negative/replay",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "IN_PROGRESS/COMPLETED/NO_DRIVER và CANCELED fixture riêng",
+    "steps": [
+      "Thử hủy trạng thái không được phép ->409",
+      "replay hủy thành công cùng reason ->200 và canceledAt không đổi",
+      "đổi reason ->409."
+    ],
+    "expectedResult": "Từ chối hủy thông thường. Gửi lại thao tác hủy đã thành công trả kết quả cũ, không đổi thời điểm hoặc tạo phí mới.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC52",
+    "acceptanceCriterion": "AC52",
+    "requirements": "FR17, FR21 / UC08, UC19",
+    "category": "positive/exception",
+    "executionMode": "POSTMAN+EVENT",
+    "preconditionsAndData": "Trip kết thúc khi Payment chưa khởi tạo, PENDING hoặc FAILED",
+    "steps": [
+      "Complete/cancel",
+      "poll Booking trạng thái cuối, Driver release",
+      "không giữ bận chỉ vì payment. Event cũ không release Trip mới."
+    ],
+    "expectedResult": "Booking chuyển trạng thái cuối tương ứng; tài xế không còn bận vì trip đó. Không giữ tài xế bận do payment chưa thành công.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC53",
+    "acceptanceCriterion": "AC53",
+    "requirements": "FR22 / UC19",
+    "category": "positive",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Trip IN_PROGRESS với pricingSnapshot hợp lệ",
+    "steps": [
+      "Complete",
+      "tính Haversine độc lập từ pickup/destination, fare=1000*ceil((10000+5000*d)/1000)",
+      "so fareAmount, không nhận client amount."
+    ],
+    "expectedResult": "Server tính cước từ khoảng cách, thông số giá đã lưu và làm tròn lên bội số 1.000 VND; không dùng số tiền client gửi.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC54",
+    "acceptanceCriterion": "AC54",
+    "requirements": "FR22 / UC19",
+    "category": "boundary",
+    "executionMode": "INTEGRATION+POSTMAN",
+    "preconditionsAndData": "Fixture snapshot distanceKm chính xác 2 và 2.01 theo test factory",
+    "steps": [
+      "Complete từng Trip: 20.000 và 21.000 VND",
+      "không làm tròn distance trước. Không sửa DB production để ép giá."
+    ],
+    "expectedResult": "Cước BIKE là 20.000 VND. Không làm tròn khoảng cách trước khi tính.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC55",
+    "acceptanceCriterion": "AC55",
+    "requirements": "FR22 / UC19",
+    "category": "exception",
+    "executionMode": "INTEGRATION+DB",
+    "preconditionsAndData": "Fixture kỹ thuật snapshot thiếu dữ liệu; không dùng API public để phá data",
+    "steps": [
+      "Complete vẫn COMPLETED/fareAmount null, Payment 409",
+      "sửa fixture nguồn hợp lệ và worker RecalculateFare, không thêm event completed trùng."
+    ],
+    "expectedResult": "Giữ `COMPLETED`, cước chưa xác định; không cho thanh toán; ghi log và có khả năng xử lý lại khi đủ dữ liệu.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC56",
+    "acceptanceCriterion": "AC56",
+    "requirements": "FR23 / UC09",
+    "category": "positive/negative",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Trip của Customer, trước hoàn thành và COMPLETED có/không cước",
+    "steps": [
+      "GET summary đúng dữ liệu Trip, null khi chưa xác định",
+      "CreatePayment chỉ sau COMPLETED/cước hợp lệ",
+      "người khác 403."
+    ],
+    "expectedResult": "Hiển thị cước do server lưu và các payment liên quan; chỉ cho thanh toán trip `COMPLETED` có cước hợp lệ.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC59",
+    "acceptanceCriterion": "AC59",
+    "requirements": "FR25 / UC09",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Trip COMPLETED chưa có attempt, mock DELAYED để quan sát PENDING",
+    "steps": [
+      "CreatePayment key mới body {}",
+      "201 PENDING, MOCK_ONLINE/VND/amount từ Trip, attempt=1",
+      "client amount bị 400."
+    ],
+    "expectedResult": "Tạo Payment `PENDING`, phương thức `MOCK_ONLINE`, tiền tệ `VND`, mã tham chiếu và số tiền do server xác định.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC60",
+    "acceptanceCriterion": "AC60",
+    "requirements": "FR25 / UC09",
+    "category": "replay/concurrency",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Payment PENDING, key/body gốc; retry fixture cho payload key conflict",
+    "steps": [
+      "Replay ->200 snapshot gốc, key mới khi PENDING ->409",
+      "reuse key trên retry request payload khác cùng Trip ->409",
+      "đếm không attempt mới trái phép."
+    ],
+    "expectedResult": "Yêu cầu lặp trả payment cũ; không tạo thêm payment khi đang chờ. Cùng khóa nhưng khác dữ liệu bị từ chối.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC61",
+    "acceptanceCriterion": "AC61",
+    "requirements": "FR26 / UC27",
+    "category": "positive",
+    "executionMode": "POSTMAN+MOCK",
+    "preconditionsAndData": "PENDING fixture, tool ký callback đọc secret local ngoài Postman",
+    "steps": [
+      "Callback hợp lệ COMPLETED và FAILED trên hai Payment riêng",
+      "kiểm đúng status, timestamp và Notification, Trip vẫn COMPLETED."
+    ],
+    "expectedResult": "Cập nhật payment `PENDING` thành `COMPLETED` hoặc `FAILED` theo kết quả; lưu thời điểm và tạo thông báo.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC62",
+    "acceptanceCriterion": "AC62",
+    "requirements": "FR26 / UC27",
+    "category": "security",
+    "executionMode": "POSTMAN+MOCK",
+    "preconditionsAndData": "PENDING fixture cho từng biến thể; tool ký bằng đúng key khi thử mismatch data",
+    "steps": [
+      "Thử sai signature (401)",
+      "đúng signature nhưng sai amount/reference/VND hoặc stale timestamp (400), payment không tồn tại (404)",
+      "không đổi trạng thái."
+    ],
+    "expectedResult": "Từ chối; không thay đổi payment hoặc ghi nhận đã thanh toán.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC63",
+    "acceptanceCriterion": "AC63",
+    "requirements": "FR26 / UC27",
+    "category": "replay",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Đã có callback hợp lệ và giữ nguyên raw body/headers",
+    "steps": [
+      "Gửi lại exact callback ->200 duplicate=true",
+      "event mới cùng Payment nhưng trái kết quả cuối ->409",
+      "callback signature sai luôn401",
+      "không outbox/charge thứ hai."
+    ],
+    "expectedResult": "Callback trùng không xử lý thêm; callback trái kết quả cuối bị từ chối và ghi log; không có hai thanh toán thành công cho trip.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC64",
+    "acceptanceCriterion": "AC64",
+    "requirements": "FR27 / UC09",
+    "category": "positive/boundary",
+    "executionMode": "POSTMAN+MOCK",
+    "preconditionsAndData": "Attempt1 FAILED, không PENDING/COMPLETED, còn lượt",
+    "steps": [
+      "Retry key mới ->201 paymentId mới/attempt2",
+      "mock FAILED rồi repeat ->attempt3",
+      "replay key cũ không tăng attempt."
+    ],
+    "expectedResult": "Cho tạo payment mới bằng khóa mới; tổng tối đa 3 lần online, gồm lần đầu và 2 retry.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC65",
+    "acceptanceCriterion": "AC65",
+    "requirements": "FR27–FR28 / UC09",
+    "category": "negative/boundary",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Fixture PENDING; COMPLETED; đủ 3 FAILED riêng",
+    "steps": [
+      "Retry từng fixture ->409",
+      "hết lượt không tạo CASH. Đếm tổng attempt<=3, không chỉ xem lỗi HTTP."
+    ],
+    "expectedResult": "Không cho retry online; giữ kết quả để tra cứu, không có phương thức thay thế trong MVP.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC66",
+    "acceptanceCriterion": "AC66",
+    "requirements": "FR28 / UC09",
+    "category": "positive/empty",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Mock DELAYED không callback, PENDING đã lưu",
+    "steps": [
+      "GET Payment nhiều lần vẫn PENDING",
+      "chờ không tự retry/FAILED. Sau callback hợp lệ GET kết quả cuối."
+    ],
+    "expectedResult": "Trả trạng thái đã lưu; không tự chuyển `PENDING` thành `FAILED` chỉ vì chờ lâu hoặc client mất kết nối.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC67",
+    "acceptanceCriterion": "AC67",
+    "requirements": "FR30 / UC06–UC08, UC19",
+    "category": "positive",
+    "executionMode": "POSTMAN+EVENT",
+    "preconditionsAndData": "Customer tạo/được phân công/arrived/completed/cancel fixtures",
+    "steps": [
+      "Poll notifications đúng customerAccountId và relatedEntityId/type cho từng mốc",
+      "đối chiếu event gốc/DB, mục tiêu đồng bộ 5 giây khi khỏe."
+    ],
+    "expectedResult": "Tạo thông báo đúng khách hàng liên quan, nội dung phù hợp kết quả nghiệp vụ đã lưu.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC68",
+    "acceptanceCriterion": "AC68",
+    "requirements": "FR31 / UC08, UC18–UC19",
+    "category": "positive",
+    "executionMode": "POSTMAN+EVENT",
+    "preconditionsAndData": "Driver được mời/nhận chuyến, Customer hủy fixture",
+    "steps": [
+      "Driver đọc invitation và notification đúng account",
+      "lời mời nguồn ở Booking",
+      "sự kiện thay đổi/hủy đến đúng Driver."
+    ],
+    "expectedResult": "Tạo thông báo đúng tài xế; lời mời nhận chuyến vẫn được quản lý bằng TripInvitation.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC69",
+    "acceptanceCriterion": "AC69",
+    "requirements": "FR32 / UC09, UC27",
+    "category": "positive",
+    "executionMode": "POSTMAN+EVENT",
+    "preconditionsAndData": "Payment COMPLETED và FAILED trên fixture riêng",
+    "steps": [
+      "GET notifications Customer",
+      "có payment.completed/payment.failed đúng Payment ID và amount/status tương ứng."
+    ],
+    "expectedResult": "Tạo thông báo đúng khách hàng, nhất quán trạng thái payment đã lưu.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC70",
+    "acceptanceCriterion": "AC70",
+    "requirements": "FR30–FR32, FR45 / Các UC liên quan",
+    "category": "replay/exception",
+    "executionMode": "EVENT+DB",
+    "preconditionsAndData": "Outbox/inbox chạy, replay cùng eventId; consumer lỗi trước ACK",
+    "steps": [
+      "Deliver lại event và restart consumer",
+      "unique notification/event/recipient/type",
+      "lỗi notification không rollback nghiệp vụ",
+      "xử lý DLQ theo hướng dẫn."
+    ],
+    "expectedResult": "Không tạo thông báo trùng cho cùng người nhận và loại; lỗi thông báo được ghi log, không đảo ngược nghiệp vụ.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC71",
+    "acceptanceCriterion": "AC71",
+    "requirements": "FR48 / UC04",
+    "category": "security",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Hai Customer token hợp lệ và notification_id thuộc Customer1",
+    "steps": [
+      "Customer1 list/detail được",
+      "Customer2 GET cùng ID403",
+      "list Customer2 không có thông báo Customer1",
+      "ADMIN không tự đọc notification người khác."
+    ],
+    "expectedResult": "Chỉ trả thông báo gửi cho tài khoản hiện tại; không trả thông báo của người khác.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC72",
+    "acceptanceCriterion": "AC72",
+    "requirements": "FR33 / UC10",
+    "category": "positive/boundary",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": ">=5 Booking Customer1 gồm NO_DRIVER/CANCELED, có Customer2",
+    "steps": [
+      "GET page1/2 limit2, mặc định và page xa",
+      "so sort createdAt/id giảm, tổng và owner",
+      "gồm Booking chưa có Trip."
+    ],
+    "expectedResult": "Chỉ trả booking thuộc mình, gồm cả kết quả hủy và `NO_DRIVER`; sắp xếp `createdAt` giảm dần, sau đó `bookingId` giảm dần; có phân trang.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC73",
+    "acceptanceCriterion": "AC73",
+    "requirements": "FR34 / UC11",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Trip COMPLETED chưa Review, thử chưa trả tiền và đã trả tiền trên fixture riêng",
+    "steps": [
+      "CreateReview rating1/5, comment tùy chọn",
+      "201 một Review đúng customer/driver/Trip. Không bắt Payment COMPLETED."
+    ],
+    "expectedResult": "Tạo một Review cho đúng tài xế của trip; rating nguyên 1–5, comment tùy chọn tối đa 500 ký tự; không bắt buộc đã thanh toán.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC74",
+    "acceptanceCriterion": "AC74",
+    "requirements": "FR34 / UC11",
+    "category": "negative/boundary",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Trip phù hợp cho mỗi lỗi; Review chưa tồn tại khi thử validation",
+    "steps": [
+      "Thử rating0/6/1.5, comment501, XSS",
+      "sai chủ, Trip chưa COMPLETED, duplicate. 400/403/409 đúng loại, không sửa Review cũ."
+    ],
+    "expectedResult": "Từ chối; không tạo hoặc sửa review đã lưu.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC75",
+    "acceptanceCriterion": "AC75",
+    "requirements": "FR35 / UC23",
+    "category": "positive/security",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "ADMIN token; Customer hồ sơ có ID",
+    "steps": [
+      "GET /admin/customers và /customers/{id}",
+      "trả trường được phép",
+      "không có chức năng ADMIN sửa hồ sơ ngoài MVP."
+    ],
+    "expectedResult": "Trả thông tin khách hàng được phép xem; không cung cấp quyền sửa hồ sơ khách hàng qua UC này.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC76",
+    "acceptanceCriterion": "AC76",
+    "requirements": "FR36 / UC24",
+    "category": "positive/exception",
+    "executionMode": "POSTMAN+FAILURE",
+    "preconditionsAndData": "Booking/Trip đang hoạt động; thử dependency Payment/Driver down riêng",
+    "steps": [
+      "ADMIN list Bookings/Trips/Drivers",
+      "trạng thái/thời điểm đúng",
+      "GetBooking availability UNAVAILABLE nếu thành phần lỗi, không giả chưa có dữ liệu."
+    ],
+    "expectedResult": "Trả booking, trip đang hoạt động và trạng thái tài xế cùng thời điểm cập nhật; phần dữ liệu không lấy được phải được thể hiện rõ.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC77",
+    "acceptanceCriterion": "AC77",
+    "requirements": "FR37 / UC25",
+    "category": "positive/boundary",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Seed nhiều customer/driver/status, ADMIN",
+    "steps": [
+      "List admin Bookings/Trips với filter customerId/driverId/status và paging",
+      "mọi dòng khớp bộ lọc, không ghi dữ liệu."
+    ],
+    "expectedResult": "Trả booking và trip phù hợp khách hàng, tài xế hoặc trạng thái; không thay đổi dữ liệu lịch sử.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC78",
+    "acceptanceCriterion": "AC78",
+    "requirements": "FR29 / UC26",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "ADMIN, Trip có attemptFAILED và retryCOMPLETED",
+    "steps": [
+      "GET /admin/payments filtertrip/status",
+      "thấy đúng amount/method/reference/timestamps",
+      "không endpoint sửa kết quả."
+    ],
+    "expectedResult": "Trả các lần thanh toán phù hợp, gồm số tiền, phương thức, trạng thái, mã tham chiếu và thời điểm; không cho tự sửa kết quả.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC79",
+    "acceptanceCriterion": "AC79",
+    "requirements": "FR40",
+    "category": "security",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "API bảo vệ, token thiếu/sai/hết hạn từ fixture kỹ thuật",
+    "steps": [
+      "Gọi GET auth/me và Booking",
+      "401, không đọc/ghi. Dùng expired signed test token tạo nội bộ khi triển khai, không đợi 60 phút trong collection."
+    ],
+    "expectedResult": "Trả `401`; không thực hiện thao tác nghiệp vụ.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC80",
+    "acceptanceCriterion": "AC80",
+    "requirements": "FR40",
+    "category": "security",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "CUSTOMER/DRIVER/ADMIN/Customer2 hợp lệ, Account DISABLED riêng",
+    "steps": [
+      "Customer gọi Driver write403",
+      "Customer2 truy cập Booking/Trip/Payment/Review/Notification của người khác403",
+      "disabled403",
+      "không có dữ liệu ngoài quyền."
+    ],
+    "expectedResult": "Từ chối truy cập theo hợp đồng API; không trả dữ liệu ngoài quyền và không thay đổi dữ liệu.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC81",
+    "acceptanceCriterion": "AC81",
+    "requirements": "FR40",
+    "category": "security",
+    "executionMode": "GRPC+NETWORK",
+    "preconditionsAndData": "Compose đã có, service gRPC không publish host; client nội bộ kiểm soát",
+    "steps": [
+      "Kiểm host port đóng",
+      "từ trong network gọi RPC thiếu/sai internal secret và token/quyền. Bị từ chối tại service, không chỉ dựa Gateway."
+    ],
+    "expectedResult": "Service vẫn từ chối; không phụ thuộc duy nhất vào kiểm tra tại Gateway.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC82",
+    "acceptanceCriterion": "AC82",
+    "requirements": "FR41",
+    "category": "positive",
+    "executionMode": "LOG",
+    "preconditionsAndData": "Thực hiện một luồng có correlationId và một lỗi có kiểm soát",
+    "steps": [
+      "Theo requestId qua Gateway/Booking/Trip",
+      "log có thời điểm,service,action,result/error, không làm lộ secret."
+    ],
+    "expectedResult": "Log có thời điểm, service, mã liên kết yêu cầu, hành động và kết quả hoặc lỗi.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC83",
+    "acceptanceCriterion": "AC83",
+    "requirements": "FR41",
+    "category": "security",
+    "executionMode": "LOG+DB+POSTMAN",
+    "preconditionsAndData": "Có API auth/profile/payment và log; OTP mock local",
+    "steps": [
+      "Quét log và response không password/OTP/JWT/secret rõ trong log hoặc hash/key/stack trong response",
+      "chỉ RequestOtp được trả mockCode khi bật mock. Không xuất token/password vào evidence công khai."
+    ],
+    "expectedResult": "Không có mật khẩu, OTP, JWT hoặc secret dạng rõ trong log; API không trả giá trị băm, secret hoặc stack trace.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC84",
+    "acceptanceCriterion": "AC84",
+    "requirements": "FR49",
+    "category": "positive",
+    "executionMode": "POSTMAN",
+    "preconditionsAndData": "Gateway process chạy",
+    "steps": [
+      "GET /health200 healthy",
+      "dừng một dependency, /health vẫn chỉ phản ánh process, không tự suy ra ready."
+    ],
+    "expectedResult": "Trả trạng thái tiến trình; không khẳng định sẵn sàng chỉ từ kết quả này.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC85",
+    "acceptanceCriterion": "AC85",
+    "requirements": "FR49",
+    "category": "exception",
+    "executionMode": "POSTMAN+DOCKER",
+    "preconditionsAndData": "Compose khỏe; có thể stop/start dependency local",
+    "steps": [
+      "GET ready200",
+      "stop một dependency bắt buộc ->503/not_ready",
+      "phục hồi ->200. Không chấp nhận static ready luôntrue."
+    ],
+    "expectedResult": "Trả `200` khi sẵn sàng, `503` khi chưa sẵn sàng.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC86",
+    "acceptanceCriterion": "AC86",
+    "requirements": "FR49",
+    "category": "exception",
+    "executionMode": "POSTMAN+DOCKER",
+    "preconditionsAndData": "Gateway và 12 thành phần có trạng thái quan sát được",
+    "steps": [
+      "GET /health/services đủ12 tên duy nhất",
+      "stop service ->503/degraded, mục tương ứng unhealthy/unknown",
+      "không lộ URI/secret."
+    ],
+    "expectedResult": "Cung cấp trạng thái các service; service lỗi không được hiển thị như đang khỏe; không lộ secret hoặc chuỗi kết nối.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC87",
+    "acceptanceCriterion": "AC87",
+    "requirements": "NFR06",
+    "category": "performance",
+    "executionMode": "LOAD",
+    "preconditionsAndData": "Ghi cấu hình máy và dữ liệu seed; tránh để rate limit che phép đo đọc",
+    "steps": [
+      "Đo ít nhất 100 request đọc profile/nearby/history/Trip, tối đa 10 request đồng thời",
+      "tính p95 <=2 giây, ghi số mẫu và tài nguyên. Không dùng một responseTime Postman làm p95."
+    ],
+    "expectedResult": "API đọc thuộc NFR06 đạt p95 ≤ 2 giây với ít nhất 100 yêu cầu, tối đa 10 yêu cầu đồng thời, trên môi trường thử đã quy định; lưu kết quả đo.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC88",
+    "acceptanceCriterion": "AC88",
+    "requirements": "NFR10–NFR12",
+    "category": "recovery",
+    "executionMode": "FAILURE+DB",
+    "preconditionsAndData": "Có thể dừng ở các phase phân công, MongoDB dùng volume bền vững",
+    "steps": [
+      "Ngắt và restart sau reserve/createTrip/COMMIT",
+      "phục hồi cùng operation",
+      "không hai Trip/Driver",
+      "event kết thúc cũ không làm lùi trạng thái hoặc giải phóng chuyến mới."
+    ],
+    "expectedResult": "Sau khi các thành phần phục hồi, xử lý lại đưa booking, trip và tình trạng bận về kết quả đúng, không tạo dữ liệu trùng hoặc chuyển ngược trạng thái cuối.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC89",
+    "acceptanceCriterion": "AC89",
+    "requirements": "NFR15",
+    "category": "architecture",
+    "executionMode": "CODE+DB",
+    "preconditionsAndData": "Repository và Compose đã triển khai",
+    "steps": [
+      "Đếm 8 service, DB user riêng",
+      "đọc cấu hình URI và các điểm truy cập",
+      "thử user service A đọc DB B phải bị từ chối",
+      "không dùng chung collection trái ownership."
+    ],
+    "expectedResult": "Có đúng 8 service nghiệp vụ, mỗi service sở hữu database MongoDB riêng về mặt logic; không truy cập trực tiếp collection của service khác.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC90",
+    "acceptanceCriterion": "AC90",
+    "requirements": "NFR14, NFR16",
+    "category": "persistence",
+    "executionMode": "DOCKER+DB",
+    "preconditionsAndData": "Compose, environment và seed đã sẵn sàng",
+    "steps": [
+      "Khởi động và tạo dữ liệu",
+      "docker compose down không -v rồi up",
+      "dữ liệu còn",
+      "seed ADMIN chạy lại không nhân bản. Không xóa volume trong bài kiểm tra."
+    ],
+    "expectedResult": "Với biến môi trường đã cấu hình, chạy được bằng Docker Compose; có seed ADMIN; dữ liệu còn sau khi dừng và khởi động lại mà không xóa volume.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC91",
+    "acceptanceCriterion": "AC91",
+    "requirements": "NFR19",
+    "category": "contract",
+    "executionMode": "CONTRACT+POSTMAN",
+    "preconditionsAndData": "Backend đúng commit đang thử, có 10 YAML Giai đoạn 5",
+    "steps": [
+      "Đối chiếu đủ 47 operation với response/query/body/error/quyền",
+      "chạy validator hợp đồng rồi gọi API thực tế. Kết quả validator không thay cho runtime compatibility."
+    ],
+    "expectedResult": "Đúng 10 file API YAML khớp endpoint, dữ liệu, quyền và mã phản hồi của bản triển khai.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC92",
+    "acceptanceCriterion": "AC92",
+    "requirements": "NFR04",
+    "category": "rate-limit",
+    "executionMode": "POSTMAN+REDIS",
+    "preconditionsAndData": "Cửa sổ login sạch, credential sai có định dạng hợp lệ",
+    "steps": [
+      "Gửi 10 login/phút/IP để được xử lý credential",
+      "lần 11 phải 429/Retry-After, không chạy xác thực thêm",
+      "không dùng token/password thật làm bằng chứng công khai."
+    ],
+    "expectedResult": "Vượt 10 yêu cầu đăng nhập/phút/IP bị giới hạn theo NFR04; yêu cầu bị chặn không tiếp tục xác thực.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC93",
+    "acceptanceCriterion": "AC93",
+    "requirements": "NFR02, NFR21",
+    "category": "security",
+    "executionMode": "DB+CONFIG",
+    "preconditionsAndData": "Auth và Driver có dữ liệu giả, key mã hóa ngoài source/DB",
+    "steps": [
+      "Kiểm passwordHash/codeHash/licenseNumberEncrypted không chứa plaintext",
+      "sai hoặc thiếu key không decrypt hoặc không ready",
+      "key còn sau restart",
+      "không in key vào báo cáo."
+    ],
+    "expectedResult": "Kiểm tra DB thấy passwordHash, codeHash và licenseNumberEncrypted; không có password/OTP/license plaintext. Decrypt licenseNumber thành công chỉ khi có đúng key; sai/thiếu key bị từ chối hoặc service không ready. Key ngoài DB/Git, không lộ API/log. Postman kết hợp MongoDB và kiểm tra cấu hình.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC94",
+    "acceptanceCriterion": "AC94",
+    "requirements": "NFR22",
+    "category": "injection",
+    "executionMode": "POSTMAN+DB",
+    "preconditionsAndData": "Login dùng phone; lưu trạng thái dữ liệu trước thử",
+    "steps": [
+      "Gửi phone chứa chuỗi SQL và phone/password object $ne/$gt",
+      "bị 400/401 đúng hợp đồng, không token, không lộ query DB, không bypass."
+    ],
+    "expectedResult": "Payload SQL trong phone và payload NoSQL dạng object/toán tử trong phone/password trả 400/401, không cấp token, không lộ query/DB; dữ liệu trước và sau không bị thay đổi trái phép.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC95",
+    "acceptanceCriterion": "AC95",
+    "requirements": "NFR24, FR40",
+    "category": "jwt",
+    "executionMode": "POSTMAN+INTEGRATION",
+    "preconditionsAndData": "Có token Customer thật; token kiểm thử ký sai issuer/audience/expired khi cần",
+    "steps": [
+      "Sửa sub/role nhưng giữ signature",
+      "thử alg none, hết hạn, sai key/issuer/audience: 401. Đúng token nhưng sai role: 403. Không chỉ decode payload."
+    ],
+    "expectedResult": "Token sửa sub/role, sai signature, alg=none, hết hạn, sai issuer/audience trả 401; token đúng role không đủ quyền trả 403. Service kiểm tra caller và ownership, không nhận role tự khai từ client.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC96",
+    "acceptanceCriterion": "AC96",
+    "requirements": "NFR23",
+    "category": "xss",
+    "executionMode": "POSTMAN+HARNESS",
+    "preconditionsAndData": "Text không hỗ trợ HTML; harness hiển thị qua textContent/escape",
+    "steps": [
+      "Gửi script/event-handler vào fullName/comment/reason",
+      "400 và DB không lưu. Harness không chạy script",
+      "chỉ có Postman thì phần browser vẫn BLOCKED."
+    ],
+    "expectedResult": "Gửi `<script>alert(1)</script>` hoặc markup event handler vào các trường text không hỗ trợ HTML → 400, không lưu. Phản hồi JSON đúng Content-Type; harness hiển thị dùng escape/textContent và không execute script. Chỉ có Postman thì chưa PASS phần browser execution.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC97",
+    "acceptanceCriterion": "AC97",
+    "requirements": "NFR25",
+    "category": "rate-limit/failure",
+    "executionMode": "POSTMAN+REDIS+LOAD",
+    "preconditionsAndData": "Cửa sổ Booking sạch 60 giây, Customer profile ready, Redis khỏe",
+    "steps": [
+      "Gửi 10 POST cùng key/body: một create và chín replay",
+      "lần 11 phải 429, không Booking mới. Restart Gateway counter còn TTL",
+      "Redis down write 503. Đo tải >1000 request/giây riêng, không suy ra từ 11 request."
+    ],
+    "expectedResult": "Với Redis đang chạy và cửa sổ sạch, vượt 10 request tạo Booking/60 giây/account hoặc 120/IP trả 429/Retry-After và không tạo dữ liệu; restart Gateway không reset counter. Redis lỗi thì write được bảo vệ trả 503. Lưu kết quả kiểm thử tải riêng cho mục 29, không suy đoán đạt >1000 request/giây.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC98",
+    "acceptanceCriterion": "AC98",
+    "requirements": "NFR26",
+    "category": "architecture/security",
+    "executionMode": "CODE+GRPC+NETWORK",
+    "preconditionsAndData": "Gateway, 8 gRPC server và network đã triển khai",
+    "steps": [
+      "Trace REST Gateway tới đúng RPC",
+      "host không public gRPC",
+      "peer sai bị từ chối",
+      "child deadline không vượt budget",
+      "Gateway không truy cập DB nghiệp vụ."
+    ],
+    "expectedResult": "Trace/log cho thấy REST client vào Gateway và gRPC đến đúng 8 service; gRPC service không publish ra host; client không truy cập trực tiếp. Deadline/metadata/error mapping theo NFR08/NFR26, service từ chối internal credential sai.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC99",
+    "acceptanceCriterion": "AC99",
+    "requirements": "NFR27",
+    "category": "event/replay",
+    "executionMode": "RABBITMQ+DB",
+    "preconditionsAndData": "Exchange, queue, retry/DLQ và outbox/inbox đã chạy",
+    "steps": [
+      "Kiểm binding 12 event",
+      "replay eventId",
+      "lỗi trước ACK retry 1/5/15 giây rồi DLQ",
+      "chỉ ACK sau commit",
+      "Notification đúng người nhận và không trùng."
+    ],
+    "expectedResult": "RabbitMQ có exchange/queue/binding đúng; sự kiện nghiệp vụ lưu thông báo đúng người nhận. Giao lại cùng eventId không tạo trùng; lỗi xử lý không ACK sớm; vượt retry vào DLQ, có log và đường phục hồi.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC100",
+    "acceptanceCriterion": "AC100",
+    "requirements": "NFR12, NFR27",
+    "category": "event/recovery",
+    "executionMode": "FAILURE+DB",
+    "preconditionsAndData": "Ngắt broker/consumer giữa DB commit và publish, fixture hợp lệ",
+    "steps": [
+      "Register hoặc complete Trip khi delivery gián đoạn, rồi phục hồi",
+      "profile tạo một lần, trạng thái không lùi, Driver release đúng Trip",
+      "đo mục tiêu đồng bộ 5 giây khi khỏe bằng log server."
+    ],
+    "expectedResult": "Gián đoạn publish/consumer rồi phục hồi không mất kết quả nghiệp vụ/event; profile được tạo lại đúng một lần, Booking/Driver đồng bộ kết thúc Trip; event cũ không giải phóng phân công mới. Khi khỏe, đồng bộ mục tiêu 5 giây.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC101",
+    "acceptanceCriterion": "AC101",
+    "requirements": "NFR28",
+    "category": "repository/secrets",
+    "executionMode": "GIT+CODE",
+    "preconditionsAndData": "Repository thực tế chưa được khảo sát ở các giai đoạn thiết kế",
+    "steps": [
+      "Xem git status, cây thư mục, tracked files và lịch sử liên quan",
+      ".gitignore/.env.example không secret",
+      "ghi nhận trước sửa, không reset/delete/push."
+    ],
+    "expectedResult": "Repository có cây thư mục tách Gateway/8 service/contracts/infra/tests; .gitignore và .env.example hợp lệ, không commit secret. Có biên bản kiểm tra source cũ trước chỉnh sửa, không xóa/reset/push ngoài phạm vi.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC102",
+    "acceptanceCriterion": "AC102",
+    "requirements": "NFR29",
+    "category": "infrastructure",
+    "executionMode": "DOCKER+CONFIG",
+    "preconditionsAndData": "Máy local có Node/Docker, Codex tạo secret/environment thực",
+    "steps": [
+      "Khởi tạo Compose/network/volume/health/replica set/8 DB user/kết nối",
+      "kiểm 12 container thường trực, DB sẵn trước app ready",
+      "không yêu cầu tạo DB thủ công bằng Compass."
+    ],
+    "expectedResult": "Từ môi trường chưa có hạ tầng, lệnh đã hướng dẫn tạo và khởi động Compose mục tiêu 12 container; network/volumes/healthcheck và DB user/8 URI được kiểm tra; không cần tạo DB thủ công. Nếu có transaction, replica set đã initialized.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC103",
+    "acceptanceCriterion": "AC103",
+    "requirements": "NFR29",
+    "category": "fixture",
+    "executionMode": "SEED+DB+POSTMAN",
+    "preconditionsAndData": "Seed script idempotent đã viết",
+    "steps": [
+      "Chạy seed hai lần",
+      "có ADMIN, hai Customer, ít nhất 5 Driver và 5 Booking đúng Customer/ID",
+      "không nhân bản hoặc ghi đè userdata",
+      "refresh location rồi thử nearby/history."
+    ],
+    "expectedResult": "Seed chạy lại không nhân bản dữ liệu; có ADMIN, hai Customer kiểm tra ownership, ít nhất 5 Driver khác trạng thái/vị trí và 5 Booking của Customer cần thử. ID liên kết hợp lệ, giá/trạng thái phù hợp; vị trí được refresh trước nearby.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC104",
+    "acceptanceCriterion": "AC104",
+    "requirements": "NFR30",
+    "category": "evidence",
+    "executionMode": "REVIEW",
+    "preconditionsAndData": "Có actual/evidence hoặc trạng thái BLOCKED/NOT_RUN rõ ràng",
+    "steps": [
+      "Rà đủ 30 mục chấm và RTM",
+      "không tự điền PASS",
+      "mỗi FAIL có actual",
+      "thiếu dependency ghi BLOCKED",
+      "không thêm mục chấm 31."
+    ],
+    "expectedResult": "Có báo cáo đủ mục chấm 1–30 và RTM; mỗi kết luận có expected/actual/evidence, trạng thái đúng NFR30. Không tạo mục chấm 31; chưa chạy ghi NOT_RUN/BLOCKED, không ghi PASS.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  },
+  {
+    "testCaseId": "TC105",
+    "acceptanceCriterion": "AC105",
+    "requirements": "NFR10–NFR11, FR25–FR27",
+    "category": "replay/security",
+    "executionMode": "POSTMAN+CONCURRENCY+DB",
+    "preconditionsAndData": "PENDING/FAILED/COMPLETED là fixture độc lập, tool callback giữ key local",
+    "steps": [
+      "Replay request/callback",
+      "key khác payload 409",
+      "thử signature/mismatch/stale và race create/retry/callback",
+      "đếm tối đa một PENDING/COMPLETED và ba attempt, không double charge."
+    ],
+    "expectedResult": "Replay cùng key và body trả cùng paymentId/kết quả; cùng key khác body → 409; callback trùng không ghi thêm. Gửi đồng thời nhiều payment/retry không có hơn một PENDING/COMPLETED cho Trip và không vượt 3 attempt. Callback sai chữ ký, sai amount/reference/timestamp bị từ chối; không có double charge kể cả dùng key mới sau COMPLETED.",
+    "httpExpectationNotes": "Mã phản hồi cụ thể theo 10 YAML; không dùng 500/503 để PASS lỗi input/quyền/trạng thái.",
+    "executionStatus": "BLOCKED",
+    "blockedReason": "Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.",
+    "actualResult": null,
+    "evidence": []
+  }
+]

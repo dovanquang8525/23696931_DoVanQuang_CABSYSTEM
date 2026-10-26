@@ -1,0 +1,21 @@
+syntax = "proto3";
+package cab.rating.v1;
+import "common.proto";
+// Deadline <=5s and forwarded remaining budget. JWT/internal identity in metadata.
+// Each method validates caller allowlist, types, enum values, role and ownership.
+message TripIdRequest {
+  string trip_id = 1;
+}
+
+message CreateReviewRequest {
+  string trip_id = 1;
+  int32 rating = 2;
+  optional string comment = 3;
+}
+
+service RatingService {
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc CreateReview (CreateReviewRequest) returns (cab.common.v1.Review);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetReviewByTrip (TripIdRequest) returns (cab.common.v1.Review);
+}

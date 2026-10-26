@@ -1,0 +1,123 @@
+{
+  "sources": [
+    {
+      "path": "docs/api/01-auth.yaml",
+      "sha256": "0660b0760e38a892c975f7f3e445b8d4d8e823e09a1354f20e6451ee28e49538"
+    },
+    {
+      "path": "docs/api/02-customers.yaml",
+      "sha256": "3db8cd9547468a80a3f1b5d46b996a65fa625fd2382bd5b9809ab11658944a09"
+    },
+    {
+      "path": "docs/api/03-drivers.yaml",
+      "sha256": "a917235bf6c3ca1633eeb39aa98563128447da1bd2efe95026279ea09ba2460b"
+    },
+    {
+      "path": "docs/api/04-bookings.yaml",
+      "sha256": "c7ad4c4b889a03061b65000569ea735fa8e9d82a89c95f2accd37b7ce6732d47"
+    },
+    {
+      "path": "docs/api/05-invitations.yaml",
+      "sha256": "a9d43a2b4da3f18ea14d50a224f437d651217f96c9a099d9322a9e3f27b38db5"
+    },
+    {
+      "path": "docs/api/06-trips.yaml",
+      "sha256": "a9a8ef8b14968730c11d036659adba95f374ee8ab1ceae60c09359f680b63bdd"
+    },
+    {
+      "path": "docs/api/07-payments.yaml",
+      "sha256": "cf36c1bea85f9cfb61db1efd5e31a9b12f69d1774438162686334268a17bf2d6"
+    },
+    {
+      "path": "docs/api/08-notifications.yaml",
+      "sha256": "db6764abd6ff33b4ac1100ac60d140676e717b1173f229f95282e90199d9d9e3"
+    },
+    {
+      "path": "docs/api/09-ratings.yaml",
+      "sha256": "e9ac49124303e38f8fc164d84f732bd415e9e92f682ffe40ef0fa065625e2fd6"
+    },
+    {
+      "path": "docs/api/10-health.yaml",
+      "sha256": "0256097b9293519561ffc4111dc30faf0d7239db3da9616735cdfce56d1348cc"
+    }
+  ],
+  "operationCount": 47,
+  "runtimeStatus": "NOT_RUN",
+  "primary": {
+    "collection": {
+      "path": "postman/collections/CAB-MVP.postman_collection.json",
+      "sha256": "de13e806ae504cd72915821868ff93b94475c0eba0f490618b259d3cac146931"
+    },
+    "environment": {
+      "path": "postman/environments/CAB-Local.postman_environment copy.json",
+      "sha256": "6f8d96c1aee6f0781da4e457248e3c53cca81333861c43ba4890f1d4c55d5988"
+    },
+    "variableStyle": "snake_case",
+    "requestCount": 142,
+    "runtimeStatus": "BLOCKED"
+  },
+  "compatibility": {
+    "collection": {
+      "path": "postman/collections/CAB-System.postman_collection.json",
+      "sha256": "acf6dcbbddd24923a969abdb8dceab15c91b1f5f37b1f0c23fbf74176461b4b9"
+    },
+    "environment": {
+      "path": "postman/environments/CAB-Local.postman_environment.json",
+      "sha256": "823a8218adf2530d78288cf6108b2d6effb51991ff13508134d222d03bd5a2f5"
+    },
+    "variableStyle": "camelCase",
+    "requestCount": 78,
+    "role": "preserved earlier catalog; not the Phase 6 execution suite"
+  },
+  "contracts": [
+    {
+      "path": "docs/api/contracts.md",
+      "sha256": "edaa9f2b1d73b495c099883b422148b10048e98895ef600e20774bfdada98ac5"
+    },
+    {
+      "path": "docs/api/rest-grpc-mapping.md",
+      "sha256": "254a270d1816d349fca3b30821ca0f6bc9e618771ca2567a89737c7daba3ad24"
+    },
+    {
+      "path": "docs/api/rpc-access.json",
+      "sha256": "ff24c8b0f7a1cdfec1adece93e070b0dbd5fae6abb5dc4535d9f9e2fc7e3440f"
+    }
+  ],
+  "phase6Documents": [
+    {
+      "path": "postman/documents/Test-Cases.md",
+      "sha256": "5937058fcd2c6f6cb74d916f221890bbfd6355d2e8856f00eff483652e43afc6"
+    },
+    {
+      "path": "postman/documents/test-cases.json",
+      "sha256": "0793d3e835f67277b3e34729356d54fc8fe6046237e89efe2eaa09d1b03f79b1"
+    },
+    {
+      "path": "postman/documents/coverage.md",
+      "sha256": "0cf3d5a8213659724e6fc911afd97e341a0a108dc38827c6a8485b090a88857f"
+    },
+    {
+      "path": "postman/documents/manual-checks.md",
+      "sha256": "f688f55c0d4810247e63f92a267aea811913f1a02fdc1fc57880b839c631e0c5"
+    },
+    {
+      "path": "postman/documents/grading-checklist.md",
+      "sha256": "9f2bf6be0abcbd6e638204a468fd0dd9e02871079159f6d22ac9642ba426c0e9"
+    },
+    {
+      "path": "postman/documents/grading-checklist.json",
+      "sha256": "5df589c830d0b6a5b572ff36653d1f67ac61e9a4f4d48a6c9a001b573787dc6c"
+    },
+    {
+      "path": "postman/evidence/run-record.template.json",
+      "sha256": "18984c98c44bc61550ebafd81204515668588a7a91d41b2c1ae75e394b016a67"
+    }
+  ],
+  "signing": {
+    "primaryScript": "scripts/prepare_callback.py",
+    "secretEnvironmentVariable": "MOCK_CALLBACK_SECRET",
+    "compatibilityScript": "scripts/sign_mock_callback.py",
+    "signedBytes": "ASCII(timestamp) + LF + raw UTF-8 body; no reserialization"
+  },
+  "generationPolicy": "No in-place synchronization. Historical generator writes only to a new explicit candidate directory; Phase 6 preservation review required before adoption."
+}

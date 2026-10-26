@@ -1,0 +1,214 @@
+openapi: 3.0.3
+info:
+  title: CAB MVP — Health
+  version: 1.0.0
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa
+    triển khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+servers:
+- url: http://localhost:3000
+  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+security: []
+tags:
+- name: Health
+paths:
+  /health:
+    get:
+      tags:
+      - Health
+      operationId: gatewayHealth
+      summary: gatewayHealth
+      security: []
+      description: Gateway tổng hợp; không sở hữu DB nghiệp vụ. /health kiểm tiến trình; /ready kiểm 8 service
+        và MongoDB/Redis/RabbitMQ; /health/services có đúng 12 thành phần và không lộ endpoint/secret.
+      x-gateway-handler: gatewayHealth
+      x-srs:
+      - FR49
+      - AC84
+      - AC85
+      - AC86
+      responses:
+        '200':
+          description: Healthy/ready.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /ready:
+    get:
+      tags:
+      - Health
+      operationId: gatewayReady
+      summary: gatewayReady
+      security: []
+      description: Gateway tổng hợp; không sở hữu DB nghiệp vụ. /health kiểm tiến trình; /ready kiểm 8 service
+        và MongoDB/Redis/RabbitMQ; /health/services có đúng 12 thành phần và không lộ endpoint/secret.
+      x-gateway-handler: gatewayReady
+      x-srs:
+      - FR49
+      - AC84
+      - AC85
+      - AC86
+      responses:
+        '200':
+          description: Healthy/ready.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Readiness'
+                - type: object
+                  properties:
+                    status:
+                      type: string
+                      enum:
+                      - ready
+        '503':
+          description: Chưa sẵn sàng/degraded; body health cùng schema, không phải Error.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Readiness'
+                - type: object
+                  properties:
+                    status:
+                      type: string
+                      enum:
+                      - not_ready
+  /health/services:
+    get:
+      tags:
+      - Health
+      operationId: gatewayServiceHealth
+      summary: gatewayServiceHealth
+      security: []
+      description: Gateway tổng hợp; không sở hữu DB nghiệp vụ. /health kiểm tiến trình; /ready kiểm 8 service
+        và MongoDB/Redis/RabbitMQ; /health/services có đúng 12 thành phần và không lộ endpoint/secret.
+      x-gateway-handler: gatewayServiceHealth
+      x-srs:
+      - FR49
+      - AC84
+      - AC85
+      - AC86
+      responses:
+        '200':
+          description: Healthy/ready.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ServiceHealth'
+                - type: object
+                  properties:
+                    status:
+                      type: string
+                      enum:
+                      - healthy
+        '503':
+          description: Chưa sẵn sàng/degraded; body health cùng schema, không phải Error.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ServiceHealth'
+                - type: object
+                  properties:
+                    status:
+                      type: string
+                      enum:
+                      - degraded
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT HS256; verify signature, issuer=cab-auth, audience=cab-api, exp và sub; không chỉ decode.
+  schemas:
+    ComponentHealth:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          enum:
+          - gateway
+          - auth_service
+          - customer_service
+          - driver_service
+          - booking_service
+          - trip_service
+          - payment_service
+          - notification_service
+          - rating_service
+          - mongodb
+          - redis
+          - rabbitmq
+        status:
+          type: string
+          enum:
+          - healthy
+          - unhealthy
+          - unknown
+        checkedAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+      required:
+      - name
+      - status
+      - checkedAt
+    Health:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+          - healthy
+        checkedAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+      required:
+      - status
+      - checkedAt
+    Readiness:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+          - ready
+          - not_ready
+        checkedAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+      required:
+      - status
+      - checkedAt
+    ServiceHealth:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+          - healthy
+          - degraded
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComponentHealth'
+          minItems: 12
+          maxItems: 12
+        checkedAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+      required:
+      - status
+      - components
+      - checkedAt

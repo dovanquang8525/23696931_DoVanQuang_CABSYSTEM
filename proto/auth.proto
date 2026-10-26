@@ -1,0 +1,78 @@
+syntax = "proto3";
+package cab.auth.v1;
+import "common.proto";
+// Deadline <=5s and forwarded remaining budget. JWT/internal identity in metadata.
+// Each method validates caller allowlist, types, enum values, role and ownership.
+message RequestOtpRequest {
+  string phone = 1;
+  string purpose = 2;
+}
+
+message OtpChallenge {
+  string otp_id = 1;
+  string expires_at = 2;
+  optional string mock_code = 3;
+}
+
+message VerifyOtpRequest {
+  string otp_id = 1;
+  string phone = 2;
+  string code = 3;
+}
+
+message OtpVerification {
+  string otp_id = 1;
+  bool verified = 2;
+  string expires_at = 3;
+}
+
+message RegisterRequest {
+  string phone = 1;
+  string password = 2;
+  string full_name = 3;
+  cab.common.v1.Account.Role role = 4;
+  optional string otp_id = 5;
+}
+
+message Registration {
+  string account_id = 1;
+  cab.common.v1.Account.Role role = 2;
+  string profile_status = 3;
+}
+
+message LoginRequest {
+  string phone = 1;
+  string password = 2;
+}
+
+message Session {
+  string access_token = 1;
+  string token_type = 2;
+  string expires_at = 3;
+  cab.common.v1.Account account = 4;
+}
+
+message AccountAccessRequest {
+  string account_id = 1;
+}
+
+message AccountAccess {
+  string account_id = 1;
+  cab.common.v1.Account.Role role = 2;
+  cab.common.v1.Account.Status status = 3;
+}
+
+service AuthService {
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc RequestOtp (RequestOtpRequest) returns (OtpChallenge);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc VerifyOtp (VerifyOtpRequest) returns (OtpVerification);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc Register (RegisterRequest) returns (Registration);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc Login (LoginRequest) returns (Session);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetIdentity (cab.common.v1.Empty) returns (cab.common.v1.Account);
+  // Allowed peer: customer_service,driver_service,booking_service,trip_service,payment_service,notification_service,rating_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetAccountAccess (AccountAccessRequest) returns (AccountAccess);
+}

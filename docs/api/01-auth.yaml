@@ -1,0 +1,764 @@
+openapi: 3.0.3
+info:
+  title: CAB MVP — Auth
+  version: 1.0.0
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa
+    triển khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+servers:
+- url: http://localhost:3000/api/v1
+  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+security:
+- BearerAuth: []
+tags:
+- name: Auth
+paths:
+  /auth/otp-challenges:
+    post:
+      tags:
+      - Auth
+      operationId: requestDriverOtp
+      summary: Yêu cầu OTP mock đăng ký Driver
+      description: 5 request/phút/IP; cách nhau 60 giây/phone. 6 số, 5 phút. mockCode chỉ ở OTP_MOCK_MODE=true;
+        không SMS thật.
+      x-grpc: cab.auth.v1.AuthService/RequestOtp
+      x-allowed-roles: []
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR43
+      - AC09
+      - AC10
+      responses:
+        '201':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpChallenge'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestOtpInput'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value:
+                  phone: 0900000002
+                  purpose: DRIVER_REGISTRATION
+  /auth/otp-challenges/{otpId}/verify:
+    post:
+      tags:
+      - Auth
+      operationId: verifyDriverOtp
+      summary: Xác minh OTP trước khi tạo Driver Account
+      description: Tối đa 5 lần sai/challenge và 10 request/phút/IP. Bằng chứng gắn otpId/phone/purpose, hết
+        hiệu lực cùng expiresAt và tiêu thụ một lần tại Register.
+      x-grpc: cab.auth.v1.AuthService/VerifyOtp
+      x-allowed-roles: []
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR43
+      - AC11
+      - AC12
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpVerification'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security: []
+      parameters:
+      - name: otpId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        description: ''
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpInput'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value:
+                  phone: 0900000002
+                  code: '123456'
+  /auth/register:
+    post:
+      tags:
+      - Auth
+      operationId: registerAccount
+      summary: Đăng ký CUSTOMER hoặc DRIVER
+      description: DRIVER bắt buộc otpId đã verified, chưa dùng. CUSTOMER không gửi otpId. ADMIN bị từ chối.
+        Auth lưu Account/OTP/outbox cục bộ; profile tạo qua event, phản hồi profileStatus=PENDING, khi khỏe
+        mục tiêu 5 giây.
+      x-grpc: cab.auth.v1.AuthService/Register
+      x-allowed-roles: []
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR01
+      - AC01
+      - AC02
+      responses:
+        '201':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Registration'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInput'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value:
+                  phone: 0900000001
+                  password: DemoPass123
+                  fullName: Demo Customer
+                  role: CUSTOMER
+              driver:
+                summary: Driver cần otpId đã xác minh, chưa dùng.
+                value:
+                  phone: 0900000002
+                  password: DemoPass123
+                  fullName: Demo Driver
+                  role: DRIVER
+                  otpId: '000000000000000000000001'
+  /auth/login:
+    post:
+      tags:
+      - Auth
+      operationId: loginAccount
+      summary: Đăng nhập và nhận JWT
+      description: Phone/password, Account ACTIVE. 10 request/phút/IP. Sai credential 401 không tiết lộ tài
+        khoản tồn tại. JWT 60 phút.
+      x-grpc: cab.auth.v1.AuthService/Login
+      x-allowed-roles: []
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR02
+      - AC05
+      - AC06
+      - AC92
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+            examples:
+              demo:
+                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
+                value:
+                  phone: 0900000001
+                  password: DemoPass123
+  /auth/me:
+    get:
+      tags:
+      - Auth
+      operationId: getIdentity
+      summary: Xem định danh Account
+      description: Xem định danh Account
+      x-grpc: cab.auth.v1.AuthService/GetIdentity
+      x-allowed-roles:
+      - CUSTOMER
+      - DRIVER
+      - ADMIN
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+      - FR40
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT HS256; verify signature, issuer=cab-auth, audience=cab-api, exp và sub; không chỉ decode.
+  schemas:
+    Account:
+      type: object
+      additionalProperties: false
+      properties:
+        accountId:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        phone:
+          type: string
+          minLength: 10
+          maxLength: 10
+          pattern: ^0[0-9]{9}$
+          example: 0900000001
+        role:
+          type: string
+          enum:
+          - CUSTOMER
+          - DRIVER
+          - ADMIN
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - DISABLED
+      required:
+      - accountId
+      - phone
+      - role
+      - status
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+        requestId:
+          type: string
+          minLength: 1
+          maxLength: 128
+      required:
+      - code
+      - message
+      - requestId
+    LoginInput:
+      type: object
+      additionalProperties: false
+      properties:
+        phone:
+          type: string
+          minLength: 10
+          maxLength: 10
+          pattern: ^0[0-9]{9}$
+          example: 0900000001
+        password:
+          type: string
+          minLength: 8
+          maxLength: 64
+          format: password
+          writeOnly: true
+      required:
+      - phone
+      - password
+    OtpChallenge:
+      type: object
+      additionalProperties: false
+      properties:
+        otpId:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        expiresAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+        mockCode:
+          type: string
+          minLength: 6
+          maxLength: 6
+          pattern: ^[0-9]{6}$
+          description: Chỉ có khi OTP_MOCK_MODE=true ở demo local; không ghi log hoặc lưu plaintext.
+      required:
+      - otpId
+      - expiresAt
+    OtpVerification:
+      type: object
+      additionalProperties: false
+      properties:
+        otpId:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        verified:
+          type: boolean
+          enum:
+          - true
+        expiresAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+      required:
+      - otpId
+      - verified
+      - expiresAt
+    RegisterInput:
+      type: object
+      additionalProperties: false
+      properties:
+        phone:
+          type: string
+          minLength: 10
+          maxLength: 10
+          pattern: ^0[0-9]{9}$
+          example: 0900000001
+        password:
+          type: string
+          minLength: 8
+          maxLength: 64
+          format: password
+          writeOnly: true
+        fullName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        role:
+          type: string
+          enum:
+          - CUSTOMER
+          - DRIVER
+        otpId:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+      required:
+      - phone
+      - password
+      - fullName
+      - role
+      oneOf:
+      - properties:
+          role:
+            type: string
+            enum:
+            - CUSTOMER
+        not:
+          required:
+          - otpId
+      - properties:
+          role:
+            type: string
+            enum:
+            - DRIVER
+        required:
+        - otpId
+    Registration:
+      type: object
+      additionalProperties: false
+      properties:
+        accountId:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        role:
+          type: string
+          enum:
+          - CUSTOMER
+          - DRIVER
+        profileStatus:
+          type: string
+          enum:
+          - PENDING
+      required:
+      - accountId
+      - role
+      - profileStatus
+    RequestOtpInput:
+      type: object
+      additionalProperties: false
+      properties:
+        phone:
+          type: string
+          minLength: 10
+          maxLength: 10
+          pattern: ^0[0-9]{9}$
+          example: 0900000001
+        purpose:
+          type: string
+          enum:
+          - DRIVER_REGISTRATION
+      required:
+      - phone
+      - purpose
+    Session:
+      type: object
+      additionalProperties: false
+      properties:
+        accessToken:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        tokenType:
+          type: string
+          enum:
+          - Bearer
+        expiresAt:
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+        account:
+          $ref: '#/components/schemas/Account'
+      required:
+      - accessToken
+      - tokenType
+      - expiresAt
+      - account
+    VerifyOtpInput:
+      type: object
+      additionalProperties: false
+      properties:
+        phone:
+          type: string
+          minLength: 10
+          maxLength: 10
+          pattern: ^0[0-9]{9}$
+          example: 0900000001
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+          pattern: ^[0-9]{6}$
+      required:
+      - phone
+      - code

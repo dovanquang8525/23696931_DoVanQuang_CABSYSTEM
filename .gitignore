@@ -1,0 +1,45 @@
+# Local environment and secret-bearing variants, at any directory level.
+.env
+.env.*
+!.env.example
+*.env
+*.env.*
+!*.env.example
+.envrc
+.local/
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Node dependencies and build/test output.
+node_modules/
+dist/
+build/
+out/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+.cache/
+
+# Logs, temporary files and editor/OS local settings.
+logs/
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+tmp/
+temp/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+.npmrc.local
+*.local
+
+# Keep the documented template trackable even if its name matches above rules.
+!.env.example

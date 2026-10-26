@@ -1,0 +1,323 @@
+openapi: 3.0.3
+info:
+  title: CAB MVP — Notifications
+  version: 1.0.0
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa
+    triển khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+servers:
+- url: http://localhost:3000/api/v1
+  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+security:
+- BearerAuth: []
+tags:
+- name: Notifications
+paths:
+  /notifications:
+    get:
+      tags:
+      - Notifications
+      operationId: listMyNotifications
+      summary: Tra cứu thông báo nội bộ của mình
+      description: Tra cứu thông báo nội bộ của mình
+      x-grpc: cab.notification.v1.NotificationService/ListMyNotifications
+      x-allowed-roles:
+      - CUSTOMER
+      - DRIVER
+      - ADMIN
+      x-ownership: recipientAccountId == JWT sub.
+      x-srs:
+      - FR48
+      - AC71
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPage'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: ''
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
+        description: ''
+  /notifications/{notificationId}:
+    get:
+      tags:
+      - Notifications
+      operationId: getNotification
+      summary: Xem thông báo theo ID
+      description: Xem thông báo theo ID
+      x-grpc: cab.notification.v1.NotificationService/GetNotification
+      x-allowed-roles:
+      - CUSTOMER
+      - DRIVER
+      - ADMIN
+      x-ownership: Chỉ recipientAccountId == JWT sub; ADMIN không tự đọc thông báo người khác.
+      x-srs:
+      - FR48
+      - AC71
+      responses:
+        '200':
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
+            xử lý.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        '500':
+          description: 'INTERNAL_ERROR: không trả stack trace.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '504':
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: notificationId
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        description: ''
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT HS256; verify signature, issuer=cab-auth, audience=cab-api, exp và sub; không chỉ decode.
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+        requestId:
+          type: string
+          minLength: 1
+          maxLength: 128
+      required:
+      - code
+      - message
+      - requestId
+    Notification:
+      type: object
+      additionalProperties: false
+      properties:
+        notificationId: &id001
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[0-9a-f]{24}$
+          example: '000000000000000000000001'
+        recipientAccountId: *id001
+        eventId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        type:
+          type: string
+          enum:
+          - account.registered
+          - driver.approval_changed
+          - booking.created
+          - booking.invitation_created
+          - booking.assigned
+          - booking.canceled
+          - booking.no_driver
+          - trip.arrived
+          - trip.completed
+          - trip.canceled
+          - payment.completed
+          - payment.failed
+        content:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
+            khi hiển thị vẫn escape theo ngữ cảnh.
+        relatedEntityType:
+          type: string
+          enum:
+          - BOOKING
+          - TRIP
+          - PAYMENT
+          - DRIVER
+        relatedEntityId: *id001
+        occurredAt: &id002
+          type: string
+          format: date-time
+          example: '2026-10-27T00:00:00Z'
+        createdAt: *id002
+      required:
+      - notificationId
+      - recipientAccountId
+      - eventId
+      - type
+      - content
+      - relatedEntityType
+      - relatedEntityId
+      - occurredAt
+      - createdAt
+    NotificationPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        totalItems:
+          type: integer
+          minimum: 0
+          maximum: 1000000000000
+      required:
+      - items
+      - page
+      - limit
+      - totalItems

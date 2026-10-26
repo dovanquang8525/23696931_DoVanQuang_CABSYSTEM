@@ -1,0 +1,14 @@
+{
+  "eventId": "c98ea6cb-8bf4-5cc2-8c38-803302769047",
+  "eventType": "booking.no_driver",
+  "occurredAt": "2026-10-27T00:00:00Z",
+  "producer": "booking_service",
+  "aggregateId": "000000000000000000000005",
+  "aggregateVersion": 1,
+  "correlationId": "demo-contract-validation",
+  "payload": {
+    "bookingId": "000000000000000000000005",
+    "customerAccountId": "000000000000000000000002",
+    "status": "NO_DRIVER"
+  }
+}

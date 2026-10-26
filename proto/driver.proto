@@ -1,0 +1,148 @@
+syntax = "proto3";
+package cab.driver.v1;
+import "common.proto";
+// Deadline <=5s and forwarded remaining budget. JWT/internal identity in metadata.
+// Each method validates caller allowlist, types, enum values, role and ownership.
+message DriverIdRequest {
+  string driver_id = 1;
+}
+
+message AccountIdRequest {
+  string account_id = 1;
+}
+
+message UpdateMyDriverRequest {
+  optional string full_name = 1;
+  optional string email = 2;
+  optional string license_number = 3;
+}
+
+message VehicleInput {
+  string plate_number = 1;
+  string model = 2;
+  string color = 3;
+}
+
+message AvailabilityInput {
+  bool is_online = 1;
+}
+
+message Availability {
+  string driver_id = 1;
+  bool is_online = 2;
+}
+
+message NearbyRequest {
+  cab.common.v1.Coordinates location = 1;
+  cab.common.v1.PageRequest paging = 2;
+}
+
+message ListDriversRequest {
+  cab.common.v1.PageRequest paging = 1;
+  optional cab.common.v1.Driver.ApprovalStatus approval_status = 2;
+}
+
+message ApprovalRequest {
+  string driver_id = 1;
+  cab.common.v1.Driver.ApprovalStatus decision = 2;
+  optional string reason = 3;
+}
+
+message FindCandidatesRequest {
+  cab.common.v1.Coordinates pickup = 1;
+  int32 limit = 2;
+}
+
+message Candidates {
+  repeated cab.common.v1.NearbyDriver items = 1;
+}
+
+message DispatchData {
+  cab.common.v1.DriverPublic driver = 1;
+  string driver_account_id = 2;
+  cab.common.v1.Location location = 3;
+  bool is_online = 4;
+  optional string active_trip_id = 5;
+  optional string reservation_operation_id = 6;
+  optional string reserved_booking_id = 7;
+}
+
+message DriverIdentity {
+  string driver_id = 1;
+  string account_id = 2;
+}
+
+message ReservationRequest {
+  string driver_id = 1;
+  string booking_id = 2;
+  string operation_id = 3;
+}
+
+message Reservation {
+  string driver_id = 1;
+  string booking_id = 2;
+  string operation_id = 3;
+  optional string trip_id = 4;
+  string phase = 5;
+  DispatchData dispatch_data = 6;
+}
+
+message ConfirmReservationRequest {
+  string driver_id = 1;
+  string booking_id = 2;
+  string operation_id = 3;
+  string trip_id = 4;
+}
+
+message ReleaseReservationRequest {
+  string driver_id = 1;
+  string booking_id = 2;
+  string operation_id = 3;
+  string reason = 4;
+}
+
+message TripLocationRequest {
+  string driver_id = 1;
+  string trip_id = 2;
+  cab.common.v1.Coordinates location = 3;
+  string source_time = 4;
+}
+
+service DriverService {
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetMyDriver (cab.common.v1.Empty) returns (cab.common.v1.Driver);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc UpdateMyDriver (UpdateMyDriverRequest) returns (cab.common.v1.Driver);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetDriver (DriverIdRequest) returns (cab.common.v1.Driver);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetMyVehicle (cab.common.v1.Empty) returns (cab.common.v1.Vehicle);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc UpsertMyVehicle (VehicleInput) returns (cab.common.v1.Vehicle);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc SubmitDriver (cab.common.v1.Empty) returns (cab.common.v1.Driver);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc SetAvailability (AvailabilityInput) returns (Availability);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc UpdateDriverLocation (cab.common.v1.Coordinates) returns (cab.common.v1.Location);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ListNearbyDrivers (NearbyRequest) returns (cab.common.v1.NearbyPage);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ListDrivers (ListDriversRequest) returns (cab.common.v1.DriverPage);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc DecideDriverApproval (ApprovalRequest) returns (cab.common.v1.Driver);
+  // Allowed peer: booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetDriverByAccount (AccountIdRequest) returns (DriverIdentity);
+  // Allowed peer: booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc FindCandidates (FindCandidatesRequest) returns (Candidates);
+  // Allowed peer: booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetDispatchData (DriverIdRequest) returns (DispatchData);
+  // Allowed peer: booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ReserveDriver (ReservationRequest) returns (Reservation);
+  // Allowed peer: booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ConfirmReservation (ConfirmReservationRequest) returns (Reservation);
+  // Allowed peer: booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ReleaseReservation (ReleaseReservationRequest) returns (cab.common.v1.Empty);
+  // Allowed peer: trip_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc UpdateLocationFromTrip (TripLocationRequest) returns (cab.common.v1.Location);
+}

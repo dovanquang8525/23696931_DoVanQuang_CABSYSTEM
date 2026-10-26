@@ -1,0 +1,30 @@
+syntax = "proto3";
+package cab.customer.v1;
+import "common.proto";
+// Deadline <=5s and forwarded remaining budget. JWT/internal identity in metadata.
+// Each method validates caller allowlist, types, enum values, role and ownership.
+message UpdateMyCustomerRequest {
+  optional string full_name = 1;
+  optional string email = 2;
+}
+
+message CustomerIdRequest {
+  string customer_id = 1;
+}
+
+message AccountIdRequest {
+  string account_id = 1;
+}
+
+service CustomerService {
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetMyCustomer (cab.common.v1.Empty) returns (cab.common.v1.Customer);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc UpdateMyCustomer (UpdateMyCustomerRequest) returns (cab.common.v1.Customer);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetCustomer (CustomerIdRequest) returns (cab.common.v1.Customer);
+  // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc ListCustomers (cab.common.v1.PageRequest) returns (cab.common.v1.CustomerPage);
+  // Allowed peer: booking_service. Errors use gRPC status + cab-error-code trailing metadata.
+  rpc GetCustomerByAccount (AccountIdRequest) returns (cab.common.v1.Customer);
+}

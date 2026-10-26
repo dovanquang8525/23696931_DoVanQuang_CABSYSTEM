@@ -1,0 +1,19 @@
+{
+  "eventId": "933b66da-db63-55aa-ab65-2ef34b23fa98",
+  "eventType": "trip.completed",
+  "occurredAt": "2026-10-27T00:00:00Z",
+  "producer": "trip_service",
+  "aggregateId": "000000000000000000000007",
+  "aggregateVersion": 1,
+  "correlationId": "demo-contract-validation",
+  "payload": {
+    "tripId": "000000000000000000000007",
+    "bookingId": "000000000000000000000005",
+    "driverId": "000000000000000000000004",
+    "customerAccountId": "000000000000000000000002",
+    "driverAccountId": "000000000000000000000003",
+    "completedAt": "2026-10-27T00:00:00Z",
+    "fareAmount": 20000,
+    "aggregateVersion": 1
+  }
+}
