@@ -102,11 +102,11 @@ async function create({db,client,server}) {
       await c.tx(async session=>{
         const current=await get(id,session);if(current.operation||current.status!=='SEARCHING')return;
         if(await invitations.findOne({booking_id:id,status:'PENDING'},{session}))return;
-        const invId=new b.ObjectId(),expires=new Date(Date.now()+30000).toISOString();
+        const invId=new b.ObjectId(),publicId=await b.allocateId(db,'i',session),expires=new Date(Date.now()+30000).toISOString();
         await bookings.updateOne({_id:row._id,version:current.version},{$set:{cursor:n+1},$inc:{version:1}},{session});
-        await invitations.insertOne({_id:invId,invitation_id:invId.toHexString(),booking_id:id,driver_id:row.candidates[n],
+        await invitations.insertOne({_id:invId,invitation_id:publicId,booking_id:id,driver_id:row.candidates[n],
           pickup:row.pickup,destination:row.destination,vehicle_type:'BIKE',status:'PENDING',expires_at:expires},{session});
-        await c.emit('booking.invitation_created',invId.toHexString(),{invitationId:invId.toHexString(),bookingId:id,
+        await c.emit('booking.invitation_created',publicId,{invitationId:publicId,bookingId:id,
           driverAccountId:data.driver_account_id,expiresAt:expires},session);
       });return;
     }
@@ -137,8 +137,8 @@ async function create({db,client,server}) {
       const old=await bookings.findOne({customer_id:profile.customer_id,idempotencyKey:key});if(old)return replay(old);
       if(hasCodes){pickup=await readLocation(db,i.pickup_code);destination=await readLocation(db,i.destination_code);}
       if(b.distance(pickup,destination)===0)b.v.invalid();
-      const id=new b.ObjectId(),time=b.now();
-      const row={_id:id,booking_id:id.toHexString(),customer_id:profile.customer_id,customerAccountId:claims.sub,
+      const id=new b.ObjectId(),publicId=await b.allocateId(db,'b'),time=b.now();
+      const row={_id:id,booking_id:publicId,customer_id:profile.customer_id,customerAccountId:claims.sub,
         pickup,destination,vehicle_type:'BIKE',status:'SEARCHING',distance_km:b.distance(pickup,destination),
         pricing_snapshot:{base_fare:10000,rate_per_km:5000,rounding_unit:1000},created_at:time,updated_at:time,
         idempotencyKey:key,payloadHash,...(hasCodes?{routeCodes:request}:{}),version:1};row.responseSnapshot=b.views.booking(row);

@@ -19,7 +19,7 @@ async function main(){
   if(phase==='during'){
     await h.poll(()=>h.request('GET','/ready'),r=>r.status===503);
     const account=h.expect(await h.request('POST','/api/v1/auth/register',{phone:state.phone,email:state.email,password:state.password}),201,'register during broker outage');
-    state.accountId=account.accountId;
+    state.aid=account.aid;
     const auth=h.expect(await h.request('POST','/api/v1/auth/login',{email:state.email,password:state.password}),200,'login during broker outage');
     h.expect(await h.request('GET','/api/v1/customers/me',undefined,auth.accessToken),503,'profile awaits event');
     fs.writeFileSync(target,JSON.stringify(state),{mode:0o600});h.record('rabbit-outage');return;
@@ -28,8 +28,8 @@ async function main(){
   await h.poll(()=>h.request('GET','/ready'),r=>r.status===200,60000);
   const auth=h.expect(await h.request('POST','/api/v1/auth/login',{email:state.email,password:state.password}),200,'login after recovery');
   const profile=await h.poll(()=>h.request('GET','/api/v1/customers/me',undefined,auth.accessToken),r=>r.status===200);
-  assert.equal(profile.data.accountId,state.accountId);
+  assert.equal(profile.data.aid,state.aid);
   const repeated=h.expect(await h.request('GET','/api/v1/customers/me',undefined,auth.accessToken),200,'stable recovered profile');
-  assert.equal(repeated.customerId,profile.data.customerId);h.record('rabbit-recovery');
+  assert.equal(repeated.cid,profile.data.cid);h.record('rabbit-recovery');
 }
 void main().catch(error=>{console.error('Recovery check failed: '+String(error.message).split('\n')[0]);process.exitCode=1;});

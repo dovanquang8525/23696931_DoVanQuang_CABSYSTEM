@@ -1,5 +1,7 @@
 # THIẾT KẾ MICRO-SERVICE — CAB SYSTEM
 
+**ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
+
 **Validation demo cập nhật 28/10/2026:** Password là String không rỗng (ít nhất 1 ký tự, ví dụ "123" hoặc "a"), không trim và không yêu cầu độ phức tạp; Phone là String không rỗng sau trim (ví dụ "0123", "123", "abc123"), giữ số 0 đầu và vẫn unique. Email giữ định dạng cơ bản. Chỉ áp dụng cho học tập/demo local; không phải chính sách production. Argon2id, JWT, role/ownership và OTP Driver giữ nguyên.
 
 **Quyết định tiếp theo Identity v3:** Auth cấp cid/did bằng counter DB; không nhập mã khi Register. Driver Register plateNumber bước 1 tạo challenge, bước 2 thêm code mới tạo Account; account.registered mang plateNumber để Driver context giữ thông tin xe dự kiến. Driver vẫn sở hữu Vehicle và license encryption; Submit tạo xe BIKE từ plate, kiểm unique và chuyển PENDING. Booking/Driver/Trip sở hữu bản demo_locations A/B riêng; không đọc chéo DB. Các body v1/v2 bên dưới được thay bởi hợp đồng docs/api hiện hành; không thêm service/event mới.
@@ -30,14 +32,14 @@ Một Use Case có thể phối hợp nhiều context. Driver và Vehicle thuộ
 | --------------- | --------------------------------------------------------------- | --------------------- |
 | Account         | Tài khoản đăng nhập, role và trạng thái truy cập.               | Identity & Access     |
 | OtpChallenge    | OTP đăng ký DRIVER; có thể tồn tại trước Account.               | Identity & Access     |
-| CustomerProfile | Hồ sơ khách hàng; customerId khác accountId.                    | Customer Profile      |
+| CustomerProfile | Hồ sơ khách hàng; cid khác aid.                    | Customer Profile      |
 | DriverProfile   | Hồ sơ, kết quả duyệt, online và vị trí tài xế.                  | Driver & Vehicle      |
 | Vehicle         | Xe thuộc tài xế, tối đa một xe đang sử dụng.                    | Driver & Vehicle      |
 | Booking         | Yêu cầu đặt xe, kể cả NO_DRIVER hoặc hủy trước phân công.       | Booking & Dispatch    |
 | TripInvitation  | Lời mời nhận chuyến có thời hạn; không đồng nghĩa Notification. | Booking & Dispatch    |
 | Trip            | Chuyến đã phân công và tiến trình thực hiện.                    | Trip Execution & Fare |
 | PricingSnapshot | Khoảng cách và thông số giá lúc tạo booking; Trip giữ bản sao.  | Booking & Dispatch    |
-| Payment         | Một lần thanh toán; retry online tạo paymentId mới.             | Payment               |
+| Payment         | Một lần thanh toán; retry online tạo pid mới.             | Payment               |
 | Notification    | Thông báo nội bộ từ kết quả nghiệp vụ đã lưu.                   | Notification          |
 | Review          | Điểm và nhận xét cho tài xế của trip hoàn thành.                | Rating                |
 
@@ -182,13 +184,13 @@ Các mục dưới đây bổ sung đủ nội dung thiết kế cho từng serv
 
 **Entity/aggregate: **Account, OtpChallenge, Role. Chi tiết collection và index tại mục 8.
 
-**API cung cấp qua Gateway: **POST /api/auth/otp-challenges — Yêu cầu OTP đăng ký DRIVER; POST /api/auth/otp-challenges/{otpId}/verify — Xác minh OTP gắn với phone và purpose; POST /api/auth/register — Tạo CUSTOMER hoặc DRIVER; DRIVER cần bằng chứng OTP còn hợp lệ, chưa dùng; POST /api/auth/login — Cấp JWT khi mật khẩu đúng và account ACTIVE; GET /api/auth/me — Trả định danh, role và status được phép xem.
+**API cung cấp qua Gateway: **POST /api/auth/otp-challenges — Yêu cầu OTP đăng ký DRIVER; POST /api/auth/otp-challenges/{oid}/verify — Xác minh OTP gắn với phone và purpose; POST /api/auth/register — Tạo CUSTOMER hoặc DRIVER; DRIVER cần bằng chứng OTP còn hợp lệ, chưa dùng; POST /api/auth/login — Cấp JWT khi mật khẩu đúng và account ACTIVE; GET /api/auth/me — Trả định danh, role và status được phép xem.
 
-**API nội bộ cung cấp: **GET /internal/accounts/{accountId}/access — Xác nhận account tồn tại, ACTIVE và role.
+**API nội bộ cung cấp: **GET /internal/accounts/{aid}/access — Xác nhận account tồn tại, ACTIVE và role.
 
 **API gọi sang service khác: **không bắt buộc trong luồng chính; tạo profile bằng event. Khi account đã tạo nhưng profile chưa xuất hiện, chưa cho đặt xe/nhận chuyến; không tạo profile trùng bằng cách ghi trực tiếp DB khác.
 
-**Event phát/nhận: **Phát: account.registered chứa accountId, role và trường hồ sơ khởi tạo tối thiểu. Nhận: không có domain event bắt buộc.
+**Event phát/nhận: **Phát: account.registered chứa aid, role và trường hồ sơ khởi tạo tối thiểu. Nhận: không có domain event bắt buộc.
 
 **Quy tắc nghiệp vụ chính: **RULE01–RULE04, RULE33: phone dạng String không rỗng sau trim, không giới hạn độ dài/định dạng số, một role/account, cấm tự đăng ký ADMIN. OTP 6 chữ số, hiệu lực 5 phút, tối đa 5 lần nhập sai, yêu cầu mã cách nhau ít nhất 60 giây. Mã mới vô hiệu mã cũ; bằng chứng đã dùng không đăng ký lần nữa. Kiểm soát yêu cầu OTP đồng thời theo phone/purpose bằng cập nhật/transaction cục bộ; không chỉ kiểm tra thời gian trong bộ nhớ. Không trả hash/secret; tối đa 10 yêu cầu đăng nhập/phút/IP theo NFR04. OTP mock dùng cơ chế kiểm thử local, không ghi mã rõ vào log.
 
@@ -200,21 +202,21 @@ auth_db — accounts, otp_challenges. Các service khác truy cập qua API/even
 
 **Mục đích: **quản lý thông tin cá nhân khách hàng độc lập với xác thực.
 
-**Trách nhiệm: **khởi tạo profile sau đăng ký CUSTOMER, tra cứu và cập nhật trường được phép; hỗ trợ ADMIN tra cứu khách hàng và service khác xác định customerId từ accountId.
+**Trách nhiệm: **khởi tạo profile sau đăng ký CUSTOMER, tra cứu và cập nhật trường được phép; hỗ trợ ADMIN tra cứu khách hàng và service khác xác định cid từ aid.
 
 **Không thuộc context: **mật khẩu/role, Booking history, trạng thái trip, kết quả payment hoặc Review. Lịch sử thuộc Booking, dù giao diện đặt trong trang khách hàng.
 
 **Entity/aggregate: **CustomerProfile. Chi tiết collection và index tại mục 8.
 
-**API cung cấp qua Gateway: **GET /api/customers/me — Xem hồ sơ của mình; PATCH /api/customers/me — Sửa fullName/email theo whitelist; GET /api/admin/customers — Tra cứu danh sách khách hàng; GET /api/admin/customers/{customerId} — Tra cứu chi tiết; không cho sửa qua API quản trị.
+**API cung cấp qua Gateway: **GET /api/customers/me — Xem hồ sơ của mình; PATCH /api/customers/me — Sửa fullName/email theo whitelist; GET /api/admin/customers — Tra cứu danh sách khách hàng; GET /api/admin/customers/{cid} — Tra cứu chi tiết; không cho sửa qua API quản trị.
 
-**API nội bộ cung cấp: **GET /internal/customers/by-account/{accountId} — Ánh xạ accountId sang customerId; GET /internal/customers/{customerId} — Cung cấp thông tin tối thiểu theo quyền caller.
+**API nội bộ cung cấp: **GET /internal/customers/by-account/{aid} — Ánh xạ aid sang cid; GET /internal/customers/{cid} — Cung cấp thông tin tối thiểu theo quyền caller.
 
 **API gọi sang service khác: **Auth access để kiểm tra tài khoản và quyền. Không gọi Booking/Trip/Payment để sở hữu hoặc cập nhật lịch sử.
 
-**Event phát/nhận: **Nhận: account.registered chỉ khi role CUSTOMER; upsert theo accountId, không ghi đè profile đã được người dùng sửa khi event giao lại. Phát: không có event nghiệp vụ bắt buộc ở bản cơ bản.
+**Event phát/nhận: **Nhận: account.registered chỉ khi role CUSTOMER; upsert theo aid, không ghi đè profile đã được người dùng sửa khi event giao lại. Phát: không có event nghiệp vụ bắt buộc ở bản cơ bản.
 
-**Quy tắc nghiệp vụ chính: **RULE03: khách hàng chỉ sửa profile của mình; ADMIN chỉ tra cứu. Một account CUSTOMER có tối đa một CustomerProfile; profile khác role bị từ chối. Client không được tự sửa accountId, role hoặc trạng thái account qua profile API.
+**Quy tắc nghiệp vụ chính: **RULE03: khách hàng chỉ sửa profile của mình; ADMIN chỉ tra cứu. Một account CUSTOMER có tối đa một CustomerProfile; profile khác role bị từ chối. Client không được tự sửa aid, role hoặc trạng thái account qua profile API.
 
 ### Dữ liệu sở hữu
 
@@ -230,15 +232,15 @@ customer_db — customer_profiles. Các service khác truy cập qua API/event, 
 
 **Entity/aggregate: **DriverProfile, Vehicle. Chi tiết collection và index tại mục 8.
 
-**API cung cấp qua Gateway: **GET/PATCH /api/drivers/me — Xem/sửa trường hồ sơ được phép; POST /api/drivers/me/submissions — Gửi hồ sơ đầy đủ về PENDING; GET/POST /api/drivers/me/vehicles — Xem/thêm xe thuộc mình; PATCH /api/drivers/me/vehicles/{vehicleId} — Sửa xe hoặc chọn xe đang sử dụng khi hợp lệ; PATCH /api/drivers/me/availability — Bật/tắt online; PUT /api/drivers/me/location — Ghi vị trí phục vụ tìm xe; GET /api/drivers/nearby — Danh sách đủ điều kiện, phân trang; GET /api/admin/drivers; GET /api/admin/drivers/{driverId} — Danh sách/chi tiết hồ sơ, xe, trạng thái; POST /api/admin/drivers/{driverId}/approval-decisions — Duyệt hoặc từ chối PENDING.
+**API cung cấp qua Gateway: **GET/PATCH /api/drivers/me — Xem/sửa trường hồ sơ được phép; POST /api/drivers/me/submissions — Gửi hồ sơ đầy đủ về PENDING; GET/POST /api/drivers/me/vehicles — Xem/thêm xe thuộc mình; PATCH /api/drivers/me/vehicles/{vid} — Sửa xe hoặc chọn xe đang sử dụng khi hợp lệ; PATCH /api/drivers/me/availability — Bật/tắt online; PUT /api/drivers/me/location — Ghi vị trí phục vụ tìm xe; GET /api/drivers/nearby — Danh sách đủ điều kiện, phân trang; GET /api/admin/drivers; GET /api/admin/drivers/{did} — Danh sách/chi tiết hồ sơ, xe, trạng thái; POST /api/admin/drivers/{did}/approval-decisions — Duyệt hoặc từ chối PENDING.
 
-**API nội bộ cung cấp: **GET /internal/drivers/by-account/{accountId} — Lấy driverId theo account; GET /internal/drivers/candidates — Cùng bộ lọc nearby, trả tối đa 5 ứng viên đã sắp xếp; GET /internal/drivers/{driverId}/dispatch-data — Hồ sơ, accountId, xe và vị trí cần cho phân công/ETA; PUT /internal/drivers/{driverId}/reservations/{operationId} — Giữ chỗ có điều kiện; cùng operationId gửi lại an toàn; POST /internal/drivers/{driverId}/reservations/{operationId}/confirm — Gắn activeTripId cho phân công đã xác nhận; DELETE /internal/drivers/{driverId}/reservations/{operationId} — Bù giữ chỗ khi chưa tạo trip, sau khi xác minh kết quả; PUT /internal/drivers/{driverId}/trip-location — Đồng bộ vị trí hợp lệ từ Trip, có tripId và thời điểm nguồn.
+**API nội bộ cung cấp: **GET /internal/drivers/by-account/{aid} — Lấy did theo account; GET /internal/drivers/candidates — Cùng bộ lọc nearby, trả tối đa 5 ứng viên đã sắp xếp; GET /internal/drivers/{did}/dispatch-data — Hồ sơ, aid, xe và vị trí cần cho phân công/ETA; PUT /internal/drivers/{did}/reservations/{operationId} — Giữ chỗ có điều kiện; cùng operationId gửi lại an toàn; POST /internal/drivers/{did}/reservations/{operationId}/confirm — Gắn tid cho phân công đã xác nhận; DELETE /internal/drivers/{did}/reservations/{operationId} — Bù giữ chỗ khi chưa tạo trip, sau khi xác minh kết quả; PUT /internal/drivers/{did}/trip-location — Đồng bộ vị trí hợp lệ từ Trip, có tid và thời điểm nguồn.
 
 **API gọi sang service khác: **Auth access để kiểm tra account; Trip để xác minh trip khi phục hồi reservation hoặc kiểm tra trước đổi xe khi có dấu hiệu chưa đồng bộ. Không gọi Booking để tự chọn ứng viên.
 
 **Event phát/nhận: **Phát: driver.profile_approved, driver.profile_rejected. Nhận: account.registered role DRIVER để tạo DRAFT/offline; trip.completed, trip.canceled để giải phóng đúng trip/reservation, không xóa chỗ của trip mới hơn.
 
-**Quy tắc nghiệp vụ chính: **RULE06, RULE13, RULE34–RULE35: APPROVED, online, account ACTIVE, không bận/giữ chỗ, xe đúng loại, vị trí tuổi ≤120 giây. Hồ sơ DRAFT hoặc REJECTED được sửa để gửi lại; không tự sửa APPROVED/PENDING để bỏ qua duyệt. Quyết định duyệt dùng cập nhật có điều kiện approvalStatus=PENDING. Tối đa một xe active. Không sửa/đổi xe đang dùng khi giữ chỗ hoặc trip chưa kết thúc; kiểm tra và khóa theo Driver aggregate trong cùng transaction. Nearby: khoảng cách ≤1 km; sắp xếp khoảng cách rồi driverId tăng dần. page≥1, limit 1–50, mặc định 1/10. Account không xác minh được thì không đưa vào danh sách. Offline ngừng nhận chuyến mới, không hủy trip đã nhận. Reservation chỉ được tạo sau khi kiểm tra lại điều kiện hiện tại; hai booking không giữ cùng một tài xế. Không tự giải phóng reservation chỉ vì HTTP timeout hoặc hết thời gian chờ: phải tra cứu operation/Trip để tránh tài xế có hai chuyến.
+**Quy tắc nghiệp vụ chính: **RULE06, RULE13, RULE34–RULE35: APPROVED, online, account ACTIVE, không bận/giữ chỗ, xe đúng loại, vị trí tuổi ≤120 giây. Hồ sơ DRAFT hoặc REJECTED được sửa để gửi lại; không tự sửa APPROVED/PENDING để bỏ qua duyệt. Quyết định duyệt dùng cập nhật có điều kiện approvalStatus=PENDING. Tối đa một xe active. Không sửa/đổi xe đang dùng khi giữ chỗ hoặc trip chưa kết thúc; kiểm tra và khóa theo Driver aggregate trong cùng transaction. Nearby: khoảng cách ≤1 km; sắp xếp khoảng cách rồi did tăng dần. page≥1, limit 1–50, mặc định 1/10. Account không xác minh được thì không đưa vào danh sách. Offline ngừng nhận chuyến mới, không hủy trip đã nhận. Reservation chỉ được tạo sau khi kiểm tra lại điều kiện hiện tại; hai booking không giữ cùng một tài xế. Không tự giải phóng reservation chỉ vì HTTP timeout hoặc hết thời gian chờ: phải tra cứu operation/Trip để tránh tài xế có hai chuyến.
 
 ### Dữ liệu sở hữu
 
@@ -254,15 +256,15 @@ driver_db — driver_profiles, vehicles. Các service khác truy cập qua API/e
 
 **Entity/aggregate: **Booking, TripInvitation. Chi tiết collection và index tại mục 8.
 
-**API cung cấp qua Gateway: **POST /api/bookings — Tạo SEARCHING, bắt buộc Idempotency-Key; GET /api/bookings — Booking history có phân trang; GET /api/bookings/{bookingId} — Tổng hợp booking, trip, payment và ETA theo quyền; POST /api/bookings/{bookingId}/cancellation-preview — Kiểm tra ban đầu và báo phí 0, chưa hủy; POST /api/bookings/{bookingId}/cancellation — Kiểm tra lại và xử lý hủy; GET /api/drivers/me/invitations — Lời mời thuộc mình; trạng thái nguồn ở Booking; POST /api/invitations/{invitationId}/response — ACCEPT hoặc REJECT theo hợp đồng API; GET /api/admin/bookings — Tra cứu booking theo customer/trạng thái và dữ liệu vận hành.
+**API cung cấp qua Gateway: **POST /api/bookings — Tạo SEARCHING, bắt buộc Idempotency-Key; GET /api/bookings — Booking history có phân trang; GET /api/bookings/{bid} — Tổng hợp booking, trip, payment và ETA theo quyền; POST /api/bookings/{bid}/cancellation-preview — Kiểm tra ban đầu và báo phí 0, chưa hủy; POST /api/bookings/{bid}/cancellation — Kiểm tra lại và xử lý hủy; GET /api/drivers/me/invitations — Lời mời thuộc mình; trạng thái nguồn ở Booking; POST /api/invitations/{iid}/response — ACCEPT hoặc REJECT theo hợp đồng API; GET /api/admin/bookings — Tra cứu booking theo customer/trạng thái và dữ liệu vận hành.
 
-**API nội bộ cung cấp: **GET /internal/bookings/{bookingId}/assignment — Kết quả/operation phân công và snapshot cần tạo trip; GET /internal/bookings/operations/{operationId} — Tra cứu quyết định xử lý để phục hồi.
+**API nội bộ cung cấp: **GET /internal/bookings/{bid}/assignment — Kết quả/operation phân công và snapshot cần tạo trip; GET /internal/bookings/operations/{operationId} — Tra cứu quyết định xử lý để phục hồi.
 
-**API gọi sang service khác: **Auth access; Customer by-account; Driver candidates/dispatch-data/reservation; Trip tạo và tra cứu theo bookingId, hủy; Payment tra cứu theo tripId. Gọi Driver lấy vị trí để tính ETA. Các API tổng hợp phải hiển thị phần dữ liệu lỗi/không lấy được, không giả định payment chưa tồn tại hoặc đã thất bại.
+**API gọi sang service khác: **Auth access; Customer by-account; Driver candidates/dispatch-data/reservation; Trip tạo và tra cứu theo bid, hủy; Payment tra cứu theo tid. Gọi Driver lấy vị trí để tính ETA. Các API tổng hợp phải hiển thị phần dữ liệu lỗi/không lấy được, không giả định payment chưa tồn tại hoặc đã thất bại.
 
 **Event phát/nhận: **Phát: booking.created, booking.invitation_created, booking.assigned, booking.no_driver, booking.canceled (hủy trước phân công). Nhận: trip.completed, trip.canceled để đồng bộ Booking. Sau hủy trip, dùng trip.canceled làm sự kiện thông báo chính, tránh hai event tạo hai thông báo cho một kết quả hủy.
 
-**Quy tắc nghiệp vụ chính: **RULE05–RULE12, RULE36–RULE37, RULE39–RULE40: tọa độ hợp lệ, điểm đón/trả khác nhau, tối đa 5 ứng viên ban đầu, không tìm vòng mới. Mỗi booking một lời mời PENDING; hiệu lực 30 giây, phản hồi tại/sau expiresAt bị từ chối. Worker tự đóng timeout, rồi xét ứng viên tiếp theo, không phụ thuộc client mở ứng dụng. Thiếu vị trí/hết điều kiện → bỏ ứng viên; không nhầm lỗi Driver service với kết quả không có tài xế. Lỗi hạ tầng giữ trạng thái phục hồi, chưa tự gán NO_DRIVER. Tìm thấy hoặc ACCEPT chưa đủ để công bố ASSIGNED. Chỉ xác nhận sau khi giữ chỗ và biết Trip đã được tạo đúng. Hết ứng viên → NO_DRIVER; hủy SEARCHING → CANCELED, đóng lời mời, không tạo trip/payment. Hủy sau phân công phải dựa trên quyết định trạng thái tại Trip. history trả cả NO_DRIVER/CANCELED; sắp xếp createdAt rồi bookingId giảm dần. Idempotency trùng dữ liệu trả cũ, khác dữ liệu trả 409.
+**Quy tắc nghiệp vụ chính: **RULE05–RULE12, RULE36–RULE37, RULE39–RULE40: tọa độ hợp lệ, điểm đón/trả khác nhau, tối đa 5 ứng viên ban đầu, không tìm vòng mới. Mỗi booking một lời mời PENDING; hiệu lực 30 giây, phản hồi tại/sau expiresAt bị từ chối. Worker tự đóng timeout, rồi xét ứng viên tiếp theo, không phụ thuộc client mở ứng dụng. Thiếu vị trí/hết điều kiện → bỏ ứng viên; không nhầm lỗi Driver service với kết quả không có tài xế. Lỗi hạ tầng giữ trạng thái phục hồi, chưa tự gán NO_DRIVER. Tìm thấy hoặc ACCEPT chưa đủ để công bố ASSIGNED. Chỉ xác nhận sau khi giữ chỗ và biết Trip đã được tạo đúng. Hết ứng viên → NO_DRIVER; hủy SEARCHING → CANCELED, đóng lời mời, không tạo trip/payment. Hủy sau phân công phải dựa trên quyết định trạng thái tại Trip. history trả cả NO_DRIVER/CANCELED; sắp xếp createdAt rồi bid giảm dần. Idempotency trùng dữ liệu trả cũ, khác dữ liệu trả 409.
 
 ### Dữ liệu sở hữu
 
@@ -278,15 +280,15 @@ booking_db — bookings, trip_invitations. Các service khác truy cập qua API
 
 **Entity/aggregate: **Trip, BookingSnapshot, VehicleSnapshot. Chi tiết collection và index tại mục 8.
 
-**API cung cấp qua Gateway: **GET /api/trips/{tripId} — Xem trip và cước được phép; POST /api/trips/{tripId}/arrival — ASSIGNED → ARRIVED; POST /api/trips/{tripId}/start — ARRIVED → IN_PROGRESS; POST /api/trips/{tripId}/completion — IN_PROGRESS → COMPLETED, tính cước khi đủ dữ liệu; PUT /api/trips/{tripId}/location — Vị trí khi IN_PROGRESS; GET /api/admin/trips — Tra cứu hoạt động/lịch sử theo bộ lọc.
+**API cung cấp qua Gateway: **GET /api/trips/{tid} — Xem trip và cước được phép; POST /api/trips/{tid}/arrival — ASSIGNED → ARRIVED; POST /api/trips/{tid}/start — ARRIVED → IN_PROGRESS; POST /api/trips/{tid}/completion — IN_PROGRESS → COMPLETED, tính cước khi đủ dữ liệu; PUT /api/trips/{tid}/location — Vị trí khi IN_PROGRESS; GET /api/admin/trips — Tra cứu hoạt động/lịch sử theo bộ lọc.
 
-**API nội bộ cung cấp: **POST /internal/trips — Tạo theo operationId, bookingId và giữ chỗ đã xác minh; GET /internal/trips/by-booking/{bookingId} — Tra cứu kết quả khi timeout hoặc phục hồi; GET /internal/trips/{tripId} — Trạng thái, ownership và snapshot cần thiết; POST /internal/trips/{tripId}/assignment-confirmation — Mở quyền thao tác trip sau khi phân công hoàn tất; POST /internal/trips/{tripId}/cancellation — Cập nhật có điều kiện ASSIGNED/ARRIVED; kiểm tra CUSTOMER sở hữu; POST /internal/trips/{tripId}/fare-recalculation — Xử lý lại khi fareAmount chưa có và dữ liệu đã đủ.
+**API nội bộ cung cấp: **POST /internal/trips — Tạo theo operationId, bid và giữ chỗ đã xác minh; GET /internal/trips/by-booking/{bid} — Tra cứu kết quả khi timeout hoặc phục hồi; GET /internal/trips/{tid} — Trạng thái, ownership và snapshot cần thiết; POST /internal/trips/{tid}/assignment-confirmation — Mở quyền thao tác trip sau khi phân công hoàn tất; POST /internal/trips/{tid}/cancellation — Cập nhật có điều kiện ASSIGNED/ARRIVED; kiểm tra CUSTOMER sở hữu; POST /internal/trips/{tid}/fare-recalculation — Xử lý lại khi fareAmount chưa có và dữ liệu đã đủ.
 
 **API gọi sang service khác: **Auth access; Booking assignment; Driver reservation/dispatch-data để kiểm tra phân công; Driver trip-location để cập nhật vị trí hiện tại (lỗi đồng bộ được giữ lại để retry). Không gọi Payment để cho phép trip hoàn thành.
 
 **Event phát/nhận: **Phát: trip.arrived, trip.started, trip.completed, trip.canceled, trip.fare_calculated. Nhận: không cần event bắt buộc cho chuyển trạng thái chính; dùng command REST có kiểm tra trạng thái. Hoàn thành và fare được lưu chung khi đủ dữ liệu; event fare_calculated phục vụ trường hợp tính lại, không tạo thêm thông báo hoàn thành.
 
-**Quy tắc nghiệp vụ chính: **RULE08, RULE14–RULE20, RULE26, RULE38–RULE40: unique bookingId và partial unique driverId là hàng rào DB, vẫn kiểm tra quyền và điều kiện nghiệp vụ. ASSIGNED → ARRIVED → IN_PROGRESS → COMPLETED; CANCELED chỉ từ ASSIGNED/ARRIVED theo yêu cầu CUSTOMER. Cập nhật dùng điều kiện trạng thái/version để cạnh tranh start và cancel chỉ một thao tác thắng. Gửi lại mốc đã thành công trả kết quả lưu, không sửa timestamp. Không nhận location ngoài IN_PROGRESS; phân biệt vị trí hiện tại tài xế và vị trí gắn với chuyến. Cước: 1000 × ceil(((10000 + 5000 × distanceKm) × vehicleMultiplier)/1000), MOTORBIKE=1, CAR=2; dùng distance và thông số trong bookingSnapshot, không làm tròn distance trước. Thiếu dữ liệu: giữ COMPLETED, fareAmount=null, ghi log và tính lại; chưa cho thanh toán. Giải phóng tài xế khi kết thúc, độc lập payment/cước đã tính xong hay chưa. ETA demo tại lớp tổng hợp: ceil(distance tài xế–điểm đón ×60/20), ARRIVED=0; thiếu vị trí mới thì chưa có ETA. Không mô tả là tính tuyến đường thực tế.
+**Quy tắc nghiệp vụ chính: **RULE08, RULE14–RULE20, RULE26, RULE38–RULE40: unique bid và partial unique did là hàng rào DB, vẫn kiểm tra quyền và điều kiện nghiệp vụ. ASSIGNED → ARRIVED → IN_PROGRESS → COMPLETED; CANCELED chỉ từ ASSIGNED/ARRIVED theo yêu cầu CUSTOMER. Cập nhật dùng điều kiện trạng thái/version để cạnh tranh start và cancel chỉ một thao tác thắng. Gửi lại mốc đã thành công trả kết quả lưu, không sửa timestamp. Không nhận location ngoài IN_PROGRESS; phân biệt vị trí hiện tại tài xế và vị trí gắn với chuyến. Cước: 1000 × ceil(((10000 + 5000 × distanceKm) × vehicleMultiplier)/1000), MOTORBIKE=1, CAR=2; dùng distance và thông số trong bookingSnapshot, không làm tròn distance trước. Thiếu dữ liệu: giữ COMPLETED, fareAmount=null, ghi log và tính lại; chưa cho thanh toán. Giải phóng tài xế khi kết thúc, độc lập payment/cước đã tính xong hay chưa. ETA demo tại lớp tổng hợp: ceil(distance tài xế–điểm đón ×60/20), ARRIVED=0; thiếu vị trí mới thì chưa có ETA. Không mô tả là tính tuyến đường thực tế.
 
 ### Dữ liệu sở hữu
 
@@ -302,15 +304,15 @@ trip_db — trips. Các service khác truy cập qua API/event, không đọc da
 
 **Entity/aggregate: **Payment. Chi tiết collection và index tại mục 8.
 
-**API cung cấp qua Gateway: **GET /api/trips/{tripId}/payment-summary — Khoản phải trả và kết quả các lần thanh toán; POST /api/trips/{tripId}/payments — Chọn CASH hoặc tạo MOCK_ONLINE; khóa idempotency; POST /api/trips/{tripId}/payment-retries — Tạo Payment online mới khi lần trước FAILED, còn lượt; GET /api/payments/{paymentId} — Trạng thái đã lưu; POST /api/payments/{paymentId}/cash-confirmation — Xác nhận đã nhận tiền mặt đúng tài xế; POST /api/payments/mock/callback — Kết quả online; không dùng client tự khai thành công; GET /api/admin/payments — Tra cứu theo trip/trạng thái; không sửa kết quả.
+**API cung cấp qua Gateway: **GET /api/trips/{tid}/payment-summary — Khoản phải trả và kết quả các lần thanh toán; POST /api/trips/{tid}/payments — Chọn CASH hoặc tạo MOCK_ONLINE; khóa idempotency; POST /api/trips/{tid}/payment-retries — Tạo Payment online mới khi lần trước FAILED, còn lượt; GET /api/payments/{pid} — Trạng thái đã lưu; POST /api/payments/{pid}/cash-confirmation — Xác nhận đã nhận tiền mặt đúng tài xế; POST /api/payments/mock/callback — Kết quả online; không dùng client tự khai thành công; GET /api/admin/payments — Tra cứu theo trip/trạng thái; không sửa kết quả.
 
-**API nội bộ cung cấp: **GET /internal/payments/by-trip/{tripId} — Dữ liệu thanh toán cho lịch sử.
+**API nội bộ cung cấp: **GET /internal/payments/by-trip/{tid} — Dữ liệu thanh toán cho lịch sử.
 
-**API gọi sang service khác: **Auth access; Trip detail để kiểm tra COMPLETED, fare hợp lệ và đúng người trả/nhận. Adapter mock tạo referenceCode cố định theo paymentId và phát callback có chữ ký để kiểm thử. Không lấy cước qua client hoặc tính một công thức khác tại Payment.
+**API gọi sang service khác: **Auth access; Trip detail để kiểm tra COMPLETED, fare hợp lệ và đúng người trả/nhận. Adapter mock tạo referenceCode cố định theo pid và phát callback có chữ ký để kiểm thử. Không lấy cước qua client hoặc tính một công thức khác tại Payment.
 
 **Event phát/nhận: **Phát: payment.completed, payment.failed. Nhận: không bắt buộc; đọc nguồn Trip khi tạo payment. Không tự thu tiền khi nhận trip.completed.
 
-**Quy tắc nghiệp vụ chính: **RULE21–RULE27: chỉ trip COMPLETED có fare hợp lệ; VND và amount server. CASH có thể tạo PENDING khi khách chọn; chỉ tài xế được phân công xác nhận mới COMPLETED. Không tạo CASH nếu còn online PENDING/đã COMPLETED; khi các online đã FAILED thì được chuyển CASH. Online tối đa 3 Payment, lần đầu và 2 retry; retry cần lần trước FAILED, paymentId và key mới. Gửi lại key cũ không tính là retry. Callback phải khớp chữ ký, paymentId, referenceCode, amount, VND; cập nhật có điều kiện từ PENDING. Callback lặp trả kết quả cũ; trái kết quả cuối từ chối và log. Timeout khởi tạo mock không tự đổi FAILED; kiểm tra giao dịch theo cùng paymentId/referenceCode rồi xử lý lại. PENDING không bị coi FAILED chỉ vì client mất kết nối. Thành công không sửa Trip; thất bại không đảo COMPLETED. Không lưu dữ liệu thẻ hoặc tài khoản thanh toán nhạy cảm.
+**Quy tắc nghiệp vụ chính: **RULE21–RULE27: chỉ trip COMPLETED có fare hợp lệ; VND và amount server. CASH có thể tạo PENDING khi khách chọn; chỉ tài xế được phân công xác nhận mới COMPLETED. Không tạo CASH nếu còn online PENDING/đã COMPLETED; khi các online đã FAILED thì được chuyển CASH. Online tối đa 3 Payment, lần đầu và 2 retry; retry cần lần trước FAILED, pid và key mới. Gửi lại key cũ không tính là retry. Callback phải khớp chữ ký, pid, referenceCode, amount, VND; cập nhật có điều kiện từ PENDING. Callback lặp trả kết quả cũ; trái kết quả cuối từ chối và log. Timeout khởi tạo mock không tự đổi FAILED; kiểm tra giao dịch theo cùng pid/referenceCode rồi xử lý lại. PENDING không bị coi FAILED chỉ vì client mất kết nối. Thành công không sửa Trip; thất bại không đảo COMPLETED. Không lưu dữ liệu thẻ hoặc tài khoản thanh toán nhạy cảm.
 
 ### Dữ liệu sở hữu
 
@@ -326,7 +328,7 @@ payment_db — payments. Các service khác truy cập qua API/event, không đ�
 
 **Entity/aggregate: **Notification. Chi tiết collection và index tại mục 8.
 
-**API cung cấp qua Gateway: **GET /api/notifications — Danh sách của account hiện tại; GET /api/notifications/{notificationId} — Chi tiết nếu đúng người nhận.
+**API cung cấp qua Gateway: **GET /api/notifications — Danh sách của account hiện tại; GET /api/notifications/{nid} — Chi tiết nếu đúng người nhận.
 
 **API gọi sang service khác: **Auth access cho API tra cứu. Không cần gọi service nghiệp vụ trong luồng tạo thông báo khi event đã có đủ ID, người nhận và trạng thái; không mở POST tạo thông báo cho client tùy ý.
 
@@ -348,15 +350,15 @@ notification_db — notifications. Các service khác truy cập qua API/event, 
 
 **Entity/aggregate: **Review. Chi tiết collection và index tại mục 8.
 
-**API cung cấp qua Gateway: **POST /api/trips/{tripId}/review — Tạo Review cho trip của mình; GET /api/trips/{tripId}/review — Tra cứu Review liên quan.
+**API cung cấp qua Gateway: **POST /api/trips/{tid}/review — Tạo Review cho trip của mình; GET /api/trips/{tid}/review — Tra cứu Review liên quan.
 
-**API nội bộ cung cấp: **GET /internal/reviews/by-trip/{tripId} — Hỗ trợ chi tiết lịch sử nếu cần.
+**API nội bộ cung cấp: **GET /internal/reviews/by-trip/{tid} — Hỗ trợ chi tiết lịch sử nếu cần.
 
 **API gọi sang service khác: **Auth access; Trip detail để xác nhận COMPLETED, khách hàng sở hữu và tài xế thực hiện. Không gọi Payment để yêu cầu đã thanh toán.
 
 **Event phát/nhận: **Phát/nhận: không có event nghiệp vụ bắt buộc trong demo. Chưa thêm review.created nếu chưa có consumer cần dùng.
 
-**Quy tắc nghiệp vụ chính: **RULE28–RULE29: một review/trip, rating nguyên 1–5, comment tùy chọn tối đa 500 ký tự. Không cần payment COMPLETED; trip COMPLETED là điều kiện riêng. Unique tripId bảo vệ cạnh tranh tạo trùng; Review đã lưu không sửa/xóa. Tạo lần nữa trả xung đột, không thay đổi nội dung cũ.
+**Quy tắc nghiệp vụ chính: **RULE28–RULE29: một review/trip, rating nguyên 1–5, comment tùy chọn tối đa 500 ký tự. Không cần payment COMPLETED; trip COMPLETED là điều kiện riêng. Unique tid bảo vệ cạnh tranh tạo trùng; Review đã lưu không sửa/xóa. Tạo lần nữa trả xung đột, không thay đổi nội dung cũ.
 
 ### Dữ liệu sở hữu
 
@@ -374,77 +376,77 @@ Tên collection triển khai tương ứng entity trong mục 9 SRS. \_id là đ
 
 **otp_challenges: **Entity/aggregate: OtpChallenge — root. Trường chính: phone, purpose, codeHash, failedAttempts, expiresAt, verifiedAt, consumedAt, invalidatedAt, createdAt. Index: (phone, purpose, createdAt desc) để lấy mã gần nhất.
 
-OTP có thể tồn tại trước Account nên không bắt buộc accountId. Không dùng TTL làm căn cứ xác định OTP hợp lệ; server luôn kiểm tra expiresAt. Transaction Auth bảo đảm tiêu thụ bằng chứng OTP và tạo Account cùng thành công hoặc cùng rollback.
+OTP có thể tồn tại trước Account nên không bắt buộc aid. Không dùng TTL làm căn cứ xác định OTP hợp lệ; server luôn kiểm tra expiresAt. Transaction Auth bảo đảm tiêu thụ bằng chứng OTP và tạo Account cùng thành công hoặc cùng rollback.
 
 ## 8.2. customer_service
 
 **Database: **customer_db
 
-**customer_profiles: **Entity/aggregate: CustomerProfile — root. Trường chính: \_id/customerId, accountId, fullName, email, createdAt, updatedAt. Index: Unique accountId.
+**customer_profiles: **Entity/aggregate: CustomerProfile — root. Trường chính: \_id/cid, aid, fullName, email, createdAt, updatedAt. Index: Unique aid.
 
-accountId là tham chiếu logic tới Auth. Không lưu passwordHash/OTP hoặc sao chép toàn bộ Account. Email không tự đặt unique vì SRS chưa yêu cầu.
+aid là tham chiếu logic tới Auth. Không lưu passwordHash/OTP hoặc sao chép toàn bộ Account. Email không tự đặt unique vì SRS chưa yêu cầu.
 
 ## 8.3. driver_service
 
 **Database: **driver_db
 
-**driver_profiles: **Entity/aggregate: DriverProfile — root. Trường chính: driverId, accountId, fullName, email, licenseNumber, approvalStatus, reviewedByAccountId, reviewedAt, rejectionReason, isOnline, activeTripId, latitude, longitude, locationUpdatedAt. Index: Unique accountId; (approvalStatus, isOnline, locationUpdatedAt) cho lọc demo.
+**driver_profiles: **Entity/aggregate: DriverProfile — root. Trường chính: did, aid, fullName, email, licenseNumber, approvalStatus, reviewedByAccountId, reviewedAt, rejectionReason, isOnline, tid, latitude, longitude, locationUpdatedAt. Index: Unique aid; (approvalStatus, isOnline, locationUpdatedAt) cho lọc demo.
 
-**vehicles: **Entity/aggregate: Vehicle — entity thuộc aggregate Driver. Trường chính: vehicleId, driverId, plateNumber, vehicleType, model, color, isActive. Index: Unique plateNumber chuẩn hóa; partial unique driverId khi isActive=true; index driverId.
+**vehicles: **Entity/aggregate: Vehicle — entity thuộc aggregate Driver. Trường chính: vid, did, plateNumber, vehicleType, model, color, isActive. Index: Unique plateNumber chuẩn hóa; partial unique did khi isActive=true; index did.
 
-Vehicle là collection riêng nhưng các thao tác đổi xe đang sử dụng phải qua Driver aggregate và transaction driver_db. Không suy ra collection nào cũng là một bounded context. Vị trí dùng latitude/longitude và Haversine cho dữ liệu demo; không yêu cầu 2dsphere khi chưa lưu GeoJSON. Đề xuất nhúng assignmentReservation = {operationId, bookingId, tripId, phase, updatedAt} trong DriverProfile để phục hồi phân công. Đây là dữ liệu kỹ thuật; tài xế đang có reservation cũng bị loại khỏi nearby. activeTripId là bản sao trạng thái bận, không thay thế Trip làm nguồn trạng thái chuyến.
+Vehicle là collection riêng nhưng các thao tác đổi xe đang sử dụng phải qua Driver aggregate và transaction driver_db. Không suy ra collection nào cũng là một bounded context. Vị trí dùng latitude/longitude và Haversine cho dữ liệu demo; không yêu cầu 2dsphere khi chưa lưu GeoJSON. Đề xuất nhúng assignmentReservation = {operationId, bid, tid, phase, updatedAt} trong DriverProfile để phục hồi phân công. Đây là dữ liệu kỹ thuật; tài xế đang có reservation cũng bị loại khỏi nearby. tid là bản sao trạng thái bận, không thay thế Trip làm nguồn trạng thái chuyến.
 
 ## 8.4. booking_service
 
 **Database: **booking_db
 
-**bookings: **Entity/aggregate: Booking — root. Trường chính: bookingId, customerId, idempotencyKey, requestHash, pickup/destination, vehicleType, status, distanceKm, bộ thông số giá, candidateDriverIds, dữ liệu hủy, createdAt, updatedAt. Index: Unique (customerId,idempotencyKey); (customerId,createdAt desc,\_id desc); (status,createdAt desc) cho ADMIN.
+**bookings: **Entity/aggregate: Booking — root. Trường chính: bid, cid, idempotencyKey, requestHash, pickup/destination, vehicleType, status, distanceKm, bộ thông số giá, candidateDriverIds, dữ liệu hủy, createdAt, updatedAt. Index: Unique (cid,idempotencyKey); (cid,createdAt desc,\_id desc); (status,createdAt desc) cho ADMIN.
 
-**trip_invitations: **Entity/aggregate: TripInvitation — entity trong aggregate Booking. Trường chính: invitationId, bookingId, driverId, candidateOrder, status, expiresAt, respondedAt, createdAt. Index: Unique (bookingId,driverId); partial unique bookingId khi PENDING; (status,expiresAt).
+**trip_invitations: **Entity/aggregate: TripInvitation — entity trong aggregate Booking. Trường chính: iid, bid, did, candidateOrder, status, expiresAt, respondedAt, createdAt. Index: Unique (bid,did); partial unique bid khi PENDING; (status,expiresAt).
 
-Đề xuất Booking có version, processingOperation = {operationId, type, phase, driverId, tripId, updatedAt} và tripId tham chiếu sau phân công. Transaction booking_db bảo đảm cập nhật Booking và TripInvitation cùng nhất quán. Không dùng unique index trên mảng offers để giả định bảo vệ được mọi ràng buộc lời mời.
+Đề xuất Booking có version, processingOperation = {operationId, type, phase, did, tid, updatedAt} và tid tham chiếu sau phân công. Transaction booking_db bảo đảm cập nhật Booking và TripInvitation cùng nhất quán. Không dùng unique index trên mảng offers để giả định bảo vệ được mọi ràng buộc lời mời.
 
 ## 8.5. trip_service
 
 **Database: **trip_db
 
-**trips: **Entity/aggregate: Trip — root. Trường chính: tripId, bookingId, driverId, vehicleId, bookingSnapshot, vehicleSnapshot, status, fareAmount, fareCalculatedAt, vị trí mới nhất, mốc thời gian. Index: Unique bookingId; partial unique driverId với ASSIGNED/ARRIVED/IN_PROGRESS; (status,assignedAt desc) và (driverId,assignedAt desc).
+**trips: **Entity/aggregate: Trip — root. Trường chính: tid, bid, did, vid, bookingSnapshot, vehicleSnapshot, status, fareAmount, fareCalculatedAt, vị trí mới nhất, mốc thời gian. Index: Unique bid; partial unique did với ASSIGNED/ARRIVED/IN_PROGRESS; (status,assignedAt desc) và (did,assignedAt desc).
 
-Snapshot nhúng không có collection riêng. Đề xuất thêm customerId, customerAccountId, driverAccountId trong booking/assignment snapshot để kiểm tra quyền; version, assignmentOperationId, assignmentConfirmed và dữ liệu hủy {reason, canceledByAccountId, canceledAt, fee} trong Trip. Các trường bổ sung là dữ liệu thiết kế cần phản ánh vào schema mục 9 khi triển khai, không tạo nghiệp vụ mới.
+Snapshot nhúng không có collection riêng. Đề xuất thêm cid, customerAccountId, driverAccountId trong booking/assignment snapshot để kiểm tra quyền; version, assignmentOperationId, assignmentConfirmed và dữ liệu hủy {reason, canceledByAccountId, canceledAt, fee} trong Trip. Các trường bổ sung là dữ liệu thiết kế cần phản ánh vào schema mục 9 khi triển khai, không tạo nghiệp vụ mới.
 
 ## 8.6. payment_service
 
 **Database: **payment_db
 
-**payments: **Entity/aggregate: Payment — root cho một lần thanh toán. Trường chính: paymentId, tripId, method, status, amount, currency, referenceCode, idempotencyKey, requestHash, attemptNumber, confirmedByAccountId, confirmedAt. Index: Unique (tripId,idempotencyKey); unique referenceCode khi có giá trị; partial unique tripId khi status thuộc PENDING/COMPLETED.
+**payments: **Entity/aggregate: Payment — root cho một lần thanh toán. Trường chính: pid, tid, method, status, amount, currency, referenceCode, idempotencyKey, requestHash, attemptNumber, confirmedByAccountId, confirmedAt. Index: Unique (tid,idempotencyKey); unique referenceCode khi có giá trị; partial unique tid khi status thuộc PENDING/COMPLETED.
 
-Thêm partial unique (tripId,attemptNumber) chỉ cho MOCK_ONLINE và validate attemptNumber nguyên 1–3. Khi các yêu cầu retry cạnh tranh cùng lượt, index chỉ cho một yêu cầu thắng; yêu cầu còn lại đọc lại kết quả và điều kiện. Kết hợp partial unique PENDING/COMPLETED ngăn CASH và online cùng thành công/đang chờ. Không chỉ đếm số Payment rồi insert mà bỏ bảo vệ đồng thời. Giữ bản sao customerId, customerAccountId, driverId/driverAccountId và fare của trip tại lần thanh toán để kiểm tra quyền và truy xuất. Snapshot lấy từ Trip, không tin amount/ownership do client khai.
+Thêm partial unique (tid,attemptNumber) chỉ cho MOCK_ONLINE và validate attemptNumber nguyên 1–3. Khi các yêu cầu retry cạnh tranh cùng lượt, index chỉ cho một yêu cầu thắng; yêu cầu còn lại đọc lại kết quả và điều kiện. Kết hợp partial unique PENDING/COMPLETED ngăn CASH và online cùng thành công/đang chờ. Không chỉ đếm số Payment rồi insert mà bỏ bảo vệ đồng thời. Giữ bản sao cid, customerAccountId, did/driverAccountId và fare của trip tại lần thanh toán để kiểm tra quyền và truy xuất. Snapshot lấy từ Trip, không tin amount/ownership do client khai.
 
 ## 8.7. notification_service
 
 **Database: **notification_db
 
-**notifications: **Entity/aggregate: Notification — root. Trường chính: notificationId, recipientAccountId, eventId, type, content, relatedEntityType, relatedEntityId, createdAt. Index: Unique (eventId,recipientAccountId,type); (recipientAccountId,createdAt desc,\_id desc).
+**notifications: **Entity/aggregate: Notification — root. Trường chính: nid, aid, eventId, type, content, relatedEntityType, bid/tid/pid/did theo đối tượng, createdAt. Index: Unique (eventId,aid,type); (aid,createdAt desc,\_id desc).
 
-recipientAccountId tham chiếu Auth; relatedEntityId có thể là Booking/Trip/Payment/DriverProfile, không phải foreign key tự kiểm soát. Event nguồn phải có accountId người nhận được producer lấy từ nguồn hợp lệ, tránh nhầm customerId với accountId.
+aid tham chiếu Auth; ID tham chiếu công khai là bid/tid/pid/did tương ứng Booking/Trip/Payment/DriverProfile, không phải foreign key tự kiểm soát. Event nội bộ giữ Account _id để ownership; API ánh xạ thành aid người nhận được producer lấy từ nguồn hợp lệ, tránh nhầm cid với aid.
 
 ## 8.8. rating_service
 
 **Database: **rating_db
 
-**reviews: **Entity/aggregate: Review — root. Trường chính: reviewId, tripId, customerId, driverId, rating, comment, createdAt. Index: Unique tripId; (driverId,createdAt desc); (customerId,createdAt desc).
+**reviews: **Entity/aggregate: Review — root. Trường chính: rid, tid, cid, did, rating, comment, createdAt. Index: Unique tid; (did,createdAt desc); (cid,createdAt desc).
 
-tripId/customerId/driverId là tham chiếu logic; Rating lấy customer và driver từ Trip, không cho client tự chọn người được đánh giá. Đề xuất lưu customerAccountId từ snapshot để kiểm tra quyền tra cứu.
+tid/cid/did là tham chiếu logic; Rating lấy customer và driver từ Trip, không cho client tự chọn người được đánh giá. Đề xuất lưu customerAccountId từ snapshot để kiểm tra quyền tra cứu.
 
 ## 8.9. Ràng buộc phối hợp và dữ liệu phục hồi
 
-Đăng ký: Auth lưu account và outbox cục bộ; consumer upsert profile theo accountId. Chưa có profile thì chưa cho tạo booking/nhận chuyến. Không transaction chung cho Auth và Profile.
+Đăng ký: Auth lưu account và outbox cục bộ; consumer upsert profile theo aid. Chưa có profile thì chưa cho tạo booking/nhận chuyến. Không transaction chung cho Auth và Profile.
 
-Phân công: Booking ghi operationId/version bền vững; Driver giữ chỗ có điều kiện; Trip tạo duy nhất theo bookingId; xác nhận Booking/Driver/Trip rồi mới công bố phân công hoàn tất. Khi timeout phải tra cứu kết quả cũ, không mời người khác hoặc giải phóng giữ chỗ ngay. Chặn tài xế thao tác Trip chưa xác nhận phân công.
+Phân công: Booking ghi operationId/version bền vững; Driver giữ chỗ có điều kiện; Trip tạo duy nhất theo bid; xác nhận Booking/Driver/Trip rồi mới công bố phân công hoàn tất. Khi timeout phải tra cứu kết quả cũ, không mời người khác hoặc giải phóng giữ chỗ ngay. Chặn tài xế thao tác Trip chưa xác nhận phân công.
 
-Hủy: Booking hủy SEARCHING trong transaction cục bộ. Khi đã có Trip, Trip quyết định hủy bằng cập nhật có điều kiện ASSIGNED/ARRIVED; nếu start đã thắng thì không được hủy. Event kết thúc đồng bộ Booking và chỉ giải phóng đúng activeTripId; không để event cũ xóa phân công mới.
+Hủy: Booking hủy SEARCHING trong transaction cục bộ. Khi đã có Trip, Trip quyết định hủy bằng cập nhật có điều kiện ASSIGNED/ARRIVED; nếu start đã thắng thì không được hủy. Event kết thúc đồng bộ Booking và chỉ giải phóng đúng tid; không để event cũ xóa phân công mới.
 
-Thanh toán: unique (tripId, idempotencyKey), partial unique tripId ở PENDING/COMPLETED và unique lượt online 1–3 ngăn retry đồng thời vượt giới hạn. Payment FAILED/PENDING không đổi Trip COMPLETED.
+Thanh toán: unique (tid, idempotencyKey), partial unique tid ở PENDING/COMPLETED và unique lượt online 1–3 ngăn retry đồng thời vượt giới hạn. Payment FAILED/PENDING không đổi Trip COMPLETED.
 
 Đề xuất outbox_events/inbox_events tại DB service tương ứng để phục hồi event, không phải entity nghiệp vụ hoặc context mới. Ghi outbox cùng thay đổi nghiệp vụ; inbox unique (consumer,eventId). MongoDB local dùng single-node replica set nếu triển khai transaction cục bộ. Các bổ sung kỹ thuật cần đồng bộ schema SRS/API ở giai đoạn code; chưa phải tính năng đã triển khai.
 

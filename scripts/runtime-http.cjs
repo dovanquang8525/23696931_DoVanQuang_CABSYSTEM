@@ -32,28 +32,28 @@ async function refresh(driver){
   expect(await request('PUT','/api/v1/drivers/me/availability',{isOnline:true},driver),200,'driver online');
 }
 async function ride(customer,driver){
-  await poll(()=>request('GET','/api/v1/drivers/me',undefined,driver),r=>r.status===200&&!r.data.activeTripId);
+  await poll(()=>request('GET','/api/v1/drivers/me',undefined,driver),r=>r.status===200&&!r.data.tid);
   await refresh(driver);
   const key=crypto.randomUUID(),body={pickupCode:'A',destinationCode:'B'};
   const booking=expect(await request('POST','/api/v1/bookings',body,customer,{'Idempotency-Key':key}),201,'create booking');
-  assert.equal(booking.vehicleType,'BIKE');assert.equal(booking.status,'SEARCHING');assert.ok(!booking.tripId);
+  assert.equal(booking.vehicleType,'BIKE');assert.equal(booking.status,'SEARCHING');assert.ok(!booking.tid);
   const invitations=await poll(()=>request('GET','/api/v1/drivers/me/invitations?status=PENDING',undefined,driver),
-    r=>r.status===200&&r.data.items.some(i=>i.bookingId===booking.bookingId));
-  const invitation=invitations.data.items.find(i=>i.bookingId===booking.bookingId);
-  const accepted=expect(await request('POST','/api/v1/invitations/'+invitation.invitationId+'/response',{decision:'ACCEPT'},driver),200,'accept invitation');
-  assert.equal(accepted.booking.status,'ASSIGNED');assert.ok(accepted.tripId);
-  return {booking,invitation,tripId:accepted.tripId,key,body};
+    r=>r.status===200&&r.data.items.some(i=>i.bid===booking.bid));
+  const invitation=invitations.data.items.find(i=>i.bid===booking.bid);
+  const accepted=expect(await request('POST','/api/v1/invitations/'+invitation.iid+'/response',{decision:'ACCEPT'},driver),200,'accept invitation');
+  assert.equal(accepted.booking.status,'ASSIGNED');assert.ok(accepted.tid);
+  return {booking,invitation,tid:accepted.tid,key,body};
 }
-async function complete(tripId,driver){
-  expect(await request('POST','/api/v1/trips/'+tripId+'/arrival',undefined,driver),200,'arrive');
-  expect(await request('POST','/api/v1/trips/'+tripId+'/start',undefined,driver),200,'start');
-  expect(await request('PUT','/api/v1/trips/'+tripId+'/location',{locationCode:'B'},driver),200,'trip location from DB point B');
-  const trip=expect(await request('POST','/api/v1/trips/'+tripId+'/completion',undefined,driver),200,'complete');
+async function complete(tid,driver){
+  expect(await request('POST','/api/v1/trips/'+tid+'/arrival',undefined,driver),200,'arrive');
+  expect(await request('POST','/api/v1/trips/'+tid+'/start',undefined,driver),200,'start');
+  expect(await request('PUT','/api/v1/trips/'+tid+'/location',{locationCode:'B'},driver),200,'trip location from DB point B');
+  const trip=expect(await request('POST','/api/v1/trips/'+tid+'/completion',undefined,driver),200,'complete');
   assert.equal(trip.status,'COMPLETED');assert.equal(trip.fareAmount,1000*Math.ceil((10000+5000*trip.distanceKm)/1000));return trip;
 }
 async function callback(payment,result,extra={},signatureOverride){
   const timestamp=extra.timestamp ?? Math.floor(Date.now()/1000);
-  const body={eventId:crypto.randomUUID(),paymentId:payment.paymentId,referenceCode:payment.referenceCode,
+  const body={eventId:crypto.randomUUID(),pid:payment.pid,referenceCode:payment.referenceCode,
     amount:payment.amount,currency:'VND',result,timestamp,...extra};
   const raw=JSON.stringify(body),signature=signatureOverride||sign(Buffer.from(raw),timestamp,process.env.MOCK_CALLBACK_SECRET);
   const headers={'Content-Type':'application/json','X-Mock-Timestamp':String(timestamp),'X-Mock-Signature':signature};

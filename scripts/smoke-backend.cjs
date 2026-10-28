@@ -19,7 +19,7 @@ async function main(){
   h.expect(await h.request('PATCH','/api/v1/customers/me',{name:'<script>alert(1)</script>'},customer),400,'XSS rejected');
   h.expect(await h.request('POST','/api/v1/auth/login',{email:{$ne:null},password:'anything'}),400,'NoSQL rejected');
   h.expect(await h.request('POST','/api/v1/auth/login',{email:"' OR 1=1 --",password:'anything'}),400,'PDF SQL payload rejected');
-  const run=await h.ride(customer,driver),trip='/api/v1/trips/'+run.tripId,booking='/api/v1/bookings/'+run.booking.bookingId;
+  const run=await h.ride(customer,driver),trip='/api/v1/trips/'+run.tid,booking='/api/v1/bookings/'+run.booking.bid;
   const replay=h.expect(await h.request('POST','/api/v1/bookings',run.body,customer,{'Idempotency-Key':run.key}),200,'booking replay snapshot');
   assert.deepEqual(replay,run.booking);
   h.expect(await h.request('POST','/api/v1/bookings',{pickupCode:'B',destinationCode:'A'},customer,{'Idempotency-Key':run.key}),409,'booking key conflict');
@@ -27,7 +27,7 @@ async function main(){
   h.expect(await h.request('GET',trip,undefined,other),403,'trip ownership');
   h.expect(await h.request('POST',trip+'/payments',undefined,customer,{'Idempotency-Key':crypto.randomUUID()}),409,'payment before completion');
   h.expect(await h.request('POST',trip+'/start',undefined,driver),409,'cannot skip arrival');
-  const done=await h.complete(run.tripId,driver);
+  const done=await h.complete(run.tid,driver);
   h.expect(await h.request('POST',booking+'/cancellation',{reason:'late',confirmed:true},customer),409,'cannot cancel completed');
   h.expect(await h.request('POST',trip+'/reviews',{rating:6},customer),400,'rating boundary');
   h.expect(await h.request('POST',trip+'/reviews',{rating:5,comment:'Good ride'},other),403,'review ownership');
@@ -37,11 +37,11 @@ async function main(){
   const concurrent=await Promise.all([h.request('POST',trip+'/payments',undefined,customer,{'Idempotency-Key':key}),h.request('POST',trip+'/payments',undefined,customer,{'Idempotency-Key':key})]);
   assert.deepEqual(concurrent.map(r=>r.status).sort(),[200,201]);assert.deepEqual(concurrent[0].data,concurrent[1].data);
   const payment=concurrent[0].data;assert.equal(payment.amount,done.fareAmount);
-  h.expect(await h.request('GET','/api/v1/payments/'+payment.paymentId,undefined,other),403,'payment ownership');
+  h.expect(await h.request('GET','/api/v1/payments/'+payment.pid,undefined,other),403,'payment ownership');
   h.expect((await h.callback(payment,'COMPLETED',{},'sha256='+'0'.repeat(64))).response,401,'invalid callback signature');
   h.expect((await h.callback(payment,'COMPLETED',{amount:payment.amount+1})).response,400,'signed wrong amount');
   const failure=await h.callback(payment,'FAILED');h.expect(failure.response,200,'failure callback');
-  const retryKey=crypto.randomUUID(),retryPath='/api/v1/payments/'+payment.paymentId+'/retries';
+  const retryKey=crypto.randomUUID(),retryPath='/api/v1/payments/'+payment.pid+'/retries';
   const retried=h.expect(await h.request('POST',retryPath,undefined,customer,{'Idempotency-Key':retryKey}),201,'retry failed attempt');
   assert.equal(retried.attemptNumber,2);
   const success=await h.callback(retried,'COMPLETED');h.expect(success.response,200,'success callback');
@@ -56,24 +56,24 @@ async function main(){
   await h.poll(()=>h.request('GET',booking,undefined,customer),r=>r.status===200&&r.data.booking.status==='COMPLETED'&&r.data.paymentSummary?.hasCompleted);
   const notifications=await h.poll(()=>h.request('GET','/api/v1/notifications?limit=50',undefined,customer),r=>r.status===200&&r.data.items.some(n=>n.type==='payment.completed'));
   const note=notifications.data.items.find(n=>n.type==='payment.completed');
-  h.expect(await h.request('GET','/api/v1/notifications/'+note.notificationId,undefined,other),403,'notification ownership');
+  h.expect(await h.request('GET','/api/v1/notifications/'+note.nid,undefined,other),403,'notification ownership');
   h.expect(await h.request('GET','/api/v1/admin/drivers',undefined,admin),200,'admin drivers');
-  const cancel=await h.ride(customer,driver),cancelPath='/api/v1/bookings/'+cancel.booking.bookingId+'/cancellation';
+  const cancel=await h.ride(customer,driver),cancelPath='/api/v1/bookings/'+cancel.booking.bid+'/cancellation';
   h.expect(await h.request('POST',cancelPath+'-preview',{reason:'Change plan'},customer),200,'cancel preview');
   const canceled=h.expect(await h.request('POST',cancelPath,{reason:'Change plan',confirmed:true},customer),200,'cancel assigned');
   assert.equal(canceled.feeAmount,0);
   assert.deepEqual(h.expect(await h.request('POST',cancelPath,{reason:'Another reason',confirmed:true},customer),200,'cancel replay'),canceled);
-  h.expect(await h.request('POST','/api/v1/trips/'+cancel.tripId+'/start',undefined,driver),409,'cannot start canceled');
+  h.expect(await h.request('POST','/api/v1/trips/'+cancel.tid+'/start',undefined,driver),409,'cannot start canceled');
   const noDriver=h.expect(await h.request('POST','/api/v1/bookings',{pickup:{latitude:0,longitude:0},destination:{latitude:0.01,longitude:0.01}},customer,{'Idempotency-Key':crypto.randomUUID()}),201,'empty-area booking');
-  await h.poll(()=>h.request('GET','/api/v1/bookings/'+noDriver.bookingId,undefined,customer),r=>r.status===200&&r.data.booking.status==='NO_DRIVER'&&r.data.tripAvailability==='NOT_CREATED');
-  const exhausted=await h.ride(customer,driver);await h.complete(exhausted.tripId,driver);
-  let failed=h.expect(await h.request('POST','/api/v1/trips/'+exhausted.tripId+'/payments',{},customer,{'Idempotency-Key':crypto.randomUUID()}),201,'retry-limit first attempt');
+  await h.poll(()=>h.request('GET','/api/v1/bookings/'+noDriver.bid,undefined,customer),r=>r.status===200&&r.data.booking.status==='NO_DRIVER'&&r.data.tripAvailability==='NOT_CREATED');
+  const exhausted=await h.ride(customer,driver);await h.complete(exhausted.tid,driver);
+  let failed=h.expect(await h.request('POST','/api/v1/trips/'+exhausted.tid+'/payments',{},customer,{'Idempotency-Key':crypto.randomUUID()}),201,'retry-limit first attempt');
   h.expect((await h.callback(failed,'COMPLETED',{timestamp:Math.floor(Date.now()/1000)-301})).response,400,'unprocessed stale callback');
   for(let attempt=1;attempt<=3;attempt++){
     h.expect((await h.callback(failed,'FAILED')).response,200,'retry-limit failure '+attempt);
-    if(attempt<3)failed=h.expect(await h.request('POST','/api/v1/payments/'+failed.paymentId+'/retries',{},customer,{'Idempotency-Key':crypto.randomUUID()}),201,'retry-limit attempt '+(attempt+1));
+    if(attempt<3)failed=h.expect(await h.request('POST','/api/v1/payments/'+failed.pid+'/retries',{},customer,{'Idempotency-Key':crypto.randomUUID()}),201,'retry-limit attempt '+(attempt+1));
   }
-  h.expect(await h.request('POST','/api/v1/payments/'+failed.paymentId+'/retries',{},customer,{'Idempotency-Key':crypto.randomUUID()}),409,'fourth attempt forbidden');
+  h.expect(await h.request('POST','/api/v1/payments/'+failed.pid+'/retries',{},customer,{'Idempotency-Key':crypto.randomUUID()}),409,'fourth attempt forbidden');
 }
 void main().then(()=>{h.record('backend-smoke');console.log('Backend smoke completed. This is not a 30/30 grading verdict.');})
   .catch(error=>{h.record('backend-smoke',error);console.error('Backend smoke failed: '+String(error.message).split('\n')[0]);process.exitCode=1;});

@@ -45,8 +45,8 @@ async function create({db,client,server}){
       if(rows.some(x=>x.status==='PENDING'||x.status==='COMPLETED')||rows.length>=3)b.conflict();
       if(failedId){if(!rows.length||rows[0].payment_id!==failedId||rows[0].status!=='FAILED')b.conflict();}
       else if(rows.length)b.conflict();
-      const id=new b.ObjectId(),row={_id:id,payment_id:id.toHexString(),trip_id:tripId,method:'MOCK_ONLINE',status:'PENDING',
-        amount:current.fare_amount,currency:'VND',reference_code:'CAB-'+id.toHexString(),attempt_number:rows.length+1,
+      const id=new b.ObjectId(),publicId=await b.allocateId(db,'p',session),row={_id:id,payment_id:publicId,trip_id:tripId,method:'MOCK_ONLINE',status:'PENDING',
+        amount:current.fare_amount,currency:'VND',reference_code:'CAB-'+publicId,attempt_number:rows.length+1,
         created_at:b.now(),customerAccountId:claims.sub,idempotencyKey:key,payloadHash};
       row.responseSnapshot=b.views.payment(row);await payments.insertOne(row,{session});created=true;return row.responseSnapshot;
     });}catch(e){
@@ -83,7 +83,7 @@ async function create({db,client,server}){
       if(!validateCallback(data)||data.timestamp!==i.timestamp)b.fail(b.grpc.status.INVALID_ARGUMENT,'INVALID_CALLBACK_DATA','Invalid callback data.');
       const payloadHash=b.hash(data);
       return c.tx(async session=>{
-        const row=await get(data.paymentId,session);
+        const row=await get(data.pid,session);
         if(row.reference_code!==data.referenceCode||row.amount!==data.amount||data.currency!=='VND')b.fail(b.grpc.status.INVALID_ARGUMENT,'INVALID_CALLBACK_DATA','Callback does not match payment.');
         const seen=await callbacks.findOne({_id:data.eventId},{session});
         if(seen){

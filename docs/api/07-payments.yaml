@@ -2,31 +2,31 @@ openapi: 3.0.3
 info:
   title: CAB MVP — Payments
   version: 3.0.0
-  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển
-    khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển khai backend. Chỉ
+    BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
 servers:
-- url: http://localhost:3000/api/v1
-  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+  - url: http://localhost:3000/api/v1
+    description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
 security:
-- BearerAuth: []
+  - BearerAuth: []
 tags:
-- name: Payments
+  - name: Payments
 paths:
-  /trips/{tripId}/payment-summary:
+  /trips/{tid}/payment-summary:
     get:
       tags:
-      - Payments
+        - Payments
       operationId: getPaymentSummary
       summary: Xem cước và các attempt mock
       description: Xem cước và các attempt mock
       x-grpc: cab.payment.v1.PaymentService/GetPaymentSummary
       x-allowed-roles:
-      - CUSTOMER
-      - ADMIN
+        - CUSTOMER
+        - ADMIN
       x-ownership: Customer của Trip hoặc ADMIN; amount từ Trip, chưa có cước là null, chưa thanh toán là NOT_STARTED.
       x-srs:
-      - FR23
-      - AC56
+        - FR23
+        - AC56
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -95,34 +95,33 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: tripId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-  /trips/{tripId}/payments:
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^t[0-9]{2,15}$
+            example: t01
+          description: ""
+  /trips/{tid}/payments:
     post:
       tags:
-      - Payments
+        - Payments
       operationId: createPayment
       summary: Customer khởi tạo MOCK_ONLINE sau COMPLETED
-      description: Trip COMPLETED/cước hợp lệ/đúng chủ. Không nhận amount/method/status. PENDING/COMPLETED với key
-        khác 409. Chỉ CreatePayment attempt 1; sau FAILED dùng endpoint retry. Replay key cũ trả resource cũ
-        trước kiểm điều kiện lượt.
+      description: Trip COMPLETED/cước hợp lệ/đúng chủ. Không nhận amount/method/status. PENDING/COMPLETED với key khác 409. Chỉ
+        CreatePayment attempt 1; sau FAILED dùng endpoint retry. Replay key cũ trả resource cũ trước kiểm điều kiện lượt.
       x-grpc: cab.payment.v1.PaymentService/CreatePayment
       x-allowed-roles:
-      - CUSTOMER
+        - CUSTOMER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR25
-      - AC59
-      - AC60
-      - AC105
+        - FR25
+        - AC59
+        - AC60
+        - AC105
       responses:
         "200":
           description: "Replay cùng khóa và payload: trả resource đã tạo, cùng ID, không tạo thêm."
@@ -197,26 +196,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: tripId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-      - name: Idempotency-Key
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 128
-          pattern: ^[!-~]+$
-        description: Cùng caller/đối tượng và payload trả kết quả cũ; khác payload 409. Giữ khóa suốt vòng đời dữ liệu
-          demo.
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^t[0-9]{2,15}$
+            example: t01
+          description: ""
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[!-~]+$
+          description: Cùng caller/đối tượng và payload trả kết quả cũ; khác payload 409. Giữ khóa suốt vòng đời dữ liệu demo.
       requestBody:
         required: true
         content:
@@ -232,21 +230,21 @@ paths:
         replayStatus: 200
         conflictStatus: 409
         retention: lifetime-of-demo-data
-  /payments/{paymentId}:
+  /payments/{pid}:
     get:
       tags:
-      - Payments
+        - Payments
       operationId: getPayment
       summary: Tra cứu attempt đã ghi nhận
       description: Tra cứu attempt đã ghi nhận
       x-grpc: cab.payment.v1.PaymentService/GetPayment
       x-allowed-roles:
-      - CUSTOMER
-      - ADMIN
+        - CUSTOMER
+        - ADMIN
       x-ownership: Customer sở hữu hoặc ADMIN; PENDING không tự thành FAILED vì chờ lâu.
       x-srs:
-      - FR28
-      - AC66
+        - FR28
+        - AC66
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -315,33 +313,33 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: paymentId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-  /payments/{paymentId}/retries:
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^p[0-9]{2,15}$
+            example: p01
+          description: ""
+  /payments/{pid}/retries:
     post:
       tags:
-      - Payments
+        - Payments
       operationId: retryPayment
       summary: Retry attempt FAILED với key mới
-      description: paymentId là attempt FAILED mới nhất, không còn PENDING/COMPLETED, tổng <=3. Key replay trả
-        attempt đã tạo; key mới tạo paymentId/attempt mới. Hết lượt 409, không có CASH.
+      description: pid là attempt FAILED mới nhất, không còn PENDING/COMPLETED, tổng <=3. Key replay trả attempt đã tạo; key mới tạo
+        pid/attempt mới. Hết lượt 409, không có CASH.
       x-grpc: cab.payment.v1.PaymentService/RetryPayment
       x-allowed-roles:
-      - CUSTOMER
+        - CUSTOMER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR27
-      - AC64
-      - AC65
-      - AC105
+        - FR27
+        - AC64
+        - AC65
+        - AC105
       responses:
         "200":
           description: "Replay cùng khóa và payload: trả resource đã tạo, cùng ID, không tạo thêm."
@@ -416,26 +414,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: paymentId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-      - name: Idempotency-Key
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 128
-          pattern: ^[!-~]+$
-        description: Cùng caller/đối tượng và payload trả kết quả cũ; khác payload 409. Giữ khóa suốt vòng đời dữ liệu
-          demo.
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^p[0-9]{2,15}$
+            example: p01
+          description: ""
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[!-~]+$
+          description: Cùng caller/đối tượng và payload trả kết quả cũ; khác payload 409. Giữ khóa suốt vòng đời dữ liệu demo.
       requestBody:
         required: true
         content:
@@ -454,22 +451,22 @@ paths:
   /payments/mock/callback:
     post:
       tags:
-      - Payments
+        - Payments
       operationId: handleMockCallback
       summary: Tiếp nhận callback mock đã ký
-      description: Không dùng JWT Customer. HMAC-SHA256 trên ASCII(timestamp)+LF+raw UTF-8 body; X-Mock-Timestamp
-        bằng body.timestamp. Gateway giữ raw bytes và chuyển gRPC. Sai chữ ký 401; mismatch/timestamp mới quá
-        ±300 giây 400; trái kết quả cuối 409. Duplicate hợp lệ trả 200/duplicate=true trước kiểm tuổi event đã
-        xử lý; luôn verify signature. Script mock giữ secret ngoài Git/Postman.
+      description: Không dùng JWT Customer. HMAC-SHA256 trên ASCII(timestamp)+LF+raw UTF-8 body; X-Mock-Timestamp bằng body.timestamp.
+        Gateway giữ raw bytes và chuyển gRPC. Sai chữ ký 401; mismatch/timestamp mới quá ±300 giây 400; trái kết quả cuối 409.
+        Duplicate hợp lệ trả 200/duplicate=true trước kiểm tuổi event đã xử lý; luôn verify signature. Script mock giữ secret
+        ngoài Git/Postman.
       x-grpc: cab.payment.v1.PaymentService/HandleMockCallback
       x-allowed-roles: []
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR26
-      - AC61
-      - AC62
-      - AC63
-      - AC105
+        - FR26
+        - AC61
+        - AC62
+        - AC63
+        - AC105
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -538,26 +535,26 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       security:
-      - MockSignature: []
+        - MockSignature: []
       parameters:
-      - name: X-Mock-Signature
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 71
-          maxLength: 71
-          pattern: ^sha256=[0-9a-f]{64}$
-        description: ""
-      - name: X-Mock-Timestamp
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 10
-          pattern: ^[0-9]+$
-        description: ""
+        - name: X-Mock-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 71
+            maxLength: 71
+            pattern: ^sha256=[0-9a-f]{64}$
+          description: ""
+        - name: X-Mock-Timestamp
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 10
+            pattern: ^[0-9]+$
+          description: ""
       requestBody:
         required: true
         content:
@@ -569,7 +566,7 @@ paths:
                 summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
                 value:
                   eventId: demo-callback-1
-                  paymentId: 8
+                  pid: 8
                   referenceCode: MOCK-DEMO-1
                   amount: 20000
                   currency: VND
@@ -578,17 +575,17 @@ paths:
   /admin/payments:
     get:
       tags:
-      - Payments
+        - Payments
       operationId: listPayments
       summary: ADMIN tra cứu các Payment attempt
       description: ADMIN tra cứu các Payment attempt
       x-grpc: cab.payment.v1.PaymentService/ListPayments
       x-allowed-roles:
-      - ADMIN
+        - ADMIN
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR29
-      - AC78
+        - FR29
+        - AC78
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -657,43 +654,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          default: 1
-        description: ""
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 10
-        description: ""
-      - name: tripId
-        in: query
-        required: false
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-      - name: status
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - PENDING
-          - COMPLETED
-          - FAILED
-        description: ""
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: ""
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: ""
+        - name: tid
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^t[0-9]{2,15}$
+            example: t01
+          description: ""
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - PENDING
+              - COMPLETED
+              - FAILED
+          description: ""
 components:
   securitySchemes:
     BearerAuth:
@@ -711,28 +708,28 @@ components:
       type: object
       additionalProperties: false
       properties:
-        paymentId:
+        pid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^p[0-9]{2,15}$
+          example: p01
         accepted:
           type: boolean
           enum:
-          - true
+            - true
         duplicate:
           type: boolean
         status:
           type: string
           enum:
-          - COMPLETED
-          - FAILED
+            - COMPLETED
+            - FAILED
       required:
-      - paymentId
-      - accepted
-      - duplicate
-      - status
+        - pid
+        - accepted
+        - duplicate
+        - status
     EmptyInput:
       type: object
       additionalProperties: false
@@ -754,9 +751,9 @@ components:
           minLength: 1
           maxLength: 128
       required:
-      - code
-      - message
-      - requestId
+        - code
+        - message
+        - requestId
     Fare:
       type: integer
       minimum: 0
@@ -771,12 +768,12 @@ components:
           type: string
           minLength: 1
           maxLength: 128
-        paymentId:
+        pid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^p[0-9]{2,15}$
+          example: p01
         referenceCode:
           type: string
           minLength: 1
@@ -788,45 +785,50 @@ components:
         currency:
           type: string
           enum:
-          - VND
+            - VND
         result:
           type: string
           enum:
-          - COMPLETED
-          - FAILED
+            - COMPLETED
+            - FAILED
         timestamp:
           type: integer
           minimum: 0
           maximum: 9999999999
       required:
-      - eventId
-      - paymentId
-      - referenceCode
-      - amount
-      - currency
-      - result
-      - timestamp
+        - eventId
+        - pid
+        - referenceCode
+        - amount
+        - currency
+        - result
+        - timestamp
     Payment:
       type: object
       additionalProperties: false
       properties:
-        paymentId: &a1
+        pid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        tripId: *a1
+          minLength: 3
+          maxLength: 16
+          pattern: ^p[0-9]{2,15}$
+          example: p01
+        tid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
         method:
           type: string
           enum:
-          - MOCK_ONLINE
+            - MOCK_ONLINE
         status:
           type: string
           enum:
-          - PENDING
-          - COMPLETED
-          - FAILED
+            - PENDING
+            - COMPLETED
+            - FAILED
         amount:
           type: integer
           minimum: 0
@@ -834,7 +836,7 @@ components:
         currency:
           type: string
           enum:
-          - VND
+            - VND
         referenceCode:
           type: string
           minLength: 1
@@ -843,25 +845,28 @@ components:
           type: integer
           minimum: 1
           maximum: 3
-        createdAt: &a2
+        createdAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
-        confirmedAt: *a2
+        confirmedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
         failureCode:
           type: string
           minLength: 1
           maxLength: 64
       required:
-      - paymentId
-      - tripId
-      - method
-      - status
-      - amount
-      - currency
-      - referenceCode
-      - attemptNumber
-      - createdAt
+        - pid
+        - tid
+        - method
+        - status
+        - amount
+        - currency
+        - referenceCode
+        - attemptNumber
+        - createdAt
     PaymentPage:
       type: object
       additionalProperties: false
@@ -882,44 +887,44 @@ components:
           minimum: 0
           maximum: 1000000000000
       required:
-      - items
-      - page
-      - limit
-      - totalItems
+        - items
+        - page
+        - limit
+        - totalItems
     PaymentSummary:
       type: object
       additionalProperties: false
       properties:
-        tripId:
+        tid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
         fareAmount:
           $ref: "#/components/schemas/Fare"
         currency:
           type: string
           enum:
-          - VND
+            - VND
         hasCompleted:
           type: boolean
         latestStatus:
           type: string
           enum:
-          - NOT_STARTED
-          - PENDING
-          - COMPLETED
-          - FAILED
+            - NOT_STARTED
+            - PENDING
+            - COMPLETED
+            - FAILED
         attempts:
           type: array
           items:
             $ref: "#/components/schemas/Payment"
           maxItems: 3
       required:
-      - tripId
-      - fareAmount
-      - currency
-      - hasCompleted
-      - latestStatus
-      - attempts
+        - tid
+        - fareAmount
+        - currency
+        - hasCompleted
+        - latestStatus
+        - attempts

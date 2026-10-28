@@ -15,6 +15,7 @@ for (const [file, sha] of Object.entries(expected)) {
 }
 const {routes} = require('../gateway/identity-routes.cjs');
 assert.equal(routes.length, 47);
+assert.deepEqual(routes.find(route => route.operation === 'listNearbyDrivers').roles, ['CUSTOMER','ADMIN']);
 assert.equal(routes.filter(route => route.service === 'auth').length, 5);
 assert.equal(routes.filter(route => route.service === 'customer').length, 4);
 const YAML=require('yaml');

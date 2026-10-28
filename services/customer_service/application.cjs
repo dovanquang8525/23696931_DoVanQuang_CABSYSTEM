@@ -1,10 +1,10 @@
 'use strict';
-const {ObjectId} = require('mongodb');
 const {grpc, fail, authorization, invoke, addHandlers} = require('../../scripts/rpc-security.cjs');
 const v = require('../../scripts/identity-validation.cjs');
 const {createBus} = require('../../scripts/event-bus.cjs');
-function view(row) {
-  return {customer_id: row._id.toHexString(), account_id: row.accountId, full_name: row.fullName,cid:row.cid,
+async function view(row) {
+  const access=await invoke('auth','getAccountAccess',{account_id:row.accountId},{caller:'customer_service'});
+  return {customer_id: row.cid, account_id: access.aid, full_name: row.fullName,cid:row.cid,
     ...(row.email ? {email: row.email} : {}), created_at: row.createdAt.toISOString(), updated_at: row.updatedAt.toISOString()};
 }
 async function create({db, client, server}) {
@@ -53,7 +53,7 @@ async function create({db, client, server}) {
     async GetCustomer(input, call) {
       v.fields(input, ['customer_id'], ['customer_id']);
       const customerId = v.id(input.customer_id), claims = await actor(call, ['CUSTOMER','ADMIN']);
-      const row = await profiles.findOne({_id: new ObjectId(customerId)});
+      const row = await profiles.findOne({cid:customerId});
       if (claims.role === 'CUSTOMER' && (!row || row.accountId !== claims.sub)) {
         fail(grpc.status.PERMISSION_DENIED, 'FORBIDDEN', 'Customer profile is outside your access scope.');
       }
@@ -64,11 +64,11 @@ async function create({db, client, server}) {
       const {page, limit} = v.pagination(input);
       await actor(call, ['ADMIN']);
       const items = await profiles.find({}).sort({_id: -1}).skip((page - 1) * limit).limit(limit).toArray();
-      return {items: items.map(view), page, limit, total_items: await profiles.countDocuments({})};
+      return {items: await Promise.all(items.map(view)), page, limit, total_items: await profiles.countDocuments({})};
     },
     async GetCustomerByAccount(input, call) {
       v.fields(input, ['account_id'], ['account_id']);
-      const accountId = v.id(input.account_id), claims = await actor(call, ['CUSTOMER']);
+      const accountId = v.objectId(input.account_id), claims = await actor(call, ['CUSTOMER']);
       if (accountId !== claims.sub) fail(grpc.status.PERMISSION_DENIED, 'FORBIDDEN', 'Customer is outside your access scope.');
       return view(await mine(accountId));
     }

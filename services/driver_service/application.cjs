@@ -14,7 +14,7 @@ async function create({db,client,server}) {
     const p = event.payload;
     if (event.eventType === 'account.registered' && p.role === 'DRIVER') {
       const id = new b.ObjectId();
-      await drivers.updateOne({accountId:p.accountId},{$setOnInsert:{_id:id,driver_id:id.toHexString(),accountId:p.accountId,
+      await drivers.updateOne({accountId:p.accountId},{$setOnInsert:{_id:id,driver_id:p.did,accountId:p.accountId,
         full_name:p.fullName,did:p.did,...(p.email ? {email:p.email}:{}),
         ...(p.plateNumber?{registrationPlateNumber:p.plateNumber}:{}),approval_status:'DRAFT',is_online:false,version:1}}, {upsert:true,session});
     }
@@ -23,9 +23,10 @@ async function create({db,client,server}) {
         {$unset:{active_trip_id:'',reservation:''},$inc:{version:1}},{session});
     }
   }});
-  function view(row) {
+  async function view(row) {
+    const access=await c.invoke('auth','getAccountAccess',{account_id:row.accountId});
     return {...b.pick(row,['driver_id','did','full_name','email','approval_status','is_online','location','vehicle','active_trip_id',
-      'rejection_reason','submitted_at','reviewed_at']),account_id:row.accountId,
+      'rejection_reason','submitted_at','reviewed_at']),account_id:access.aid,
       ...(row.vehicle?.plate_number||row.registrationPlateNumber?{plate_number:row.vehicle?.plate_number||row.registrationPlateNumber}:{}),
       ...(row.licenseNumberEncrypted ? {license_number:decrypt(row.licenseNumberEncrypted)}:{})};
   }
@@ -82,7 +83,7 @@ async function create({db,client,server}) {
     async UpsertMyVehicle(i,call) {
       b.v.fields(i,['plate_number','model','color'],['plate_number','model','color']); const row=await mine(call);
       if (row.active_trip_id || row.reservation) b.conflict();
-      const vehicle={vehicle_id:row.vehicle?.vehicle_id || new b.ObjectId().toHexString(),driver_id:row.driver_id,
+      const vehicle={vehicle_id:row.vehicle?.vehicle_id || await b.allocateId(db,'v'),driver_id:row.driver_id,
         plate_number:b.v.text(i.plate_number,20),model:b.v.text(i.model,100),color:b.v.text(i.color,30),vehicle_type:'BIKE',is_active:true};
       return (await edit(row,{vehicle})).vehicle;
     },
@@ -90,7 +91,7 @@ async function create({db,client,server}) {
       b.v.fields(i,[]); const row=await mine(call);
       if (row.approval_status === 'PENDING') return view(row);
       if (!['DRAFT','REJECTED'].includes(row.approval_status) || !row.licenseNumberEncrypted) b.conflict();
-      const vehicle=row.vehicle || (row.registrationPlateNumber?{vehicle_id:new b.ObjectId().toHexString(),
+      const vehicle=row.vehicle || (row.registrationPlateNumber?{vehicle_id:await b.allocateId(db,'v'),
         driver_id:row.driver_id,plate_number:row.registrationPlateNumber,vehicle_type:'BIKE',model:'BIKE',color:'Khong ro',is_active:true}:undefined);
       if(!vehicle?.is_active)b.conflict();
       return view(await edit(row,{vehicle,approval_status:'PENDING',submitted_at:b.now()}));
@@ -145,7 +146,7 @@ async function create({db,client,server}) {
     },
     async GetDriverByAccount(i,call) {
       b.v.fields(i,['account_id'],['account_id']); const {claims}=await c.actor(call,['DRIVER']);
-      if (b.v.id(i.account_id)!==claims.sub) b.forbidden();
+      if (b.v.objectId(i.account_id)!==claims.sub) b.forbidden();
       const row=await drivers.findOne({accountId:claims.sub});
       if (!row) b.fail(b.grpc.status.UNAVAILABLE,'PROFILE_NOT_READY','Driver profile is not ready yet.');
       return {driver_id:row.driver_id,account_id:row.accountId};

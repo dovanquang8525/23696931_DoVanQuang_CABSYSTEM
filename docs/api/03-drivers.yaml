@@ -2,29 +2,29 @@ openapi: 3.0.3
 info:
   title: CAB MVP — Drivers
   version: 3.0.0
-  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển
-    khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển khai backend. Chỉ
+    BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
 servers:
-- url: http://localhost:3000/api/v1
-  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+  - url: http://localhost:3000/api/v1
+    description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
 security:
-- BearerAuth: []
+  - BearerAuth: []
 tags:
-- name: Drivers
+  - name: Drivers
 paths:
   /drivers/me:
     get:
       tags:
-      - Drivers
+        - Drivers
       operationId: getMyDriver
       summary: Xem hồ sơ Driver của mình
       description: Xem hồ sơ Driver của mình
       x-grpc: cab.driver.v1.DriverService/GetMyDriver
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR05
+        - FR05
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -94,20 +94,19 @@ paths:
                 $ref: "#/components/schemas/Error"
     patch:
       tags:
-      - Drivers
+        - Drivers
       operationId: updateMyDriver
       summary: Sửa hồ sơ xét duyệt DRAFT/REJECTED
-      description: Chỉ trường whitelist; PENDING/APPROVED không sửa dữ liệu xét duyệt. licenseNumber mã hóa trước
-        lưu DB, không ghi log.
+      description: Chỉ trường whitelist; PENDING/APPROVED không sửa dữ liệu xét duyệt. licenseNumber mã hóa trước lưu DB, không ghi log.
       x-grpc: cab.driver.v1.DriverService/UpdateMyDriver
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR05
-      - AC13
-      - AC14
-      - AC93
+        - FR05
+        - AC13
+        - AC14
+        - AC93
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -187,21 +186,21 @@ paths:
                 value:
                   name: Demo Driver
                   licenseNumber: DEMO-LICENSE-001
-  /drivers/{driverId}:
+  /drivers/{did}:
     get:
       tags:
-      - Drivers
+        - Drivers
       operationId: getDriverById
       summary: Tra cứu Driver theo mã số
       description: Tra cứu Driver theo mã số
       x-grpc: cab.driver.v1.DriverService/GetDriver
       x-allowed-roles:
-      - DRIVER
-      - ADMIN
+        - DRIVER
+        - ADMIN
       x-ownership: Driver chủ hồ sơ hoặc ADMIN. Customer chỉ xem public snapshot qua nearby/Trip.
       x-srs:
-      - FR05
-      - AC80
+        - FR05
+        - AC80
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -270,29 +269,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: driverId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: did
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 16
+            pattern: ^d[a-z0-9]{1,15}$
+            example: d01
+          description: ""
   /drivers/me/vehicle:
     get:
       tags:
-      - Drivers
+        - Drivers
       operationId: getMyVehicle
       summary: Xem xe BIKE của Driver
       description: 404 khi chưa có xe, khác 503 PROFILE_NOT_READY khi chưa có profile.
       x-grpc: cab.driver.v1.DriverService/GetMyVehicle
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR06
+        - FR06
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -362,20 +361,19 @@ paths:
                 $ref: "#/components/schemas/Error"
     put:
       tags:
-      - Drivers
+        - Drivers
       operationId: upsertMyVehicle
       summary: Tạo/cập nhật một xe BIKE
-      description: PUT idempotent; server gán BIKE/owner/isActive. Unique driverId/plateNumber; không đổi xe khi giữ
-        chỗ/Trip chưa kết thúc.
+      description: PUT idempotent; server gán BIKE/owner/isActive. Unique did/plateNumber; không đổi xe khi giữ chỗ/Trip chưa kết thúc.
       x-grpc: cab.driver.v1.DriverService/UpsertMyVehicle
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR06
-      - AC15
-      - AC16
-      - AC17
+        - FR06
+        - AC15
+        - AC16
+        - AC17
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -459,18 +457,18 @@ paths:
   /drivers/me/submissions:
     post:
       tags:
-      - Drivers
+        - Drivers
       operationId: submitDriverProfile
       summary: Gửi hồ sơ và xe sang PENDING
       description: DRAFT/REJECTED và đủ name/licenseNumber/BIKE hợp lệ; không tự chuyển APPROVED.
       x-grpc: cab.driver.v1.DriverService/SubmitDriver
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR44
-      - AC18
-      - AC19
+        - FR44
+        - AC18
+        - AC19
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -551,19 +549,19 @@ paths:
   /drivers/me/availability:
     put:
       tags:
-      - Drivers
+        - Drivers
       operationId: setDriverAvailability
       summary: Bật/tắt online
       description: Online cần ACTIVE/APPROVED/BIKE/vị trí <=120 giây; offline không hủy Trip đang có.
       x-grpc: cab.driver.v1.DriverService/SetAvailability
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR07
-      - AC23
-      - AC24
-      - AC25
+        - FR07
+        - AC23
+        - AC24
+        - AC25
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -645,18 +643,18 @@ paths:
   /drivers/me/location:
     put:
       tags:
-      - Drivers
+        - Drivers
       operationId: updateDriverLocation
       summary: Cập nhật vị trí Driver
       description: Thời điểm server; không tự thay đổi online hoặc location gắn Trip.
       x-grpc: cab.driver.v1.DriverService/UpdateDriverLocation
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR08
-      - AC26
-      - AC27
+        - FR08
+        - AC26
+        - AC27
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -740,27 +738,27 @@ paths:
                   type: number
                   minimum: -180
                   maximum: 180
-                locationCode: &a1
+                locationCode:
                   type: string
                   minLength: 1
                   maxLength: 16
                   pattern: ^[A-Z][A-Z0-9]{0,15}$
                   example: A
               oneOf:
-              - required:
-                - locationCode
-                not:
-                  anyOf:
-                  - required:
+                - required:
+                    - locationCode
+                  not:
+                    anyOf:
+                      - required:
+                          - latitude
+                      - required:
+                          - longitude
+                - required:
                     - latitude
-                  - required:
                     - longitude
-              - required:
-                - latitude
-                - longitude
-                not:
-                  required:
-                  - locationCode
+                  not:
+                    required:
+                      - locationCode
             examples:
               demo:
                 value:
@@ -768,20 +766,21 @@ paths:
   /drivers/nearby:
     get:
       tags:
-      - Drivers
+        - Drivers
       operationId: listNearbyDrivers
       summary: Tìm Driver đủ điều kiện trong 1 km
-      description: Chỉ ACTIVE/APPROVED/online/BIKE/không bận/giữ chỗ/vị trí <=120 giây. Sort distanceKm rồi driverId
-        tăng; lỗi Auth không giả danh sách không có Driver.
+      description: Chỉ ACTIVE/APPROVED/online/BIKE/không bận/giữ chỗ/vị trí <=120 giây. Sort distanceKm rồi did tăng; lỗi Auth không giả
+        danh sách không có Driver.
       x-grpc: cab.driver.v1.DriverService/ListNearbyDrivers
       x-allowed-roles:
-      - CUSTOMER
+        - CUSTOMER
+        - ADMIN
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR46
-      - AC28
-      - AC29
-      - AC30
+        - FR46
+        - AC28
+        - AC29
+        - AC30
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -850,58 +849,63 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: latitude
-        in: query
-        required: false
-        schema:
-          type: number
-          minimum: -90
-          maximum: 90
-        description: ""
-      - name: longitude
-        in: query
-        required: false
-        schema:
-          type: number
-          minimum: -180
-          maximum: 180
-        description: ""
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          default: 1
-        description: ""
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 10
-        description: ""
-      - name: locationCode
-        in: query
-        required: false
-        schema: *a1
-        description: Use code A or B instead of latitude/longitude. Supply exactly one form.
+        - name: latitude
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: -90
+            maximum: 90
+          description: ""
+        - name: longitude
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: -180
+            maximum: 180
+          description: ""
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: ""
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: ""
+        - name: locationCode
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 16
+            pattern: ^[A-Z][A-Z0-9]{0,15}$
+            example: A
+          description: Use code A or B instead of latitude/longitude. Supply exactly one form.
   /admin/drivers:
     get:
       tags:
-      - Drivers
+        - Drivers
       operationId: listDrivers
       summary: ADMIN tra cứu hồ sơ Driver
       description: ADMIN tra cứu hồ sơ Driver
       x-grpc: cab.driver.v1.DriverService/ListDrivers
       x-allowed-roles:
-      - ADMIN
+        - ADMIN
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR45
-      - AC20
+        - FR45
+        - AC20
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -970,51 +974,51 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          default: 1
-        description: ""
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 10
-        description: ""
-      - name: approvalStatus
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - DRAFT
-          - PENDING
-          - APPROVED
-          - REJECTED
-        description: ""
-  /admin/drivers/{driverId}/approval-decisions:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: ""
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: ""
+        - name: approvalStatus
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - DRAFT
+              - PENDING
+              - APPROVED
+              - REJECTED
+          description: ""
+  /admin/drivers/{did}/approval-decisions:
     post:
       tags:
-      - Drivers
+        - Drivers
       operationId: decideDriverApproval
       summary: ADMIN duyệt hoặc từ chối hồ sơ PENDING
-      description: REJECTED cần reason trim 1–300; APPROVED không nhận reason. Ghi người/thời điểm và event
-        driver.approval_changed; không tự online.
+      description: REJECTED cần reason trim 1–300; APPROVED không nhận reason. Ghi người/thời điểm và event driver.approval_changed;
+        không tự online.
       x-grpc: cab.driver.v1.DriverService/DecideDriverApproval
       x-allowed-roles:
-      - ADMIN
+        - ADMIN
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR45
-      - AC20
-      - AC21
-      - AC22
+        - FR45
+        - AC20
+        - AC21
+        - AC22
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -1083,16 +1087,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: driverId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: did
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 16
+            pattern: ^d[a-z0-9]{1,15}$
+            example: d01
+          description: ""
       requestBody:
         required: true
         content:
@@ -1119,48 +1123,48 @@ components:
         decision:
           type: string
           enum:
-          - APPROVED
-          - REJECTED
+            - APPROVED
+            - REJECTED
         reason:
           type: string
           minLength: 1
           maxLength: 300
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
       oneOf:
-      - properties:
-          decision:
-            type: string
-            enum:
-            - APPROVED
-        not:
+        - properties:
+            decision:
+              type: string
+              enum:
+                - APPROVED
+          not:
+            required:
+              - reason
+        - properties:
+            decision:
+              type: string
+              enum:
+                - REJECTED
           required:
-          - reason
-      - properties:
-          decision:
-            type: string
-            enum:
-            - REJECTED
-        required:
-        - reason
+            - reason
       required:
-      - decision
+        - decision
     Availability:
       type: object
       additionalProperties: false
       properties:
-        driverId:
+        did:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
+          example: d01
         isOnline:
           type: boolean
       required:
-      - driverId
-      - isOnline
+        - did
+        - isOnline
     AvailabilityInput:
       type: object
       additionalProperties: false
@@ -1168,7 +1172,7 @@ components:
         isOnline:
           type: boolean
       required:
-      - isOnline
+        - isOnline
     Coordinates:
       type: object
       additionalProperties: false
@@ -1182,26 +1186,31 @@ components:
           minimum: -180
           maximum: 180
       required:
-      - latitude
-      - longitude
+        - latitude
+        - longitude
     Driver:
       type: object
       additionalProperties: false
       properties:
-        driverId: &a1
+        did:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        accountId: *a1
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
+          example: d01
+        aid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^a[0-9]{2,15}$
+          example: a01
         name:
           type: string
           minLength: 1
           maxLength: 100
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         email:
           type: string
           minLength: 1
@@ -1215,44 +1224,47 @@ components:
         approvalStatus:
           type: string
           enum:
-          - DRAFT
-          - PENDING
-          - APPROVED
-          - REJECTED
+            - DRAFT
+            - PENDING
+            - APPROVED
+            - REJECTED
         isOnline:
           type: boolean
         location:
           $ref: "#/components/schemas/Location"
         vehicle:
           $ref: "#/components/schemas/Vehicle"
-        activeTripId: *a1
+        tid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
         rejectionReason:
           type: string
           minLength: 1
           maxLength: 300
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
-        submittedAt: &a2
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
+        submittedAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
-        reviewedAt: *a2
-        did:
+        reviewedAt:
           type: string
-          minLength: 2
-          maxLength: 16
-          pattern: ^d[a-z0-9]{1,15}$
+          format: date-time
+          example: 2026-10-27T00:00:00Z
         plateNumber:
           type: string
           minLength: 1
           maxLength: 20
       required:
-      - driverId
-      - accountId
-      - name
-      - approvalStatus
-      - isOnline
+        - did
+        - aid
+        - name
+        - approvalStatus
+        - isOnline
     DriverPage:
       type: object
       additionalProperties: false
@@ -1273,38 +1285,33 @@ components:
           minimum: 0
           maximum: 1000000000000
       required:
-      - items
-      - page
-      - limit
-      - totalItems
+        - items
+        - page
+        - limit
+        - totalItems
     DriverPublic:
       type: object
       additionalProperties: false
       properties:
-        driverId:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        name:
-          type: string
-          minLength: 1
-          maxLength: 100
-          pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
-        vehicle:
-          $ref: "#/components/schemas/Vehicle"
         did:
           type: string
           minLength: 2
           maxLength: 16
           pattern: ^d[a-z0-9]{1,15}$
+          example: d01
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
+        vehicle:
+          $ref: "#/components/schemas/Vehicle"
       required:
-      - driverId
-      - name
-      - vehicle
+        - did
+        - name
+        - vehicle
     DriverUpdate:
       type: object
       additionalProperties: false
@@ -1314,8 +1321,8 @@ components:
           minLength: 1
           maxLength: 100
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         email:
           type: string
           minLength: 1
@@ -1326,8 +1333,8 @@ components:
           minLength: 1
           maxLength: 50
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
       minProperties: 1
     EmptyInput:
       type: object
@@ -1350,9 +1357,9 @@ components:
           minLength: 1
           maxLength: 128
       required:
-      - code
-      - message
-      - requestId
+        - code
+        - message
+        - requestId
     Location:
       type: object
       additionalProperties: false
@@ -1370,9 +1377,9 @@ components:
           format: date-time
           example: 2026-10-27T00:00:00Z
       required:
-      - latitude
-      - longitude
-      - updatedAt
+        - latitude
+        - longitude
+        - updatedAt
     NearbyDriver:
       type: object
       additionalProperties: false
@@ -1386,9 +1393,9 @@ components:
         location:
           $ref: "#/components/schemas/Location"
       required:
-      - driver
-      - distanceKm
-      - location
+        - driver
+        - distanceKm
+        - location
     NearbyPage:
       type: object
       additionalProperties: false
@@ -1409,58 +1416,63 @@ components:
           minimum: 0
           maximum: 1000000000000
       required:
-      - items
-      - page
-      - limit
-      - totalItems
+        - items
+        - page
+        - limit
+        - totalItems
     Vehicle:
       type: object
       additionalProperties: false
       properties:
-        vehicleId: &a3
+        vid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        driverId: *a3
+          minLength: 3
+          maxLength: 16
+          pattern: ^v[0-9]{2,15}$
+          example: v01
+        did:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
+          example: d01
         plateNumber:
           type: string
           minLength: 1
           maxLength: 20
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         vehicleType:
           type: string
           enum:
-          - BIKE
+            - BIKE
         model:
           type: string
           minLength: 1
           maxLength: 100
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         color:
           type: string
           minLength: 1
           maxLength: 30
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         isActive:
           type: boolean
           enum:
-          - true
+            - true
       required:
-      - vehicleId
-      - driverId
-      - plateNumber
-      - vehicleType
-      - model
-      - color
-      - isActive
+        - vid
+        - did
+        - plateNumber
+        - vehicleType
+        - model
+        - color
+        - isActive
     VehicleInput:
       type: object
       additionalProperties: false
@@ -1470,23 +1482,23 @@ components:
           minLength: 1
           maxLength: 20
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         model:
           type: string
           minLength: 1
           maxLength: 100
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         color:
           type: string
           minLength: 1
           maxLength: 30
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
       required:
-      - plateNumber
-      - model
-      - color
+        - plateNumber
+        - model
+        - color

@@ -36,23 +36,23 @@ values:
     value: ''
   - key: licenseNumber
     value: ''
-  - key: customerId
+  - key: cid
     value: ''
-  - key: driverId
+  - key: did
     value: ''
-  - key: bookingId
+  - key: bid
     value: ''
-  - key: tripId
+  - key: tid
     value: ''
-  - key: paymentId
+  - key: pid
     value: ''
-  - key: failedPaymentId
+  - key: failedPid
     value: ''
-  - key: invitationId
+  - key: iid
     value: ''
-  - key: notificationId
+  - key: nid
     value: ''
-  - key: otpId
+  - key: oid
     value: ''
   - key: otpCode
     value: ''

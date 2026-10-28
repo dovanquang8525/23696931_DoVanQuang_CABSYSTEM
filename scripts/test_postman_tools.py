@@ -30,7 +30,7 @@ class PostmanToolTests(unittest.TestCase):
             {'key': 'MOCK_CALLBACK_SECRET', 'value': self.secret, 'enabled': True},
             {'key': 'signingKey', 'value': self.secret, 'enabled': True},
         ]}
-        self.kwargs = dict(environment=self.environment, payment_id='000000000000000000000008',
+        self.kwargs = dict(environment=self.environment, payment_id='p08',
                            reference='MOCK-REFERENCE', amount=20000, result='COMPLETED',
                            secret=self.secret, timestamp=1793059200, event_id='fixture-event')
 
@@ -53,7 +53,7 @@ class PostmanToolTests(unittest.TestCase):
     def test_contract_validation_and_no_template_replacement(self):
         for change in [dict(amount=-1), dict(amount=10**12+1), dict(amount=True),
                        dict(timestamp=-1), dict(timestamp=10**10), dict(result='SUCCESS'),
-                       dict(payment_id='bad'), dict(reference=''), dict(event_id=''),
+                       dict(payment_id='bad'), dict(payment_id='000000000000000000000008'), dict(reference=''), dict(event_id=''),
                        dict(reference='{{payment_reference}}'), dict(event_id='{{event}}'),
                        dict(secret='short')]:
             with self.subTest(change=list(change)):

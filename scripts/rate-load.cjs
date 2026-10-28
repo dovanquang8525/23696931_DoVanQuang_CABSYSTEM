@@ -16,7 +16,7 @@ async function main(){
     if(result.status==='rejected'){statuses.NETWORK_ERROR=(statuses.NETWORK_ERROR||0)+1;continue;}
     const r=result.value;statuses[r.status]=(statuses[r.status]||0)+1;
     if(r.status===429)retryAfterPresent&&=Number(r.headers.get('retry-after'))>=1;
-    if(r.status===200||r.status===201)ids.add(r.data.bookingId);
+    if(r.status===200||r.status===201)ids.add(r.data.bid);
   }
   const health=await h.request('GET','/health');
   const report={at:new Date().toISOString(),sent:count,durationSeconds:seconds,

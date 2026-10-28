@@ -2,33 +2,33 @@ openapi: 3.0.3
 info:
   title: CAB MVP — Bookings
   version: 3.0.0
-  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển
-    khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển khai backend. Chỉ
+    BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
 servers:
-- url: http://localhost:3000/api/v1
-  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+  - url: http://localhost:3000/api/v1
+    description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
 security:
-- BearerAuth: []
+  - BearerAuth: []
 tags:
-- name: Bookings
+  - name: Bookings
 paths:
   /bookings:
     post:
       tags:
-      - Bookings
+        - Bookings
       operationId: createBooking
       summary: Tạo Booking SEARCHING và tìm Driver
-      description: Rate limit 10/account/phút và 120/IP/phút; hai tọa độ khác nhau, server gán BIKE và snapshot giá.
-        Trả SEARCHING, không chờ 150 giây hoặc tạo Trip sớm. Cùng key không tạo vòng tìm mới.
+      description: Rate limit 10/account/phút và 120/IP/phút; hai tọa độ khác nhau, server gán BIKE và snapshot giá. Trả SEARCHING,
+        không chờ 150 giây hoặc tạo Trip sớm. Cùng key không tạo vòng tìm mới.
       x-grpc: cab.booking.v1.BookingService/CreateBooking
       x-allowed-roles:
-      - CUSTOMER
+        - CUSTOMER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR09
-      - AC31
-      - AC32
-      - AC97
+        - FR09
+        - AC31
+        - AC32
+        - AC97
       responses:
         "200":
           description: "Replay cùng khóa và payload: trả resource đã tạo, cùng ID, không tạo thêm."
@@ -103,16 +103,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: Idempotency-Key
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 128
-          pattern: ^[!-~]+$
-        description: Cùng caller/đối tượng và payload trả kết quả cũ; khác payload 409. Giữ khóa suốt vòng đời dữ liệu
-          demo.
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[!-~]+$
+          description: Cùng caller/đối tượng và payload trả kết quả cũ; khác payload 409. Giữ khóa suốt vòng đời dữ liệu demo.
       requestBody:
         required: true
         content:
@@ -131,18 +130,18 @@ paths:
         retention: lifetime-of-demo-data
     get:
       tags:
-      - Bookings
+        - Bookings
       operationId: listMyBookings
       summary: Lịch sử Booking của Customer
-      description: Gồm CANCELED/NO_DRIVER; sort createdAt rồi bookingId giảm. Ít nhất 5 Booking seed để chứng minh paging.
+      description: Gồm CANCELED/NO_DRIVER; sort createdAt rồi bid giảm. Ít nhất 5 Booking seed để chứng minh paging.
       x-grpc: cab.booking.v1.BookingService/ListMyBookings
       x-allowed-roles:
-      - CUSTOMER
+        - CUSTOMER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR33
-      - AC30
-      - AC72
+        - FR33
+        - AC30
+        - AC72
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -211,41 +210,41 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          default: 1
-        description: ""
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 10
-        description: ""
-  /bookings/{bookingId}:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: ""
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: ""
+  /bookings/{bid}:
     get:
       tags:
-      - Bookings
+        - Bookings
       operationId: getBooking
       summary: Xem Booking và dữ liệu chuyến/thanh toán
       description: Xem Booking và dữ liệu chuyến/thanh toán
       x-grpc: cab.booking.v1.BookingService/GetBooking
       x-allowed-roles:
-      - CUSTOMER
-      - ADMIN
+        - CUSTOMER
+        - ADMIN
       x-ownership: Đúng Customer hoặc ADMIN; chưa rõ kết quả không giả trip=null/payment FAILED.
       x-srs:
-      - FR18
-      - FR19
-      - AC42
-      - AC43
-      - AC44
+        - FR18
+        - FR19
+        - AC42
+        - AC43
+        - AC44
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -314,31 +313,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: bookingId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-  /bookings/{bookingId}/cancellation-preview:
+        - name: bid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^b[0-9]{2,15}$
+            example: b01
+          description: ""
+  /bookings/{bid}/cancellation-preview:
     post:
       tags:
-      - Bookings
+        - Bookings
       operationId: previewBookingCancellation
       summary: Kiểm điều kiện và phí hủy 0
-      description: Chủ Booking; SEARCHING hoặc Trip ASSIGNED/ARRIVED. Input hợp lệ nhưng không được hủy trả
-        allowed=false; không thay trạng thái.
+      description: Chủ Booking; SEARCHING hoặc Trip ASSIGNED/ARRIVED. Input hợp lệ nhưng không được hủy trả allowed=false; không thay
+        trạng thái.
       x-grpc: cab.booking.v1.BookingService/PreviewBookingCancellation
       x-allowed-roles:
-      - CUSTOMER
+        - CUSTOMER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR20
-      - AC49
+        - FR20
+        - AC49
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -407,16 +406,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: bookingId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: bid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^b[0-9]{2,15}$
+            example: b01
+          description: ""
       requestBody:
         required: true
         content:
@@ -428,23 +427,23 @@ paths:
                 summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
                 value:
                   reason: Change of plan
-  /bookings/{bookingId}/cancellation:
+  /bookings/{bid}/cancellation:
     post:
       tags:
-      - Bookings
+        - Bookings
       operationId: cancelBooking
       summary: Xác nhận hủy Booking/Trip hợp lệ
-      description: Kiểm lại quyền/trạng thái. Lặp cùng lý do/confirmed trả kết quả hủy đã lưu; đổi lý do sau hủy
-        409. Assignment chưa rõ 409/503; IN_PROGRESS không hủy. Hủy sau phân công do Trip CAS quyết định.
+      description: Kiểm lại quyền/trạng thái. Lặp cùng lý do/confirmed trả kết quả hủy đã lưu; đổi lý do sau hủy 409. Assignment chưa rõ
+        409/503; IN_PROGRESS không hủy. Hủy sau phân công do Trip CAS quyết định.
       x-grpc: cab.booking.v1.BookingService/CancelBooking
       x-allowed-roles:
-      - CUSTOMER
+        - CUSTOMER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR21
-      - AC50
-      - AC51
-      - AC52
+        - FR21
+        - AC50
+        - AC51
+        - AC52
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -513,16 +512,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: bookingId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: bid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^b[0-9]{2,15}$
+            example: b01
+          description: ""
       requestBody:
         required: true
         content:
@@ -538,19 +537,19 @@ paths:
   /admin/bookings:
     get:
       tags:
-      - Bookings
+        - Bookings
       operationId: listBookings
       summary: ADMIN tra cứu Booking
       description: ADMIN tra cứu Booking
       x-grpc: cab.booking.v1.BookingService/ListBookings
       x-allowed-roles:
-      - ADMIN
+        - ADMIN
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR36
-      - FR37
-      - AC76
-      - AC77
+        - FR36
+        - FR37
+        - AC76
+        - AC77
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -619,55 +618,55 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          default: 1
-        description: ""
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 10
-        description: ""
-      - name: customerId
-        in: query
-        required: false
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-      - name: driverId
-        in: query
-        required: false
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-      - name: status
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - SEARCHING
-          - ASSIGNED
-          - COMPLETED
-          - CANCELED
-          - NO_DRIVER
-        description: ""
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: ""
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: ""
+        - name: cid
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 16
+            pattern: ^c[a-z0-9]{1,15}$
+            example: c01
+          description: ""
+        - name: did
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 16
+            pattern: ^d[a-z0-9]{1,15}$
+            example: d01
+          description: ""
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - SEARCHING
+              - ASSIGNED
+              - COMPLETED
+              - CANCELED
+              - NO_DRIVER
+          description: ""
 components:
   securitySchemes:
     BearerAuth:
@@ -680,17 +679,22 @@ components:
       type: object
       additionalProperties: false
       properties:
-        bookingId: &a1
+        bid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        customerId: *a1
+          minLength: 3
+          maxLength: 16
+          pattern: ^b[0-9]{2,15}$
+          example: b01
+        cid:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^c[a-z0-9]{1,15}$
+          example: c01
         vehicleType:
           type: string
           enum:
-          - BIKE
+            - BIKE
         pickup:
           $ref: "#/components/schemas/Coordinates"
         destination:
@@ -698,34 +702,42 @@ components:
         status:
           type: string
           enum:
-          - SEARCHING
-          - ASSIGNED
-          - COMPLETED
-          - CANCELED
-          - NO_DRIVER
+            - SEARCHING
+            - ASSIGNED
+            - COMPLETED
+            - CANCELED
+            - NO_DRIVER
         distanceKm:
           type: number
           exclusiveMinimum: true
           minimum: 0
         pricingSnapshot:
           $ref: "#/components/schemas/PricingSnapshot"
-        tripId: *a1
-        createdAt: &a2
+        tid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
+        createdAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
-        updatedAt: *a2
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
       required:
-      - bookingId
-      - customerId
-      - vehicleType
-      - pickup
-      - destination
-      - status
-      - distanceKm
-      - pricingSnapshot
-      - createdAt
-      - updatedAt
+        - bid
+        - cid
+        - vehicleType
+        - pickup
+        - destination
+        - status
+        - distanceKm
+        - pricingSnapshot
+        - createdAt
+        - updatedAt
     BookingDetails:
       type: object
       additionalProperties: false
@@ -735,28 +747,28 @@ components:
         tripAvailability:
           type: string
           enum:
-          - AVAILABLE
-          - NOT_CREATED
-          - UNAVAILABLE
+            - AVAILABLE
+            - NOT_CREATED
+            - UNAVAILABLE
         trip:
           $ref: "#/components/schemas/Trip"
         paymentAvailability:
           type: string
           enum:
-          - AVAILABLE
-          - NOT_APPLICABLE
-          - UNAVAILABLE
+            - AVAILABLE
+            - NOT_APPLICABLE
+            - UNAVAILABLE
         paymentSummary:
           $ref: "#/components/schemas/PaymentSummary"
         eta:
           $ref: "#/components/schemas/Eta"
-      description: Omit trip/paymentSummary khi chưa có hoặc dependency lỗi; availability phân biệt rõ hai trường
-        hợp. Không giả chưa thanh toán khi Payment lỗi.
+      description: Omit trip/paymentSummary khi chưa có hoặc dependency lỗi; availability phân biệt rõ hai trường hợp. Không giả chưa
+        thanh toán khi Payment lỗi.
       required:
-      - booking
-      - tripAvailability
-      - paymentAvailability
-      - eta
+        - booking
+        - tripAvailability
+        - paymentAvailability
+        - eta
     BookingPage:
       type: object
       additionalProperties: false
@@ -777,10 +789,10 @@ components:
           minimum: 0
           maximum: 1000000000000
       required:
-      - items
-      - page
-      - limit
-      - totalItems
+        - items
+        - page
+        - limit
+        - totalItems
     CancellationInput:
       type: object
       additionalProperties: false
@@ -790,25 +802,25 @@ components:
           minLength: 1
           maxLength: 300
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         confirmed:
           type: boolean
           enum:
-          - true
+            - true
       required:
-      - reason
-      - confirmed
+        - reason
+        - confirmed
     CancellationPreview:
       type: object
       additionalProperties: false
       properties:
-        bookingId:
+        bid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^b[0-9]{2,15}$
+          example: b01
         allowed:
           type: boolean
         feeAmount:
@@ -818,12 +830,12 @@ components:
         currency:
           type: string
           enum:
-          - VND
+            - VND
       required:
-      - bookingId
-      - allowed
-      - feeAmount
-      - currency
+        - bid
+        - allowed
+        - feeAmount
+        - currency
     CancellationPreviewInput:
       type: object
       additionalProperties: false
@@ -833,32 +845,37 @@ components:
           minLength: 1
           maxLength: 300
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
       required:
-      - reason
+        - reason
     CancellationResult:
       type: object
       additionalProperties: false
       properties:
-        bookingId: &a3
+        bid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        tripId: *a3
+          minLength: 3
+          maxLength: 16
+          pattern: ^b[0-9]{2,15}$
+          example: b01
+        tid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
         status:
           type: string
           enum:
-          - CANCELED
+            - CANCELED
         reason:
           type: string
           minLength: 1
           maxLength: 300
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         feeAmount:
           type: integer
           minimum: 0
@@ -868,11 +885,11 @@ components:
           format: date-time
           example: 2026-10-27T00:00:00Z
       required:
-      - bookingId
-      - status
-      - reason
-      - feeAmount
-      - canceledAt
+        - bid
+        - status
+        - reason
+        - feeAmount
+        - canceledAt
     Coordinates:
       type: object
       additionalProperties: false
@@ -886,8 +903,8 @@ components:
           minimum: -180
           maximum: 180
       required:
-      - latitude
-      - longitude
+        - latitude
+        - longitude
     CreateBookingInput:
       type: object
       additionalProperties: false
@@ -908,55 +925,50 @@ components:
           maxLength: 16
           pattern: ^[A-Z][A-Z0-9]{0,15}$
           example: B
-      description: Use pickupCode A and destinationCode B from the owning DB, or both explicit coordinates. Do not
-        mix forms. Idempotency stores the original request and response snapshot.
+      description: Use pickupCode A and destinationCode B from the owning DB, or both explicit coordinates. Do not mix forms.
+        Idempotency stores the original request and response snapshot.
       oneOf:
-      - required:
-        - pickup
-        - destination
-        not:
-          anyOf:
-          - required:
-            - pickupCode
-          - required:
-            - destinationCode
-      - required:
-        - pickupCode
-        - destinationCode
-        not:
-          anyOf:
-          - required:
+        - required:
             - pickup
-          - required:
             - destination
+          not:
+            anyOf:
+              - required:
+                  - pickupCode
+              - required:
+                  - destinationCode
+        - required:
+            - pickupCode
+            - destinationCode
+          not:
+            anyOf:
+              - required:
+                  - pickup
+              - required:
+                  - destination
     DriverPublic:
       type: object
       additionalProperties: false
       properties:
-        driverId:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        name:
-          type: string
-          minLength: 1
-          maxLength: 100
-          pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
-        vehicle:
-          $ref: "#/components/schemas/Vehicle"
         did:
           type: string
           minLength: 2
           maxLength: 16
           pattern: ^d[a-z0-9]{1,15}$
+          example: d01
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
+        vehicle:
+          $ref: "#/components/schemas/Vehicle"
       required:
-      - driverId
-      - name
-      - vehicle
+        - did
+        - name
+        - vehicle
     Error:
       type: object
       additionalProperties: false
@@ -974,9 +986,9 @@ components:
           minLength: 1
           maxLength: 128
       required:
-      - code
-      - message
-      - requestId
+        - code
+        - message
+        - requestId
     Eta:
       type: object
       additionalProperties: false
@@ -984,9 +996,9 @@ components:
         status:
           type: string
           enum:
-          - AVAILABLE
-          - UNAVAILABLE
-          - NOT_APPLICABLE
+            - AVAILABLE
+            - UNAVAILABLE
+            - NOT_APPLICABLE
         minutes:
           type: integer
           minimum: 0
@@ -996,7 +1008,7 @@ components:
           format: date-time
           example: 2026-10-27T00:00:00Z
       required:
-      - status
+        - status
     Fare:
       type: integer
       minimum: 0
@@ -1020,30 +1032,35 @@ components:
           format: date-time
           example: 2026-10-27T00:00:00Z
       required:
-      - latitude
-      - longitude
-      - updatedAt
+        - latitude
+        - longitude
+        - updatedAt
     Payment:
       type: object
       additionalProperties: false
       properties:
-        paymentId: &a4
+        pid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        tripId: *a4
+          minLength: 3
+          maxLength: 16
+          pattern: ^p[0-9]{2,15}$
+          example: p01
+        tid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
         method:
           type: string
           enum:
-          - MOCK_ONLINE
+            - MOCK_ONLINE
         status:
           type: string
           enum:
-          - PENDING
-          - COMPLETED
-          - FAILED
+            - PENDING
+            - COMPLETED
+            - FAILED
         amount:
           type: integer
           minimum: 0
@@ -1051,7 +1068,7 @@ components:
         currency:
           type: string
           enum:
-          - VND
+            - VND
         referenceCode:
           type: string
           minLength: 1
@@ -1060,62 +1077,65 @@ components:
           type: integer
           minimum: 1
           maximum: 3
-        createdAt: &a5
+        createdAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
-        confirmedAt: *a5
+        confirmedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
         failureCode:
           type: string
           minLength: 1
           maxLength: 64
       required:
-      - paymentId
-      - tripId
-      - method
-      - status
-      - amount
-      - currency
-      - referenceCode
-      - attemptNumber
-      - createdAt
+        - pid
+        - tid
+        - method
+        - status
+        - amount
+        - currency
+        - referenceCode
+        - attemptNumber
+        - createdAt
     PaymentSummary:
       type: object
       additionalProperties: false
       properties:
-        tripId:
+        tid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
         fareAmount:
           $ref: "#/components/schemas/Fare"
         currency:
           type: string
           enum:
-          - VND
+            - VND
         hasCompleted:
           type: boolean
         latestStatus:
           type: string
           enum:
-          - NOT_STARTED
-          - PENDING
-          - COMPLETED
-          - FAILED
+            - NOT_STARTED
+            - PENDING
+            - COMPLETED
+            - FAILED
         attempts:
           type: array
           items:
             $ref: "#/components/schemas/Payment"
           maxItems: 3
       required:
-      - tripId
-      - fareAmount
-      - currency
-      - hasCompleted
-      - latestStatus
-      - attempts
+        - tid
+        - fareAmount
+        - currency
+        - hasCompleted
+        - latestStatus
+        - attempts
     PricingSnapshot:
       type: object
       additionalProperties: false
@@ -1133,31 +1153,51 @@ components:
           minimum: 1000
           maximum: 1000
       required:
-      - baseFare
-      - ratePerKm
-      - roundingUnit
+        - baseFare
+        - ratePerKm
+        - roundingUnit
     Trip:
       type: object
       additionalProperties: false
       properties:
-        tripId: &a6
+        tid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        bookingId: *a6
-        customerId: *a6
-        driverId: *a6
-        vehicleId: *a6
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
+        bid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^b[0-9]{2,15}$
+          example: b01
+        cid:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^c[a-z0-9]{1,15}$
+          example: c01
+        did:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
+          example: d01
+        vid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^v[0-9]{2,15}$
+          example: v01
         status:
           type: string
           enum:
-          - ASSIGNED
-          - ARRIVED
-          - IN_PROGRESS
-          - COMPLETED
-          - CANCELED
+            - ASSIGNED
+            - ARRIVED
+            - IN_PROGRESS
+            - COMPLETED
+            - CANCELED
         pickup:
           $ref: "#/components/schemas/Coordinates"
         destination:
@@ -1165,7 +1205,7 @@ components:
         vehicleType:
           type: string
           enum:
-          - BIKE
+            - BIKE
         driver:
           $ref: "#/components/schemas/DriverPublic"
         distanceKm:
@@ -1176,77 +1216,94 @@ components:
         currency:
           type: string
           enum:
-          - VND
+            - VND
         latestLocation:
           $ref: "#/components/schemas/Location"
-        assignedAt: &a7
+        assignedAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
-        arrivedAt: *a7
-        startedAt: *a7
-        completedAt: *a7
-        canceledAt: *a7
+        arrivedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
+        startedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
+        completedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
+        canceledAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
       required:
-      - tripId
-      - bookingId
-      - customerId
-      - driverId
-      - vehicleId
-      - status
-      - pickup
-      - destination
-      - vehicleType
-      - distanceKm
-      - fareAmount
-      - currency
-      - assignedAt
-      - driver
+        - tid
+        - bid
+        - cid
+        - did
+        - vid
+        - status
+        - pickup
+        - destination
+        - vehicleType
+        - distanceKm
+        - fareAmount
+        - currency
+        - assignedAt
+        - driver
     Vehicle:
       type: object
       additionalProperties: false
       properties:
-        vehicleId: &a8
+        vid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        driverId: *a8
+          minLength: 3
+          maxLength: 16
+          pattern: ^v[0-9]{2,15}$
+          example: v01
+        did:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
+          example: d01
         plateNumber:
           type: string
           minLength: 1
           maxLength: 20
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         vehicleType:
           type: string
           enum:
-          - BIKE
+            - BIKE
         model:
           type: string
           minLength: 1
           maxLength: 100
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         color:
           type: string
           minLength: 1
           maxLength: 30
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         isActive:
           type: boolean
           enum:
-          - true
+            - true
       required:
-      - vehicleId
-      - driverId
-      - plateNumber
-      - vehicleType
-      - model
-      - color
-      - isActive
+        - vid
+        - did
+        - plateNumber
+        - vehicleType
+        - model
+        - color
+        - isActive

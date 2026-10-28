@@ -29,8 +29,8 @@ async function run() {
   const aPhone=phone(), bPhone=phone();
   const aEmail=aPhone+'@example.test',bEmail=bPhone+'@example.test';
   const a=await request('register Customer','POST','/auth/register',201,{body:{
-    phone:aPhone,password,email:aEmail},check:r=>{assert.deepEqual(Object.keys(r).sort(),['accountId','cid','role']);assert.match(r.cid,/^c[0-9]+$/);}});
-  record.fixtures.accountId=a.accountId;
+    phone:aPhone,password,email:aEmail},check:r=>{assert.deepEqual(Object.keys(r).sort(),['aid','cid','role']);assert.match(r.cid,/^c[0-9]+$/);}});
+  record.fixtures.aid=a.aid;
   await request('duplicate phone rejected','POST','/auth/register',409,{body:{
     phone:aPhone,password,email:aEmail}});
   await request('public ADMIN rejected','POST','/auth/register',400,{body:{
@@ -39,11 +39,11 @@ async function run() {
   const token=session.accessToken;
   assert.ok(token);
   assert.deepEqual(Object.keys(session).sort(),['accessToken','account']);
-  assert.deepEqual(Object.keys(session.account).sort(),['accountId','cid','role']);
-  assert.equal(session.account.accountId,a.accountId);
+  assert.deepEqual(Object.keys(session.account).sort(),['aid','cid','role']);
+  assert.equal(session.account.aid,a.aid);
   await request('wrong password rejected','POST','/auth/login',401,{body:{email:aEmail,password:password+'wrong'}});
   await request('identity verified','GET','/auth/me',200,{token,check:r=>{
-    assert.equal(r.accountId,a.accountId); assert.equal(r.role,'CUSTOMER'); assert.equal(r.status,'ACTIVE');
+    assert.equal(r.aid,a.aid); assert.equal(r.role,'CUSTOMER'); assert.equal(r.status,'ACTIVE');
     assert.equal(Object.hasOwn(r,'passwordHash'),false);
   }});
   const deadline=Date.now()+5000;
@@ -53,7 +53,7 @@ async function run() {
       signal:AbortSignal.timeout(6000)});
     const result=await response.json();
     if (response.status===200) {
-      assert.equal(result.accountId,a.accountId); profile=result;
+      assert.equal(result.aid,a.aid); profile=result;
       record.checks.push({name:'Customer profile event synchronization',expected:200,actual:200,status:'PASS'});
     } else {
       assert.equal(response.status,503); assert.equal(result.code,'PROFILE_NOT_READY');
@@ -61,8 +61,8 @@ async function run() {
       await new Promise(resolve=>setTimeout(resolve,250));
     }
   }
-  record.fixtures.customerId=profile.customerId;
-  await request('get own Customer by ID','GET','/customers/'+profile.customerId,200,{token});
+  record.fixtures.cid=profile.cid;
+  await request('get own Customer by ID','GET','/customers/'+profile.cid,200,{token});
   await request('update Customer','PATCH','/customers/me',200,{token,body:{name:'  Updated Customer  ',
     email:'smoke@example.test'},check:r=>assert.equal(r.name,'Updated Customer')});
   await request('protected fields rejected','PATCH','/customers/me',400,{token,body:{role:'ADMIN'}});
@@ -77,25 +77,25 @@ async function run() {
   await request('register second Customer','POST','/auth/register',201,{body:{
     phone:bPhone,password,email:bEmail}});
   const other=await request('login second Customer','POST','/auth/login',200,{body:{email:bEmail,password}});
-  await request('cross Customer ownership rejected','GET','/customers/'+profile.customerId,403,{token:other.accessToken});
+  await request('cross Customer ownership rejected','GET','/customers/'+profile.cid,403,{token:other.accessToken});
   const driverPhone=phone();
   const driverInput={phone:driverPhone,password,email:driverPhone+'@example.test',plateNumber:'DEMO-'+driverPhone};
   const otp=await request('first Driver registration requests OTP','POST','/auth/register',202,{body:driverInput});
   assert.equal(otp.status,'OTP_REQUIRED');
   assert.equal(Object.hasOwn(otp,'accessToken'),false);
-  assert.equal(Object.hasOwn(otp,'accountId'),false);
+  assert.equal(Object.hasOwn(otp,'aid'),false);
   assert.match(otp.mockCode,/^[0-9]{6}$/,'OTP_MOCK_MODE=true is required for this local smoke');
   await request('OTP cooldown enforced','POST','/auth/otp-challenges',429,{body:{
     phone:driverPhone},check:(_,r)=>assert.ok(Number(r.headers.get('retry-after'))>=1)});
   const wrong=(Number(otp.mockCode)+1)%1000000;
-  await request('wrong OTP rejected','POST','/auth/otp-challenges/'+otp.otpId+'/verify',400,{body:{
+  await request('wrong OTP rejected','POST','/auth/otp-challenges/'+otp.oid+'/verify',400,{body:{
     phone:driverPhone,code:String(wrong).padStart(6,'0')}});
-  await request('correct OTP verified','POST','/auth/otp-challenges/'+otp.otpId+'/verify',200,{body:{
+  await request('correct OTP verified','POST','/auth/otp-challenges/'+otp.oid+'/verify',200,{body:{
     phone:driverPhone,code:otp.mockCode}});
   const driver=await request('Driver account consumes registration OTP','POST','/auth/register',201,{body:{...driverInput,code:otp.mockCode}});
-  record.fixtures.driverAccountId=driver.accountId;
+  record.fixtures.driverAccountId=driver.aid;
   assert.equal(Object.hasOwn(driver,'profileStatus'),false);
-  await request('consumed OTP cannot be verified again','POST','/auth/otp-challenges/'+otp.otpId+'/verify',400,{body:{
+  await request('consumed OTP cannot be verified again','POST','/auth/otp-challenges/'+otp.oid+'/verify',400,{body:{
     phone:driverPhone,code:otp.mockCode}});
   record.result='PASS';
   console.log('Identity HTTP smoke passed. Driver profile/onboarding and DB/recovery tests remain pending.');

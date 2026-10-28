@@ -9,7 +9,7 @@ test('Haversine, boundary coordinates and fare retain unrounded distance',()=>{
   assert.equal(b.distance({latitude:0,longitude:0},{latitude:0,longitude:0}),0);
   assert.ok(Math.abs(b.distance({latitude:0,longitude:0},{latitude:0,longitude:1})-111.1949)<0.001);
   assert.throws(()=>b.coords({latitude:91,longitude:0}),b.DomainError);
-  assert.throws(()=>b.coords({latitude:0,longitude:0,driverId:'injected'}),b.DomainError);
+  assert.throws(()=>b.coords({latitude:0,longitude:0,did:'injected'}),b.DomainError);
   const pricing={base_fare:10000,rate_per_km:5000,rounding_unit:1000};
   assert.equal(b.fare(2,pricing),20000);assert.equal(b.fare(2.01,pricing),21000);
   assert.equal(b.fare(2,undefined),undefined);assert.equal(b.fare(NaN,pricing),undefined);
@@ -53,7 +53,7 @@ test('REST response mapper distinguishes null fare, absent resources, availabili
   const result=routes.output({booking:{booking_id:'id'},trip_availability:'TRIP_UNAVAILABLE',payment_availability:'PAYMENT_UNAVAILABLE',eta:{status:'UNAVAILABLE'}});
   assert.equal(result.tripAvailability,'UNAVAILABLE');assert.ok(!('trip' in result));assert.ok(!('paymentSummary' in result));
   assert.deepEqual(routes.output({trip_id:'id',currency:'VND',has_completed:false,latest_status:'NOT_STARTED'}),
-    {tripId:'id',currency:'VND',hasCompleted:false,latestStatus:'NOT_STARTED',attempts:[],fareAmount:null});
+    {tid:'id',currency:'VND',hasCompleted:false,latestStatus:'NOT_STARTED',attempts:[],fareAmount:null});
   assert.deepEqual(routes.output({page:1,limit:10,total_items:0}),{page:1,limit:10,totalItems:0,items:[]});
   assert.deepEqual(routes.output({full_name:'Driver',did:'d01'}),{name:'Driver',did:'d01'});
   const route=routes.match('PATCH','/api/v1/drivers/me');
@@ -61,10 +61,10 @@ test('REST response mapper distinguishes null fare, absent resources, availabili
 });
 test('protobuf wire preserves explicit false/zero and Gateway restores missing repeated fields',()=>{
   const method=b.definition('payment').PaymentService.service.GetPaymentSummary;
-  const raw=method.responseSerialize({trip_id:'000000000000000000000001',currency:'VND',has_completed:false,latest_status:'NOT_STARTED',attempts:[]});
+  const raw=method.responseSerialize({trip_id:'t01',currency:'VND',has_completed:false,latest_status:'NOT_STARTED',attempts:[]});
   const result=routes.output(method.responseDeserialize(raw));
   assert.equal(result.hasCompleted,false);assert.equal(result.fareAmount,null);assert.deepEqual(result.attempts,[]);
-  const route=routes.match('GET','/api/v1/trips/000000000000000000000001/payment-summary');
+  const route=routes.match('GET','/api/v1/trips/t01/payment-summary');
   assert.equal(route.responses.get(200)(result),true);
   const page=b.definition('customer').CustomerService.service.ListCustomers;
   const output=routes.output(page.responseDeserialize(page.responseSerialize({page:1,limit:10,total_items:0,items:[]})));
@@ -85,7 +85,7 @@ test('OpenAPI exclusive bounds retain strict and inclusive boundaries without mu
   const numeric=ajv.compile(routes.normalizeSchema({type:'number',exclusiveMinimum:0}));
   assert.equal(numeric(0),false);assert.equal(numeric(0.001),true);
 });
-test('identity v2 wire keeps profile codes/email and REST uses name with server ObjectIds',()=>{
+test('protobuf internal fields map to short public IDs and name',()=>{
   const id='000000000000000000000001',time='2026-10-27T00:00:00.000Z';
   const auth=b.definition('auth').AuthService.service;
   const input={email:'cus01@gmail.com',phone:'0909212109',password:'quang123'};
@@ -97,14 +97,14 @@ test('identity v2 wire keeps profile codes/email and REST uses name with server 
   const login=auth.Login.requestDeserialize(auth.Login.requestSerialize({email:input.email,password:input.password}));
   assert.equal(login.email,input.email);assert.equal(login.phone,undefined);
   const customer=b.definition('customer').CustomerService.service.GetMyCustomer;
-  const c=routes.output(customer.responseDeserialize(customer.responseSerialize({customer_id:id,account_id:id,cid:'c01',
+  const c=routes.output(customer.responseDeserialize(customer.responseSerialize({customer_id:'c01',account_id:'a01',cid:'c01',
     full_name:'c01',email:input.email,created_at:time,updated_at:time})));
-  assert.equal(c.customerId,id);assert.equal(c.cid,'c01');assert.equal(c.name,'c01');assert.equal(c.fullName,undefined);
+  assert.equal(c.cid,'c01');assert.equal(c.aid,'a01');assert.equal(c.cid,'c01');assert.equal(c.name,'c01');assert.equal(c.fullName,undefined);
   assert.equal(routes.match('GET','/api/v1/customers/me').responses.get(200)(c),true);
   const driver=b.definition('driver').DriverService.service.GetMyDriver;
-  const d=routes.output(driver.responseDeserialize(driver.responseSerialize({driver_id:id,account_id:id,did:'d01',
+  const d=routes.output(driver.responseDeserialize(driver.responseSerialize({driver_id:'d01',account_id:'a01',did:'d01',
     full_name:'d01',email:'dri01@gmail.com',approval_status:'DRAFT',is_online:false})));
-  assert.equal(d.driverId,id);assert.equal(d.did,'d01');assert.equal(d.name,'d01');assert.equal(d.isOnline,false);
+  assert.equal(d.did,'d01');assert.equal(d.aid,'a01');assert.equal(d.did,'d01');assert.equal(d.name,'d01');assert.equal(d.isOnline,false);
   assert.equal(routes.match('GET','/api/v1/drivers/me').responses.get(200)(d),true);
 });
 test('manual location-code requests preserve codes, reject mixed coordinates and allow OTP-required response',()=>{
@@ -115,7 +115,7 @@ test('manual location-code requests preserve codes, reject mixed coordinates and
   const nearby=routes.match('GET','/api/v1/drivers/nearby'),query=routes.validate(nearby,new URL('http://local/api/v1/drivers/nearby?locationCode=A&page=1&limit=2'));
   assert.deepEqual(routes.input(nearby,undefined,query,{}),{location_code:'A',paging:{page:1,limit:2}});
   const reg=routes.match('POST','/api/v1/auth/register');
-  assert.equal(reg.responses.get(202)({status:'OTP_REQUIRED',otpId:'000000000000000000000001',expiresAt:'2026-10-27T00:00:00Z',mockCode:'123456'}),true);
+  assert.equal(reg.responses.get(202)({status:'OTP_REQUIRED',oid:'o01',expiresAt:'2026-10-27T00:00:00Z',mockCode:'123456'}),true);
 });
 test('generated profile codes skip existing accounts and keep counters scoped to each role/transaction',async()=>{
   const {allocateProfileCode}=require('./profile-codes.cjs'),session={id:'unit-session'},values=new Map();
@@ -125,6 +125,44 @@ test('generated profile codes skip existing accounts and keep counters scoped to
   assert.deepEqual(await allocateProfileCode(db,'CUSTOMER',session),{field:'cid',code:'c02'});
   assert.deepEqual(await allocateProfileCode(db,'DRIVER',session),{field:'did',code:'d01'});
   await assert.rejects(()=>allocateProfileCode(db,'ADMIN',session));
+});
+test('public IDs allocate atomically per prefix and session without exposing ObjectIds',async()=>{
+  const {allocateId}=require('./short-ids.cjs'),values=new Map(),session={id:'tx'};
+  const db={collection(name){assert.equal(name,'id_counters');return {async findOneAndUpdate(q,u,o){
+    assert.equal(o.session,session);assert.equal(o.upsert,true);
+    const value=(values.get(q._id)||0)+1;values.set(q._id,value);return {value};
+  }};}};
+  assert.deepEqual(await Promise.all([allocateId(db,'b',session),allocateId(db,'b',session),allocateId(db,'p',session)]),['b01','b02','p01']);
+  await assert.rejects(()=>allocateId(db,'x',session));
+  const route=routes.match('GET','/api/v1/customers/c29');
+  assert.doesNotThrow(()=>routes.validate(route,new URL('http://local/api/v1/customers/c29')));
+  assert.deepEqual(routes.input(route,undefined,{},{}),{customer_id:'c29'});
+  assert.throws(()=>routes.validate(routes.match('GET','/api/v1/customers/000000000000000000000001'),new URL('http://local/api/v1/customers/000000000000000000000001')),b.DomainError);
+  const note=routes.output({notification_id:'n01',recipient_account_id:'a01',related_entity_type:'TRIP',related_entity_id:'t01'});
+  assert.deepEqual(note,{nid:'n01',aid:'a01',relatedEntityType:'TRIP',tid:'t01'});
+});
+test('migration plan preserves c29, Mongo primary keys, password hash, money and cross-service references',()=>{
+  const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{BSON,ObjectId}=require('mongodb');
+  const {services}=require('./runtime-config.cjs'),{makePlan}=require('./migrate-short-ids.cjs');
+  const folder=path.join(__dirname,'../.local/test-short-ids-'+crypto.randomUUID());fs.mkdirSync(folder,{recursive:true});
+  const id=n=>String(n).padStart(24,'0'),data={};
+  for(const service of services)data[service]={service,database:service.replace('_service','_db'),collections:{}};
+  data.auth_service.collections.accounts=[{_id:new ObjectId(id(1)),role:'CUSTOMER',cid:'c29',passwordHash:'synthetic-hash'}];
+  data.customer_service.collections.customer_profiles=[{_id:new ObjectId(id(2)),accountId:id(1),cid:'c29',fullName:'Demo'}];
+  data.booking_service.collections.bookings=[{_id:new ObjectId(id(3)),booking_id:id(3),customer_id:id(2),customerAccountId:id(1),status:'COMPLETED',responseSnapshot:{booking_id:id(3),customer_id:id(2)}}];
+  data.trip_service.collections.trips=[{_id:new ObjectId(id(4)),trip_id:id(4),booking_id:id(3),customer_id:id(2),fare_amount:18000,status:'COMPLETED'}];
+  data.payment_service.collections.payments=[{_id:new ObjectId(id(5)),payment_id:id(5),trip_id:id(4),amount:18000,status:'COMPLETED',attempt_number:1,responseSnapshot:{payment_id:id(5),trip_id:id(4),amount:18000}}];
+  for(const [service,value]of Object.entries(data))fs.writeFileSync(path.join(folder,service+'.backup.json'),BSON.EJSON.stringify(value));
+  makePlan(folder);const p=BSON.EJSON.parse(fs.readFileSync(path.join(folder,'plan.private.json'),'utf8'));
+  const account=p.services.auth_service.collections.accounts[0].after;
+  assert.equal(account.aid,'a01');assert.equal(account.cid,'c29');assert.equal(account.passwordHash,'synthetic-hash');assert.equal(account._id.toHexString(),id(1));
+  const booking=p.services.booking_service.collections.bookings[0].after;
+  assert.equal(booking.booking_id,'b01');assert.equal(booking.customer_id,'c29');assert.equal(booking.customerAccountId,id(1));
+  assert.equal(booking.responseSnapshot.customer_id,'c29');
+  const trip=p.services.trip_service.collections.trips[0].after;assert.equal(trip.trip_id,'t01');assert.equal(trip.booking_id,'b01');
+  const payment=p.services.payment_service.collections.payments[0].after;
+  assert.equal(payment.payment_id,'p01');assert.equal(payment.trip_id,'t01');assert.equal(payment.amount,18000);assert.equal(payment.status,'COMPLETED');
+  assert.equal(p.orphanReferences,0);
 });
 test('location fixtures do not overwrite edited DB points and return only coordinates',async()=>{
   const {provisionLocations,readLocation}=require('./demo-locations.cjs'),rows=new Map([['A',{latitude:1,longitude:2,label:'edited'}]]);

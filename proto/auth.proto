@@ -69,6 +69,7 @@ message AccountAccess {
   string account_id = 1;
   cab.common.v1.Account.Role role = 2;
   cab.common.v1.Account.Status status = 3;
+  string aid = 4;
 }
 
 service AuthService {

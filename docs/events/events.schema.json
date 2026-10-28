@@ -61,7 +61,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -195,7 +195,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -212,7 +212,7 @@
           "properties": {
             "driverId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^d[a-z0-9]{1,15}$"
             },
             "recipientAccountId": {
               "type": "string",
@@ -290,7 +290,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -307,7 +307,7 @@
           "properties": {
             "bookingId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^b[a-z0-9]{1,15}$"
             },
             "customerAccountId": {
               "type": "string",
@@ -355,7 +355,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -372,11 +372,11 @@
           "properties": {
             "invitationId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^i[a-z0-9]{1,15}$"
             },
             "bookingId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^b[a-z0-9]{1,15}$"
             },
             "driverAccountId": {
               "type": "string",
@@ -426,7 +426,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -443,11 +443,11 @@
           "properties": {
             "bookingId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^b[a-z0-9]{1,15}$"
             },
             "tripId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^t[a-z0-9]{1,15}$"
             },
             "customerAccountId": {
               "type": "string",
@@ -463,7 +463,7 @@
               "properties": {
                 "driverId": {
                   "type": "string",
-                  "pattern": "^[0-9a-f]{24}$"
+                  "pattern": "^d[a-z0-9]{1,15}$"
                 },
                 "fullName": {
                   "type": "string",
@@ -477,11 +477,11 @@
                   "properties": {
                     "vehicleId": {
                       "type": "string",
-                      "pattern": "^[0-9a-f]{24}$"
+                      "pattern": "^v[a-z0-9]{1,15}$"
                     },
                     "driverId": {
                       "type": "string",
-                      "pattern": "^[0-9a-f]{24}$"
+                      "pattern": "^d[a-z0-9]{1,15}$"
                     },
                     "plateNumber": {
                       "type": "string",
@@ -573,7 +573,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -590,7 +590,7 @@
           "properties": {
             "bookingId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^b[a-z0-9]{1,15}$"
             },
             "customerAccountId": {
               "type": "string",
@@ -650,7 +650,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -667,7 +667,7 @@
           "properties": {
             "bookingId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^b[a-z0-9]{1,15}$"
             },
             "customerAccountId": {
               "type": "string",
@@ -715,7 +715,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -732,15 +732,15 @@
           "properties": {
             "tripId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^t[a-z0-9]{1,15}$"
             },
             "bookingId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^b[a-z0-9]{1,15}$"
             },
             "driverId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^d[a-z0-9]{1,15}$"
             },
             "customerAccountId": {
               "type": "string",
@@ -796,7 +796,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -813,15 +813,15 @@
           "properties": {
             "tripId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^t[a-z0-9]{1,15}$"
             },
             "bookingId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^b[a-z0-9]{1,15}$"
             },
             "driverId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^d[a-z0-9]{1,15}$"
             },
             "customerAccountId": {
               "type": "string",
@@ -891,7 +891,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -908,15 +908,15 @@
           "properties": {
             "tripId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^t[a-z0-9]{1,15}$"
             },
             "bookingId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^b[a-z0-9]{1,15}$"
             },
             "driverId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^d[a-z0-9]{1,15}$"
             },
             "customerAccountId": {
               "type": "string",
@@ -988,7 +988,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -1005,11 +1005,11 @@
           "properties": {
             "paymentId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^p[a-z0-9]{1,15}$"
             },
             "tripId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^t[a-z0-9]{1,15}$"
             },
             "customerAccountId": {
               "type": "string",
@@ -1069,7 +1069,7 @@
         },
         "aggregateId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{24}$"
+          "pattern": "^(?:[0-9a-f]{24}|[bditpvnr][a-z0-9]{1,15})$"
         },
         "aggregateVersion": {
           "type": "integer",
@@ -1086,11 +1086,11 @@
           "properties": {
             "paymentId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^p[a-z0-9]{1,15}$"
             },
             "tripId": {
               "type": "string",
-              "pattern": "^[0-9a-f]{24}$"
+              "pattern": "^t[a-z0-9]{1,15}$"
             },
             "customerAccountId": {
               "type": "string",

@@ -1,5 +1,7 @@
 # Cài đặt, khởi động và kiểm tra local
 
+**ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
+
 Dùng khi cài máy, chạy demo hoặc tìm lỗi container/API. Chạy các lệnh bằng PowerShell ở root repository. Cần Node.js >=22, Docker Desktop và Docker Compose. Git Bash dùng `npm` thay `npm.cmd`.
 
 ## Cài đặt và khởi động
@@ -86,3 +88,11 @@ Không chạy down -v, prune volumes, reset dữ liệu hoặc đổi keys để
 Password hiện chấp nhận String ít nhất1 ký tự ("123", "a"); Phone String không rỗng sau trim, ví dụ "0123"/"abc123". Email, Argon2id/JWT/role/OTP giữ nguyên; chỉ dùng policy này trong học tập/demo local. Không reset mật khẩu account cũ.
 
 Từ PowerShell ở root: `npm.cmd run test:validation`. Kiểm các case input/HTTP/Driver OTP qua Gateway; hash trong DB được kiểm riêng. Sau thay source phải build image chung bằng `docker compose build gateway`, rồi `docker compose up -d --no-build`. Xem [hướng dẫn Postman](../postman/README.md).
+
+## Mã ngắn và migration dữ liệu cũ
+
+API hiện trả và nhận cid/did/aid/bid/tid/pid/nid/rid/vid/iid/oid, ví dụ GET http://localhost:3000/api/v1/customers/c29. Mongo _id/JWT sub chỉ là khóa kỹ thuật nội bộ. Không xóa DB, không Register lại tài khoản để đổi ID. Lấy lại ID từ response mới; request/biến Postman cũ mang ObjectId không còn dùng cho URL nghiệp vụ.
+
+Lượt đổi ID đã backup ở .local/short-ids-20261028-122717/, giữ nguyên mã c29, tất cả _id/hash/password/license/số tiền/trạng thái. Công cụ scripts/migrate-short-ids.cjs chỉ dùng trong bảo trì có kế hoạch: dừng Gateway/services, drain queue/outbox, export từng DB bằng owner của service → tạo plan từ các backup → review → apply/verify từng DB → khởi động lại. Plan có guard không ghi đè nếu dữ liệu thay đổi sau backup; không chạy apply cũ sau khi đã phát sinh dữ liệu mới. Không cần chạy lại migration để demo thông thường. Backups/plan chứa dữ liệu riêng, không upload hoặc commit.
+
+Các ảnh/PDF thiết kế cũ giữ để đối chiếu; hợp đồng API và hướng dẫn URL Markdown hiện hành là nguồn thao tác. eventId/requestId/correlationId là mã trace/sự kiện kỹ thuật, không phải ID tài nguyên để nhập URL.

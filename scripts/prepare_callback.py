@@ -25,8 +25,8 @@ def signing_secret():
 
 
 def prepare(environment, payment_id, reference, amount, result, secret, timestamp=None, event_id=None):
-    if not re.fullmatch(r'[0-9a-f]{24}', payment_id):
-        raise ValueError('payment-id must be a lowercase 24-hex ObjectId')
+    if not re.fullmatch(r'p[0-9]{2,15}', payment_id):
+        raise ValueError('payment-id must be a short pid such as p01')
     if type(amount) is not int or not 0 <= amount <= 10**12:
         raise ValueError('amount must be an integer in [0, 10^12]')
     if not isinstance(reference, str) or not 1 <= len(reference) <= 128:
@@ -48,7 +48,7 @@ def prepare(environment, payment_id, reference, amount, result, secret, timestam
         raise ValueError('env-in must be a Postman environment with a values list')
     if len({x['key'] for x in entries}) != len(entries):
         raise ValueError('duplicate environment keys require review')
-    payload = {'eventId': event_id, 'paymentId': payment_id, 'referenceCode': reference,
+    payload = {'eventId': event_id, 'pid': payment_id, 'referenceCode': reference,
                'amount': amount, 'currency': 'VND', 'result': result, 'timestamp': timestamp}
     # Serialize ONCE. Export precisely the bytes that were signed, without a trailing LF.
     raw = json.dumps(payload, ensure_ascii=False, separators=(',', ':'))

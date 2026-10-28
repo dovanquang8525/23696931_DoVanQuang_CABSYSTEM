@@ -2,19 +2,19 @@ openapi: 3.0.3
 info:
   title: CAB MVP — Health
   version: 3.0.0
-  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển
-    khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển khai backend. Chỉ
+    BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
 servers:
-- url: http://localhost:3000
-  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+  - url: http://localhost:3000
+    description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
 security: []
 tags:
-- name: Health
+  - name: Health
 paths:
   /health:
     get:
       tags:
-      - Health
+        - Health
       operationId: gatewayHealth
       summary: gatewayHealth
       security: []
@@ -22,10 +22,10 @@ paths:
         MongoDB/Redis/RabbitMQ; /health/services có đúng 12 thành phần và không lộ endpoint/secret.
       x-gateway-handler: gatewayHealth
       x-srs:
-      - FR49
-      - AC84
-      - AC85
-      - AC86
+        - FR49
+        - AC84
+        - AC85
+        - AC86
       responses:
         "200":
           description: Healthy/ready.
@@ -36,7 +36,7 @@ paths:
   /ready:
     get:
       tags:
-      - Health
+        - Health
       operationId: gatewayReady
       summary: gatewayReady
       security: []
@@ -44,10 +44,10 @@ paths:
         MongoDB/Redis/RabbitMQ; /health/services có đúng 12 thành phần và không lộ endpoint/secret.
       x-gateway-handler: gatewayReady
       x-srs:
-      - FR49
-      - AC84
-      - AC85
-      - AC86
+        - FR49
+        - AC84
+        - AC85
+        - AC86
       responses:
         "200":
           description: Healthy/ready.
@@ -55,30 +55,30 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: "#/components/schemas/Readiness"
-                - type: object
-                  properties:
-                    status:
-                      type: string
-                      enum:
-                      - ready
+                  - $ref: "#/components/schemas/Readiness"
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - ready
         "503":
           description: Chưa sẵn sàng/degraded; body health cùng schema, không phải Error.
           content:
             application/json:
               schema:
                 allOf:
-                - $ref: "#/components/schemas/Readiness"
-                - type: object
-                  properties:
-                    status:
-                      type: string
-                      enum:
-                      - not_ready
+                  - $ref: "#/components/schemas/Readiness"
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - not_ready
   /health/services:
     get:
       tags:
-      - Health
+        - Health
       operationId: gatewayServiceHealth
       summary: gatewayServiceHealth
       security: []
@@ -86,10 +86,10 @@ paths:
         MongoDB/Redis/RabbitMQ; /health/services có đúng 12 thành phần và không lộ endpoint/secret.
       x-gateway-handler: gatewayServiceHealth
       x-srs:
-      - FR49
-      - AC84
-      - AC85
-      - AC86
+        - FR49
+        - AC84
+        - AC85
+        - AC86
       responses:
         "200":
           description: Healthy/ready.
@@ -97,26 +97,26 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: "#/components/schemas/ServiceHealth"
-                - type: object
-                  properties:
-                    status:
-                      type: string
-                      enum:
-                      - healthy
+                  - $ref: "#/components/schemas/ServiceHealth"
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - healthy
         "503":
           description: Chưa sẵn sàng/degraded; body health cùng schema, không phải Error.
           content:
             application/json:
               schema:
                 allOf:
-                - $ref: "#/components/schemas/ServiceHealth"
-                - type: object
-                  properties:
-                    status:
-                      type: string
-                      enum:
-                      - degraded
+                  - $ref: "#/components/schemas/ServiceHealth"
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - degraded
 components:
   securitySchemes:
     BearerAuth:
@@ -132,32 +132,32 @@ components:
         name:
           type: string
           enum:
-          - gateway
-          - auth_service
-          - customer_service
-          - driver_service
-          - booking_service
-          - trip_service
-          - payment_service
-          - notification_service
-          - rating_service
-          - mongodb
-          - redis
-          - rabbitmq
+            - gateway
+            - auth_service
+            - customer_service
+            - driver_service
+            - booking_service
+            - trip_service
+            - payment_service
+            - notification_service
+            - rating_service
+            - mongodb
+            - redis
+            - rabbitmq
         status:
           type: string
           enum:
-          - healthy
-          - unhealthy
-          - unknown
+            - healthy
+            - unhealthy
+            - unknown
         checkedAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
       required:
-      - name
-      - status
-      - checkedAt
+        - name
+        - status
+        - checkedAt
     Health:
       type: object
       additionalProperties: false
@@ -165,14 +165,14 @@ components:
         status:
           type: string
           enum:
-          - healthy
+            - healthy
         checkedAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
       required:
-      - status
-      - checkedAt
+        - status
+        - checkedAt
     Readiness:
       type: object
       additionalProperties: false
@@ -180,15 +180,15 @@ components:
         status:
           type: string
           enum:
-          - ready
-          - not_ready
+            - ready
+            - not_ready
         checkedAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
       required:
-      - status
-      - checkedAt
+        - status
+        - checkedAt
     ServiceHealth:
       type: object
       additionalProperties: false
@@ -196,8 +196,8 @@ components:
         status:
           type: string
           enum:
-          - healthy
-          - degraded
+            - healthy
+            - degraded
         components:
           type: array
           items:
@@ -209,6 +209,6 @@ components:
           format: date-time
           example: 2026-10-27T00:00:00Z
       required:
-      - status
-      - components
-      - checkedAt
+        - status
+        - components
+        - checkedAt

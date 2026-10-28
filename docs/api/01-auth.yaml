@@ -2,31 +2,30 @@ openapi: 3.0.3
 info:
   title: CAB MVP — Auth
   version: 3.0.0
-  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển
-    khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển khai backend. Chỉ
+    BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
 servers:
-- url: http://localhost:3000/api/v1
-  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+  - url: http://localhost:3000/api/v1
+    description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
 security:
-- BearerAuth: []
+  - BearerAuth: []
 tags:
-- name: Auth
+  - name: Auth
 paths:
   /auth/otp-challenges:
     post:
       tags:
-      - Auth
+        - Auth
       operationId: requestDriverOtp
       summary: Yêu cầu OTP mock đăng ký Driver
-      description: Phone only; purpose DRIVER_REGISTRATION is assigned internally. Existing OTP expiry, cooldown and
-        limits remain unchanged.
+      description: Phone only; purpose DRIVER_REGISTRATION is assigned internally. Existing OTP expiry, cooldown and limits remain unchanged.
       x-grpc: cab.auth.v1.AuthService/RequestOtp
       x-allowed-roles: []
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR43
-      - AC09
-      - AC10
+        - FR43
+        - AC09
+        - AC10
       responses:
         "201":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -106,21 +105,21 @@ paths:
                 summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
                 value:
                   phone: "0909212110"
-  /auth/otp-challenges/{otpId}/verify:
+  /auth/otp-challenges/{oid}/verify:
     post:
       tags:
-      - Auth
+        - Auth
       operationId: verifyDriverOtp
       summary: Xác minh OTP trước khi tạo Driver Account
-      description: Tối đa 5 lần sai/challenge và 10 request/phút/IP. Bằng chứng gắn otpId/phone/purpose, hết hiệu
-        lực cùng expiresAt và tiêu thụ một lần tại Register.
+      description: Tối đa 5 lần sai/challenge và 10 request/phút/IP. Bằng chứng gắn oid/phone/purpose, hết hiệu lực cùng expiresAt và
+        tiêu thụ một lần tại Register.
       x-grpc: cab.auth.v1.AuthService/VerifyOtp
       x-allowed-roles: []
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR43
-      - AC11
-      - AC12
+        - FR43
+        - AC11
+        - AC12
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -190,16 +189,16 @@ paths:
                 $ref: "#/components/schemas/Error"
       security: []
       parameters:
-      - name: otpId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: oid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^o[0-9]{2,15}$
+            example: o01
+          description: ""
       requestBody:
         required: true
         content:
@@ -215,21 +214,21 @@ paths:
   /auth/register:
     post:
       tags:
-      - Auth
+        - Auth
       operationId: registerAccount
       summary: Đăng ký CUSTOMER hoặc DRIVER
-      description: "Customer: email/password/phone only, cid allocated by server; returns accountId/role/cid on 201, without token, OTP or profileStatus. Login separately to obtain accessToken. Driver: add plateNumber; first
-        POST returns 202 OTP_REQUIRED, no account created. Repeat same details with code (six digits) to
-        complete registration, allocating did. OTP is selected by phone and bound to the original registration
-        data; no otpId input. Profile remains DRAFT until license and submission. Never accepts
-        role/cid/did/name."
+      description: "Customer: email/password/phone only, cid allocated by server; returns aid/role/cid on 201, without token, OTP or
+        profileStatus. Login separately to obtain accessToken. Driver: add plateNumber; first POST returns 202 OTP_REQUIRED, no
+        account created. Repeat same details with code (six digits) to complete registration, allocating did. OTP is selected by
+        phone and bound to the original registration data; no oid input. Profile remains DRAFT until license and submission. Never
+        accepts role/cid/did/name."
       x-grpc: cab.auth.v1.AuthService/Register
       x-allowed-roles: []
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR01
-      - AC01
-      - AC02
+        - FR01
+        - AC01
+        - AC02
       responses:
         "201":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -332,19 +331,18 @@ paths:
   /auth/login:
     post:
       tags:
-      - Auth
+        - Auth
       operationId: loginAccount
       summary: Đăng nhập và nhận JWT
-      description: Login with email and password. Email is trimmed and lowercase. Verify Argon2id hash and ACTIVE
-        account before issuing JWT.
+      description: Login with email and password. Email is trimmed and lowercase. Verify Argon2id hash and ACTIVE account before issuing JWT.
       x-grpc: cab.auth.v1.AuthService/Login
       x-allowed-roles: []
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR02
-      - AC05
-      - AC06
-      - AC92
+        - FR02
+        - AC05
+        - AC06
+        - AC92
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -428,18 +426,18 @@ paths:
   /auth/me:
     get:
       tags:
-      - Auth
+        - Auth
       operationId: getIdentity
       summary: Xem định danh Account
       description: Xem định danh Account
       x-grpc: cab.auth.v1.AuthService/GetIdentity
       x-allowed-roles:
-      - CUSTOMER
-      - DRIVER
-      - ADMIN
+        - CUSTOMER
+        - DRIVER
+        - ADMIN
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR40
+        - FR40
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -519,12 +517,12 @@ components:
       type: object
       additionalProperties: false
       properties:
-        accountId:
+        aid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^a[0-9]{2,15}$
+          example: a01
         phone:
           type: string
           minLength: 1
@@ -532,14 +530,14 @@ components:
         role:
           type: string
           enum:
-          - CUSTOMER
-          - DRIVER
-          - ADMIN
+            - CUSTOMER
+            - DRIVER
+            - ADMIN
         status:
           type: string
           enum:
-          - ACTIVE
-          - DISABLED
+            - ACTIVE
+            - DISABLED
         email:
           type: string
           minLength: 1
@@ -550,17 +548,19 @@ components:
           minLength: 2
           maxLength: 16
           pattern: ^c[a-z0-9]{1,15}$
+          example: c01
         did:
           type: string
           minLength: 2
           maxLength: 16
           pattern: ^d[a-z0-9]{1,15}$
+          example: d01
       required:
-      - accountId
-      - phone
-      - role
-      - status
-      - email
+        - aid
+        - phone
+        - role
+        - status
+        - email
     Error:
       type: object
       additionalProperties: false
@@ -578,9 +578,9 @@ components:
           minLength: 1
           maxLength: 128
       required:
-      - code
-      - message
-      - requestId
+        - code
+        - message
+        - requestId
     LoginInput:
       type: object
       additionalProperties: false
@@ -596,18 +596,18 @@ components:
           format: password
           writeOnly: true
       required:
-      - email
-      - password
+        - email
+        - password
     OtpChallenge:
       type: object
       additionalProperties: false
       properties:
-        otpId:
+        oid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^o[0-9]{2,15}$
+          example: o01
         expiresAt:
           type: string
           format: date-time
@@ -619,30 +619,30 @@ components:
           pattern: ^[0-9]{6}$
           description: Chỉ có khi OTP_MOCK_MODE=true ở demo local; không ghi log hoặc lưu plaintext.
       required:
-      - otpId
-      - expiresAt
+        - oid
+        - expiresAt
     OtpVerification:
       type: object
       additionalProperties: false
       properties:
-        otpId:
+        oid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^o[0-9]{2,15}$
+          example: o01
         verified:
           type: boolean
           enum:
-          - true
+            - true
         expiresAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
       required:
-      - otpId
-      - verified
-      - expiresAt
+        - oid
+        - verified
+        - expiresAt
     RegisterInput:
       type: object
       additionalProperties: false
@@ -672,65 +672,67 @@ components:
           minLength: 6
           maxLength: 6
       required:
-      - email
-      - password
-      - phone
+        - email
+        - password
+        - phone
       oneOf:
-      - not:
-          anyOf:
-          - required:
+        - not:
+            anyOf:
+              - required:
+                  - plateNumber
+              - required:
+                  - code
+        - required:
             - plateNumber
-          - required:
-            - code
-      - required:
-        - plateNumber
     Registration:
       type: object
       additionalProperties: false
       properties:
-        accountId:
+        aid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^a[0-9]{2,15}$
+          example: a01
         role:
           type: string
           enum:
-          - CUSTOMER
-          - DRIVER
+            - CUSTOMER
+            - DRIVER
         cid:
           type: string
           minLength: 2
           maxLength: 16
           pattern: ^c[a-z0-9]{1,15}$
+          example: c01
         did:
           type: string
           minLength: 2
           maxLength: 16
           pattern: ^d[a-z0-9]{1,15}$
+          example: d01
       required:
-      - accountId
-      - role
+        - aid
+        - role
       oneOf:
-      - properties:
-          role:
-            enum:
-            - CUSTOMER
-        required:
-        - cid
-        not:
+        - properties:
+            role:
+              enum:
+                - CUSTOMER
           required:
-          - did
-      - properties:
-          role:
-            enum:
-            - DRIVER
-        required:
-        - did
-        not:
+            - cid
+          not:
+            required:
+              - did
+        - properties:
+            role:
+              enum:
+                - DRIVER
           required:
-          - cid
+            - did
+          not:
+            required:
+              - cid
     RequestOtpInput:
       type: object
       additionalProperties: false
@@ -740,7 +742,7 @@ components:
           minLength: 1
           example: "0909212109"
       required:
-      - phone
+        - phone
     Session:
       type: object
       additionalProperties: false
@@ -752,23 +754,39 @@ components:
         account:
           $ref: "#/components/schemas/SessionAccount"
       required:
-      - accessToken
-      - account
+        - accessToken
+        - account
     SessionAccount:
       type: object
       additionalProperties: false
       properties:
-        accountId:
+        aid:
           type: string
-          pattern: ^[0-9a-f]{24}$
+          pattern: ^a[0-9]{2,15}$
+          minLength: 3
+          maxLength: 16
+          example: a01
         role:
           type: string
-          enum: [CUSTOMER, DRIVER, ADMIN]
+          enum:
+            - CUSTOMER
+            - DRIVER
+            - ADMIN
         cid:
           type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^c[a-z0-9]{1,15}$
+          example: c01
         did:
           type: string
-      required: [accountId, role]
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
+          example: d01
+      required:
+        - aid
+        - role
     VerifyOtpInput:
       type: object
       additionalProperties: false
@@ -783,8 +801,8 @@ components:
           maxLength: 6
           pattern: ^[0-9]{6}$
       required:
-      - phone
-      - code
+        - phone
+        - code
     RegistrationOtp:
       type: object
       additionalProperties: false
@@ -792,13 +810,13 @@ components:
         status:
           type: string
           enum:
-          - OTP_REQUIRED
-        otpId:
+            - OTP_REQUIRED
+        oid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^o[0-9]{2,15}$
+          example: o01
         expiresAt:
           type: string
           format: date-time
@@ -806,6 +824,6 @@ components:
           type: string
           pattern: ^[0-9]{6}$
       required:
-      - status
-      - otpId
-      - expiresAt
+        - status
+        - oid
+        - expiresAt

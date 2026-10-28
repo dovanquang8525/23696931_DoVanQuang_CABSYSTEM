@@ -1,11 +1,11 @@
 'use strict';
 const crypto = require('node:crypto');
 const {ObjectId} = require('mongodb');
+const {allocateId}=require('./short-ids.cjs');
 const rpc = require('./rpc-security.cjs');
 const v = require('./identity-validation.cjs');
 const {checkEnvelope} = require('./event-bus.cjs');
 const now = () => new Date().toISOString();
-const oid = value => new ObjectId(v.id(value));
 const conflict = () => rpc.fail(rpc.grpc.status.ABORTED, 'INVALID_STATE', 'Operation conflicts with the current state.');
 const forbidden = () => rpc.fail(rpc.grpc.status.PERMISSION_DENIED, 'FORBIDDEN', 'Resource is outside your access scope.');
 const missing = () => rpc.fail(rpc.grpc.status.NOT_FOUND, 'NOT_FOUND', 'Resource does not exist.');
@@ -46,7 +46,7 @@ function context(service, db, client) {
     const access = await rpc.invoke('auth','getAccountAccess',{account_id:claims.sub},{caller:service, token, call});
     if (access.role !== claims.role) rpc.fail(rpc.grpc.status.UNAUTHENTICATED,'INVALID_TOKEN','Invalid access token.');
     if (access.status !== 'ACTIVE') rpc.fail(rpc.grpc.status.PERMISSION_DENIED,'ACCOUNT_DISABLED','Account is not active.');
-    return {claims,token};
+    return {claims,token,aid:access.aid};
   }
   const invoke = (name, method, input, call) => rpc.invoke(name,method,input,
     {caller:service, call, token:call ? rpc.authorization(call).token : undefined});
@@ -59,7 +59,7 @@ function context(service, db, client) {
 }
 async function page(collection, filter, paging, view, sort = {created_at:-1,_id:-1}) {
   const {page,limit} = v.pagination(paging);
-  return {items:(await collection.find(filter).sort(sort).skip((page-1)*limit).limit(limit).toArray()).map(view),
+  return {items:await Promise.all((await collection.find(filter).sort(sort).skip((page-1)*limit).limit(limit).toArray()).map(view)),
     page,limit,total_items:await collection.countDocuments(filter)};
 }
 function camel(value) {
@@ -68,4 +68,4 @@ function camel(value) {
   return Object.fromEntries(Object.entries(value).filter(([k]) => !k.startsWith('_')).map(([k,v]) =>
     [k.replace(/_([a-z])/g,(_,l)=>l.toUpperCase()),camel(v)]));
 }
-module.exports = {...rpc,v,now,oid,coords,distance,fare,key,hash,pick,views,context,page,camel,conflict,forbidden,missing,ObjectId};
+module.exports = {...rpc,v,now,allocateId,coords,distance,fare,key,hash,pick,views,context,page,camel,conflict,forbidden,missing,ObjectId};

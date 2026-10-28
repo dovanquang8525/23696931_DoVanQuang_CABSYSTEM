@@ -3,12 +3,12 @@
   "eventType": "booking.invitation_created",
   "occurredAt": "2026-10-27T00:00:00Z",
   "producer": "booking_service",
-  "aggregateId": "000000000000000000000005",
+  "aggregateId": "i01",
   "aggregateVersion": 1,
   "correlationId": "demo-contract-validation",
   "payload": {
-    "invitationId": "000000000000000000000006",
-    "bookingId": "000000000000000000000005",
+    "invitationId": "i01",
+    "bookingId": "b01",
     "driverAccountId": "000000000000000000000003",
     "expiresAt": "2026-10-27T00:00:30Z"
   }

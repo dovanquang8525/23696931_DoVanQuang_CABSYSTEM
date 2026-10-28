@@ -3,11 +3,11 @@
   "eventType": "booking.no_driver",
   "occurredAt": "2026-10-27T00:00:00Z",
   "producer": "booking_service",
-  "aggregateId": "000000000000000000000005",
+  "aggregateId": "b01",
   "aggregateVersion": 1,
   "correlationId": "demo-contract-validation",
   "payload": {
-    "bookingId": "000000000000000000000005",
+    "bookingId": "b01",
     "customerAccountId": "000000000000000000000002",
     "status": "NO_DRIVER"
   }

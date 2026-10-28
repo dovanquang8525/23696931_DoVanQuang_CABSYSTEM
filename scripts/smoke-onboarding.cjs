@@ -6,7 +6,7 @@ async function main(){
   const admin=await h.login('0909000000'),phone='0'+crypto.randomInt(100000000,1000000000),password='Demo-'+crypto.randomBytes(12).toString('hex');
   const email=phone+'@example.test',registration={phone,email,password,plateNumber:'DEMO-'+phone};
   const challenge=h.expect(await h.request('POST','/api/v1/auth/register',registration),202,'first Driver registration starts OTP');
-  assert.equal(challenge.status,'OTP_REQUIRED');assert.equal(challenge.accountId,undefined);
+  assert.equal(challenge.status,'OTP_REQUIRED');assert.equal(challenge.aid,undefined);
   assert.match(challenge.mockCode,/^\d{6}$/);
   h.expect(await h.request('POST','/api/v1/auth/login',{email,password}),401,'no account before OTP');
   h.expect(await h.request('POST','/api/v1/auth/register',registration),429,'OTP cooldown');
@@ -24,7 +24,7 @@ async function main(){
   const vehicle=h.expect(await h.request('GET','/api/v1/drivers/me/vehicle',undefined,driver),200,'BIKE vehicle from registered plate');
   assert.equal(vehicle.plateNumber,registration.plateNumber);
   h.expect(await h.request('PATCH','/api/v1/drivers/me',{name:'Change pending'},driver),409,'PENDING profile locked');
-  const decision='/api/v1/admin/drivers/'+profile.data.driverId+'/approval-decisions';
+  const decision='/api/v1/admin/drivers/'+profile.data.did+'/approval-decisions';
   const rejected=h.expect(await h.request('POST',decision,{decision:'REJECTED',reason:'Demo resubmission'},admin),200,'ADMIN reject');
   assert.equal(rejected.approvalStatus,'REJECTED');
   h.expect(await h.request('PATCH','/api/v1/drivers/me',{name:'Updated Driver'},driver),200,'edit REJECTED');

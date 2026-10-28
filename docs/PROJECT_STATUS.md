@@ -1,5 +1,57 @@
 # Báo cáo tổng kiểm tra CAB System — 28/10/2026
 
+## Bộ dữ liệu demo mới — thay thế dữ liệu kiểm thử cũ
+
+Người dùng đã xác nhận xóa Customer/Driver/Booking cũ cùng Trip/Payment mock/Rating/Notification/OTP/event/idempotency liên quan sau sao lưu. Đã sao lưu đủ 8 database và source tại `.local/demo-reset-20261028/`, ghi SHA256; 20 queue đã rỗng trước khi làm sạch. Mỗi thao tác DB dùng quyền của service sở hữu và transaction. Không drop database, không xóa volumes/secrets; mọi ADMIN giữ nguyên toàn bộ document và password.
+
+- Customer c01–c05 và Driver d01–d05: tên tiếng Việt IN HOA không dấu. Thông tin đăng nhập chỉ lưu local tại `.local/demo-reset-20261028/ACCOUNTS.local.md`, không đưa credentials vào Postman template/Git.
+- d01/d02 APPROVED + online gần A; d03 APPROVED/offline; d04 PENDING; d05 REJECTED. Vị trí phải refresh trong 120 giây trước nearby, không tự gia hạn hay bỏ điều kiện freshness.
+- Booking b01–b05 của c01: b01–b03 NO_DRIVER, b04–b05 CANCELED. Đây là lịch sử mẫu, không tạo Trip COMPLETED giả. Trip/Payment/Review/Notification ban đầu rỗng. Các ID mới tiếp theo c06/d06/b06; kiểm chứng bằng counter, không tạo account thừa để thử.
+- Runtime qua Gateway: login, danh sách đúng 5/5/5, nearby đúng d01/d02, tọa độ và mã A cùng kết quả, phân trang Booking 2–2–1, ownership403, sai password401 đều đạt. Evidence `.local/evidence/demo-reset-2026-10-28T06-50-57-940Z.json`. Đã verify số lượng/counter/hash của từng DB và ADMIN so với backup.
+
+Các bằng chứng audit bên dưới là lịch sử trước khi làm sạch: account/ID như c29 hoặc d09 không còn trong bộ mẫu hiện tại. Không chạy lại seed/fixture cũ nếu muốn giữ đúng bộ mẫu 5/5/5. Trạng thái 30 tiêu chí không tự nâng PASS từ việc seed dữ liệu.
+
+## Sửa quyền ADMIN nearby — câu 13
+
+Gateway trước đây chỉ cho CUSTOMER trong YAML, trong khi Driver Service đã cho CUSTOMER/ADMIN. Đã đồng bộ YAML, thêm kiểm tra hợp đồng roles, rebuild/restart riêng Gateway. npm test 37/37 và npm run check đạt. Runtime ADMIN/CUSTOMER nearby HTTP200; A và tọa độ 10.8/106.7 trả cùng kết quả; No Auth401, trộn hai dạng vị trí400. Evidence: .local/evidence/nearby-admin-fix-2026-10-28T06-38-50-378Z.json. Lúc kiểm tra totalItems=0; d09 APPROVED nhưng offline và vị trí cũ nên không đủ điều kiện nearby. Không thay đổi trạng thái Driver để tạo kết quả giả.
+
+## Cập nhật ID công khai theo yêu cầu mới
+
+Người dùng xác nhận đổi cả tên field và giá trị: cid/c29, did/d01, aid/a01, bid/b01, tid/t01, pid/p01, nid/n01, rid/r01; bổ sung vid (Vehicle), iid (Invitation), oid (OTP challenge). Tất cả ID do server cấp. Customer/Driver ID chính là cid/did; không còn một customerId/driverId dài để nhập URL. Mongo _id và JWT sub giữ nội bộ để bảo toàn account/ownership. Không có API đăng ký ADMIN mới; ADMIN hiện có cũng nhận aid.
+
+**Đã kiểm thực:** GET /api/v1/customers/c29 bằng ADMIN →200, response cid=c29/aid=a38; Customer khác →403. URL ObjectId cũ →400. GET Customer/Driver của chủ sở hữu theo mã ngắn →200. Các danh sách ADMIN trả cid/did/bid/tid/pid ngắn cho cả dữ liệu cũ và mới; Vehicle có vid, Review có rid, Notification có nid/aid và bid/tid/pid/did theo đối tượng.
+
+### Dữ liệu và bảo toàn
+
+- Checkpoint source trước sửa: .local/short-ids-20261028-122717/source-before.zip; file URL_POSTMAN_30.md chưa commit từ lượt trước cũng được giữ trong checkpoint.
+- Đã dừng ứng dụng sau khi xác nhận queues rỗng; sao lưu đủ 8 database bằng user của service sở hữu. Backup riêng ở cùng thư mục .local, không đưa vào Git/Docker image.
+- Plan review 294 bản ghi nghiệp vụ, 0 tham chiếu mồ côi. Apply và verify đều exit0 cho 8 service, trong transaction của từng DB. Số lượng bản ghi tại thời điểm migration và tất cả Mongo _id được giữ. Outbox đã publish/inbox hashes giữ nguyên làm lịch sử; không emit event giả trong migration.
+- Password hash/email/phone/role/status/license encrypted/số tiền/cước/timestamps không thay đổi. Mã cid/did đã có được giữ; hồ sơ legacy thiếu mã được backfill đồng bộ với Auth. Không xóa/đăng ký lại account, không reset DB/volumes/secrets.
+- Các tham chiếu Booking/Trip/Payment/Review/Vehicle/Invitation/Notification, response snapshot và payment idempotency hash được chuyển đồng bộ. Payment referenceCode dùng CAB-pNN tương ứng pid; amount/status/attempt không đổi.
+- Sau migration các test mới có tạo thêm tài khoản/chuyến/payment/review riêng; do đó không chạy lại verify/plan cũ để so tổng dữ liệu sau khi đã phát sinh bản ghi mới. Dữ liệu test được giữ, Driver test đã OFFLINE.
+
+### Kiểm thử
+
+- 37 unit tests đạt, gồm atomic ID counter và plan giữ c29/_id/password/money/references. Static check vẫn kiểm 47 REST operation/8 service; internal RPC giữ tên wire cũ và thêm aid vào AccountAccess, không thêm method/service.
+- 7 test Python callback tools đạt sau đổi body sang pid; HMAC vẫn ký chính xác raw bytes, không xuất signing secret.
+- Validation runtime:34 PASS và một trường hợp account demo đã có trả409 đúng kỳ vọng; login vẫn200, Driver OTP/Submit/security đạt. Evidence .local/evidence/validation-1793166198740.json.
+- Account cũ và c29/ADMIN aid: .local/evidence/short-id-existing-accounts-2026-10-28T05-44-59-026Z.json.
+- Backend smoke toàn luồng, fare, cancel, Review, callback/retry/replay/ownership: .local/evidence/backend-smoke-2026-10-28T05-45-15-957Z.json.
+- Onboarding approve/reject/resubmit/online: .local/evidence/onboarding-2026-10-28T05-45-17-396Z.json.
+- Dispatch reject/timeout/concurrency: .local/evidence/dispatch-2026-10-28T05-47-09-513Z.json.
+- Register/Login/OTP regression: .local/identity-run.43710285-b2a6-4355-bd66-c4213d88819f.json.
+- Public IDs/ownership/admin lists/Vehicle/Review/Notification: .local/evidence/short-id-public-contract-2026-10-28T05-54-45-398Z.json.
+- Final image build/start: exit0; health 12 components HTTP200; ADMIN GET /customers/c29 HTTP200, other Customer HTTP403. Evidence .local/evidence/short-id-final-image-2026-10-28T06-00-21-179Z.json.
+
+Các kết quả này là regression kỹ thuật; không tự đổi trạng thái browser XSS/trình bày hoặc yêu cầu tải>1000/s còn thiếu trong bảng chấm.
+
+### Thành phần đã đồng bộ
+
+Gateway mapping +10 YAML +Auth.proto AccountAccess.aid +validator/counters +8 service +seed +event schemas/examples +callback signer +runtime/unit/Python tests +Postman hiện hành/env template/manifest +SRS/Bounded Context/contracts/README/runbook/hướng dẫn tay/URL. MongoDB fields nội bộ và Proto customer_id/driver_id/... vẫn được ánh xạ rõ tại Gateway; eventId/requestId/correlationId giữ vai trò trace kỹ thuật. Không thêm framework hoặc service.
+
+Các phần audit/validation phía dưới là snapshot các lượt trước đổi ID. Hướng dẫn nhập URL mới: [URL_POSTMAN_30.md](URL_POSTMAN_30.md). Các collection v1/v2 legacy và PDF cũ chỉ tham khảo; dùng collection CAB Current - Gateway REST với các biến cid/did/aid/bid/tid/pid/nid/rid/vid/iid/oid mới. Không dùng session export chứa ObjectId cũ làm mã tài nguyên hiện hành.
+
+
 ## Cập nhật validation demo — 28/10/2026
 
 Yêu cầu mới thay chính sách Password/Phone cũ trong phần audit phía dưới. Chỉ dùng cho học tập/demo local, không xem là thiết kế production. Password String không rỗng, không trim/không điều kiện độ phức tạp; Phone String không rỗng sau trim, không ràng buộc 10 chữ số, giữ leading zero và unique. Không còn giới hạn 64 ký tự password; giới hạn kích thước HTTP request hiện có vẫn giữ. Email validation, Argon2id, JWT, role/ownership, OTP/mock/rate limit không thay đổi. Không thêm feature flag, service, dependency hoặc Mongoose; dự án dùng MongoDB driver trực tiếp và Proto string sẵn có.

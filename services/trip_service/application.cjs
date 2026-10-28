@@ -51,7 +51,7 @@ async function create({db,client,server}) {
       b.v.fields(i,['operation_id','booking_id','customer_id','customer_account_id','driver_id','driver_account_id','vehicle_id',
         'pickup','destination','distance_km','pricing_snapshot','driver_snapshot'],['operation_id','booking_id','customer_id',
         'customer_account_id','driver_id','driver_account_id','vehicle_id','pickup','destination','distance_km','pricing_snapshot','driver_snapshot']);
-      for (const k of ['booking_id','customer_id','customer_account_id','driver_id','driver_account_id','vehicle_id']) b.v.id(i[k]);
+      for (const k of ['booking_id','customer_id','customer_account_id','driver_id','driver_account_id','vehicle_id']) (k.endsWith('account_id')?b.v.objectId:b.v.id)(i[k]);
       b.key(i.operation_id); b.coords(i.pickup); b.coords(i.destination);
       if (b.distance(i.pickup,i.destination)===0 || !Number.isFinite(i.distance_km) || i.distance_km<0 ||
           b.fare(i.distance_km,i.pricing_snapshot)===undefined || i.driver_snapshot.driver_id!==i.driver_id ||
@@ -59,7 +59,7 @@ async function create({db,client,server}) {
       let row=await trips.findOne({booking_id:i.booking_id});
       if (!row) {
         const id=new b.ObjectId();
-        row={_id:id,trip_id:id.toHexString(),...b.pick(i,['booking_id','customer_id','driver_id','vehicle_id','pickup',
+        row={_id:id,trip_id:await b.allocateId(db,'t'),...b.pick(i,['booking_id','customer_id','driver_id','vehicle_id','pickup',
           'destination','distance_km','pricing_snapshot']),customerAccountId:i.customer_account_id,driverAccountId:i.driver_account_id,
           driver:i.driver_snapshot,vehicle_type:'BIKE',currency:'VND',assigned_at:b.now(),status:'ASSIGNED',
           operationId:i.operation_id,assignmentConfirmed:false,version:1};

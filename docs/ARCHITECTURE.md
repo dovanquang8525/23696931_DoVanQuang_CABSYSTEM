@@ -1,5 +1,7 @@
 # Kiến trúc CAB System MVP
 
+**ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
+
 Dùng để giải thích các mục 1, 3, 4, 7, 8. Chuẩn bị source, compose.yaml, proto/ và hệ thống đang chạy theo [runbook](BACKEND_RUNBOOK.md).
 
 ## Request và dữ liệu

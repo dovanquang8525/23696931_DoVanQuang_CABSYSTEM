@@ -10,7 +10,7 @@ async function create({db,client,server}){
       if(!Number.isInteger(i.rating)||i.rating<1||i.rating>5)b.v.invalid();
       const comment=i.comment===undefined?undefined:b.v.text(i.comment,500),current=await trip(i.trip_id,call);
       if(current.status!=='COMPLETED')b.conflict();
-      const id=new b.ObjectId(),row={_id:id,review_id:id.toHexString(),trip_id:i.trip_id,customer_id:current.customer_id,
+      const id=new b.ObjectId(),row={_id:id,review_id:await b.allocateId(db,'r'),trip_id:i.trip_id,customer_id:current.customer_id,
         driver_id:current.driver_id,rating:i.rating,...(comment?{comment}:{}),created_at:b.now()};
       await reviews.insertOne(row);return b.views.review(row);
     },

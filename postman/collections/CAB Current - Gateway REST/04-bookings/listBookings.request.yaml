@@ -13,17 +13,17 @@ scripts:
       const data = pm.response.json();
       pm.test('JSON response', () => pm.expect(data).to.be.an('object'));
       if (pm.response.code < 300) {
-      if (data.customerId) pm.environment.set('customerId', data.customerId);
-      if (data.driverId) pm.environment.set('driverId', data.driverId);
-      if (data.bookingId) pm.environment.set('bookingId', data.bookingId);
-      if (data.tripId) pm.environment.set('tripId', data.tripId);
-      if (data.paymentId) pm.environment.set('paymentId', data.paymentId);
-      if (data.notificationId) pm.environment.set('notificationId', data.notificationId);
-      if (data.otpId) pm.environment.set('otpId', data.otpId);
-      if (data.trip?.tripId) pm.environment.set('tripId', data.trip.tripId);
+      if (data.cid) pm.environment.set('cid', data.cid);
+      if (data.did) pm.environment.set('did', data.did);
+      if (data.bid) pm.environment.set('bid', data.bid);
+      if (data.tid) pm.environment.set('tid', data.tid);
+      if (data.pid) pm.environment.set('pid', data.pid);
+      if (data.nid) pm.environment.set('nid', data.nid);
+      if (data.oid) pm.environment.set('oid', data.oid);
+      if (data.trip?.tid) pm.environment.set('tid', data.trip.tid);
       if (data.mockCode) pm.environment.set('otpCode', data.mockCode);
       if (data.accessToken) pm.environment.set('adminToken', data.accessToken);
-      if (Array.isArray(data.items) && 'listBookings' === 'listMyInvitations') { const offer = data.items.find(x => x.bookingId === pm.environment.get('bookingId') && x.status === 'PENDING'); if (offer) pm.environment.set('invitationId', offer.invitationId); }
+      if (Array.isArray(data.items) && 'listBookings' === 'listMyInvitations') { const offer = data.items.find(x => x.bid === pm.environment.get('bid') && x.status === 'PENDING'); if (offer) pm.environment.set('iid', offer.iid); }
       }
     language: text/javascript
 order: 6000

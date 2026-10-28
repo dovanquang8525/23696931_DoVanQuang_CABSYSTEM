@@ -2,32 +2,32 @@ openapi: 3.0.3
 info:
   title: CAB MVP — Trips
   version: 3.0.0
-  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển
-    khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển khai backend. Chỉ
+    BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
 servers:
-- url: http://localhost:3000/api/v1
-  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+  - url: http://localhost:3000/api/v1
+    description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
 security:
-- BearerAuth: []
+  - BearerAuth: []
 tags:
-- name: Trips
+  - name: Trips
 paths:
-  /trips/{tripId}:
+  /trips/{tid}:
     get:
       tags:
-      - Trips
+        - Trips
       operationId: getTrip
       summary: Xem Trip theo quyền
       description: Xem Trip theo quyền
       x-grpc: cab.trip.v1.TripService/GetTrip
       x-allowed-roles:
-      - CUSTOMER
-      - DRIVER
-      - ADMIN
+        - CUSTOMER
+        - DRIVER
+        - ADMIN
       x-ownership: Customer sở hữu, Driver được phân công, hoặc ADMIN; Trip chưa kích hoạt trả 503 ASSIGNMENT_IN_PROGRESS.
       x-srs:
-      - FR18
-      - AC42
+        - FR18
+        - AC42
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -96,33 +96,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: tripId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-  /trips/{tripId}/arrival:
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^t[0-9]{2,15}$
+            example: t01
+          description: ""
+  /trips/{tid}/arrival:
     post:
       tags:
-      - Trips
+        - Trips
       operationId: arriveTrip
       summary: "Đến điểm đón: ASSIGNED → ARRIVED"
-      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công trả
-        kết quả đã lưu, không sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ
-        COMPLETED/fareAmount=null.
+      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công trả kết quả đã lưu, không
+        sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ COMPLETED/fareAmount=null.
       x-grpc: cab.trip.v1.TripService/ArriveTrip
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR17
-      - AC45
-      - AC46
+        - FR17
+        - AC45
+        - AC46
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -191,16 +190,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: tripId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^t[0-9]{2,15}$
+            example: t01
+          description: ""
       requestBody:
         required: true
         content:
@@ -211,23 +210,22 @@ paths:
               demo:
                 summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
                 value: {}
-  /trips/{tripId}/start:
+  /trips/{tid}/start:
     post:
       tags:
-      - Trips
+        - Trips
       operationId: startTrip
       summary: "Bắt đầu: ARRIVED → IN_PROGRESS"
-      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công trả
-        kết quả đã lưu, không sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ
-        COMPLETED/fareAmount=null.
+      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công trả kết quả đã lưu, không
+        sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ COMPLETED/fareAmount=null.
       x-grpc: cab.trip.v1.TripService/StartTrip
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR17
-      - AC45
-      - AC46
+        - FR17
+        - AC45
+        - AC46
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -296,16 +294,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: tripId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^t[0-9]{2,15}$
+            example: t01
+          description: ""
       requestBody:
         required: true
         content:
@@ -316,23 +314,22 @@ paths:
               demo:
                 summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
                 value: {}
-  /trips/{tripId}/completion:
+  /trips/{tid}/completion:
     post:
       tags:
-      - Trips
+        - Trips
       operationId: completeTrip
       summary: "Hoàn thành và tính cước: IN_PROGRESS → COMPLETED"
-      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công trả
-        kết quả đã lưu, không sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ
-        COMPLETED/fareAmount=null.
+      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công trả kết quả đã lưu, không
+        sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ COMPLETED/fareAmount=null.
       x-grpc: cab.trip.v1.TripService/CompleteTrip
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR22
-      - AC53
-      - AC46
+        - FR22
+        - AC53
+        - AC46
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -401,16 +398,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: tripId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^t[0-9]{2,15}$
+            example: t01
+          description: ""
       requestBody:
         required: true
         content:
@@ -421,21 +418,21 @@ paths:
               demo:
                 summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
                 value: {}
-  /trips/{tripId}/location:
+  /trips/{tid}/location:
     put:
       tags:
-      - Trips
+        - Trips
       operationId: updateTripLocation
       summary: Cập nhật vị trí trong chuyến IN_PROGRESS
       description: Đúng Driver/Trip và trạng thái; lưu Trip trước, đồng bộ Driver gRPC có dữ liệu retry khi lỗi.
       x-grpc: cab.trip.v1.TripService/UpdateTripLocation
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR47
-      - AC47
-      - AC48
+        - FR47
+        - AC47
+        - AC48
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -504,16 +501,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: tripId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^t[0-9]{2,15}$
+            example: t01
+          description: ""
       requestBody:
         required: true
         content:
@@ -537,20 +534,20 @@ paths:
                   pattern: ^[A-Z][A-Z0-9]{0,15}$
                   example: A
               oneOf:
-              - required:
-                - locationCode
-                not:
-                  anyOf:
-                  - required:
+                - required:
+                    - locationCode
+                  not:
+                    anyOf:
+                      - required:
+                          - latitude
+                      - required:
+                          - longitude
+                - required:
                     - latitude
-                  - required:
                     - longitude
-              - required:
-                - latitude
-                - longitude
-                not:
-                  required:
-                  - locationCode
+                  not:
+                    required:
+                      - locationCode
             examples:
               demo:
                 value:
@@ -558,17 +555,17 @@ paths:
   /admin/trips:
     get:
       tags:
-      - Trips
+        - Trips
       operationId: listTrips
       summary: ADMIN tra cứu Trip
       description: ADMIN tra cứu Trip
       x-grpc: cab.trip.v1.TripService/ListTrips
       x-allowed-roles:
-      - ADMIN
+        - ADMIN
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR36
-      - FR37
+        - FR36
+        - FR37
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -637,55 +634,55 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          default: 1
-        description: ""
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 10
-        description: ""
-      - name: customerId
-        in: query
-        required: false
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-      - name: driverId
-        in: query
-        required: false
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
-      - name: status
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - ASSIGNED
-          - ARRIVED
-          - IN_PROGRESS
-          - COMPLETED
-          - CANCELED
-        description: ""
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: ""
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: ""
+        - name: cid
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 16
+            pattern: ^c[a-z0-9]{1,15}$
+            example: c01
+          description: ""
+        - name: did
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 16
+            pattern: ^d[a-z0-9]{1,15}$
+            example: d01
+          description: ""
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - ASSIGNED
+              - ARRIVED
+              - IN_PROGRESS
+              - COMPLETED
+              - CANCELED
+          description: ""
 components:
   securitySchemes:
     BearerAuth:
@@ -707,36 +704,31 @@ components:
           minimum: -180
           maximum: 180
       required:
-      - latitude
-      - longitude
+        - latitude
+        - longitude
     DriverPublic:
       type: object
       additionalProperties: false
       properties:
-        driverId:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        name:
-          type: string
-          minLength: 1
-          maxLength: 100
-          pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
-        vehicle:
-          $ref: "#/components/schemas/Vehicle"
         did:
           type: string
           minLength: 2
           maxLength: 16
           pattern: ^d[a-z0-9]{1,15}$
+          example: d01
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^<>]*$
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
+        vehicle:
+          $ref: "#/components/schemas/Vehicle"
       required:
-      - driverId
-      - name
-      - vehicle
+        - did
+        - name
+        - vehicle
     EmptyInput:
       type: object
       additionalProperties: false
@@ -758,9 +750,9 @@ components:
           minLength: 1
           maxLength: 128
       required:
-      - code
-      - message
-      - requestId
+        - code
+        - message
+        - requestId
     Fare:
       type: integer
       minimum: 0
@@ -784,31 +776,51 @@ components:
           format: date-time
           example: 2026-10-27T00:00:00Z
       required:
-      - latitude
-      - longitude
-      - updatedAt
+        - latitude
+        - longitude
+        - updatedAt
     Trip:
       type: object
       additionalProperties: false
       properties:
-        tripId: &a1
+        tid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        bookingId: *a1
-        customerId: *a1
-        driverId: *a1
-        vehicleId: *a1
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
+        bid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^b[0-9]{2,15}$
+          example: b01
+        cid:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^c[a-z0-9]{1,15}$
+          example: c01
+        did:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
+          example: d01
+        vid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^v[0-9]{2,15}$
+          example: v01
         status:
           type: string
           enum:
-          - ASSIGNED
-          - ARRIVED
-          - IN_PROGRESS
-          - COMPLETED
-          - CANCELED
+            - ASSIGNED
+            - ARRIVED
+            - IN_PROGRESS
+            - COMPLETED
+            - CANCELED
         pickup:
           $ref: "#/components/schemas/Coordinates"
         destination:
@@ -816,7 +828,7 @@ components:
         vehicleType:
           type: string
           enum:
-          - BIKE
+            - BIKE
         driver:
           $ref: "#/components/schemas/DriverPublic"
         distanceKm:
@@ -827,32 +839,44 @@ components:
         currency:
           type: string
           enum:
-          - VND
+            - VND
         latestLocation:
           $ref: "#/components/schemas/Location"
-        assignedAt: &a2
+        assignedAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
-        arrivedAt: *a2
-        startedAt: *a2
-        completedAt: *a2
-        canceledAt: *a2
+        arrivedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
+        startedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
+        completedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
+        canceledAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
       required:
-      - tripId
-      - bookingId
-      - customerId
-      - driverId
-      - vehicleId
-      - status
-      - pickup
-      - destination
-      - vehicleType
-      - distanceKm
-      - fareAmount
-      - currency
-      - assignedAt
-      - driver
+        - tid
+        - bid
+        - cid
+        - did
+        - vid
+        - status
+        - pickup
+        - destination
+        - vehicleType
+        - distanceKm
+        - fareAmount
+        - currency
+        - assignedAt
+        - driver
     TripPage:
       type: object
       additionalProperties: false
@@ -873,55 +897,60 @@ components:
           minimum: 0
           maximum: 1000000000000
       required:
-      - items
-      - page
-      - limit
-      - totalItems
+        - items
+        - page
+        - limit
+        - totalItems
     Vehicle:
       type: object
       additionalProperties: false
       properties:
-        vehicleId: &a3
+        vid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        driverId: *a3
+          minLength: 3
+          maxLength: 16
+          pattern: ^v[0-9]{2,15}$
+          example: v01
+        did:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
+          example: d01
         plateNumber:
           type: string
           minLength: 1
           maxLength: 20
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         vehicleType:
           type: string
           enum:
-          - BIKE
+            - BIKE
         model:
           type: string
           minLength: 1
           maxLength: 100
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         color:
           type: string
           minLength: 1
           maxLength: 30
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         isActive:
           type: boolean
           enum:
-          - true
+            - true
       required:
-      - vehicleId
-      - driverId
-      - plateNumber
-      - vehicleType
-      - model
-      - color
-      - isActive
+        - vid
+        - did
+        - plateNumber
+        - vehicleType
+        - model
+        - color
+        - isActive

@@ -1,8 +1,12 @@
 # CAB System — nhập tay, đủ 30 mục và câu trả lời bảo vệ
 
+**Bộ mẫu hiện tại 28/10/2026:** đã làm sạch dữ liệu demo theo yêu cầu; dùng Customer c01–c05, Driver d01–d05, Booking b01–b05 thuộc c01. Thông tin đăng nhập ở `.local/demo-reset-20261028/ACCOUNTS.local.md`. d01/d02 APPROVED/online gần A, d03 APPROVED/offline, d04 PENDING, d05 REJECTED. Cập nhật location của d01/d02 trước nearby vì hạn vị trí 120 giây. Đã có dữ liệu, bỏ qua bước seed bên dưới; không chạy lại `--fixtures` cũ nếu muốn giữ đúng 5/5/5. Ví dụ c29/d09 và session export cũ không còn trỏ tới tài khoản hiện có.
+
+**ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
+
 **Validation demo cập nhật 28/10/2026:** Password là String không rỗng (ít nhất 1 ký tự, ví dụ "123" hoặc "a"), không trim và không yêu cầu độ phức tạp; Phone là String không rỗng sau trim (ví dụ "0123", "123", "abc123"), giữ số 0 đầu và vẫn unique. Email giữ định dạng cơ bản. Chỉ áp dụng cho học tập/demo local; không phải chính sách production. Argon2id, JWT, role/ownership và OTP Driver giữ nguyên.
 
-Hợp đồng hiện hành: email login; Customer chỉ nhập email/password/phone; Driver thêm plateNumber, gửi đăng ký rồi mới nhập OTP; cid/did và ObjectId do server sinh. Mã điểm A/B đọc tọa độ trong DB. Password vẫn ít nhất 1 ký tự, ví dụ quang123.
+Hợp đồng hiện hành: email login; Customer chỉ nhập email/password/phone; Driver thêm plateNumber, gửi đăng ký rồi mới nhập OTP; cid/did và các mã nghiệp vụ do server sinh. Mã điểm A/B đọc tọa độ trong DB. Password vẫn ít nhất 1 ký tự, ví dụ quang123.
 
 Kết quả audit ngày 28/10/2026 ở [PROJECT_STATUS.md](PROJECT_STATUS.md), tiến độ ở [GRADING_MATRIX.md](GRADING_MATRIX.md). Hướng dẫn này phục vụ nhập tay; collection developer hiện hành ở [postman/README.md](../postman/README.md). Khi buổi chấm yêu cầu nhập tay, không dùng Runner/scripts tự điền.
 
@@ -29,7 +33,7 @@ Email seed admin@cab.local; password từ SEED_PASSWORD lúc tạo lần đầu.
 
 Trong Postman: New HTTP Request, Authorization No Auth; tự nhập header `Authorization: Bearer TOKEN_THAT` khi cần. Body raw JSON và tự đặt Content-Type application/json. GET dùng Body none. Không dùng environment hoặc biến Postman. Mọi URL bắt đầu http://localhost:3000; các đường dẫn dưới đây phải gõ thành URL đầy đủ.
 
-Tự ghi C_TOKEN/D_TOKEN/A_TOKEN, customerId/driverId/bookingId/invitationId/tripId/paymentId và response tạo mới. Những nhãn này là chỗ thay giá trị thật, không gõ nguyên nhãn. cid/did chỉ là mã hiển thị tự sinh, không thay ObjectId trong URL theo ID.
+Tự ghi C_TOKEN/D_TOKEN/A_TOKEN, cid/did/bid/iid/tid/pid và response tạo mới. Những nhãn này là chỗ thay giá trị thật, không gõ nguyên nhãn. cid/did là ID công khai tự sinh dùng trực tiếp trong URL.
 
 ## 2. Customer: chỉ 3 trường
 
@@ -39,7 +43,7 @@ POST `http://localhost:3000/api/v1/auth/register`, No Auth:
 { "email": "quang123@gmail.com", "password": "123", "phone": "0123" }
 ```
 
-201: chỉ có accountId/role/cid tự sinh (ví dụ c01), không token hoặc profileStatus. Đăng nhập riêng để nhận accessToken và account tối giản; JSON đăng nhập không có status/tokenType/expiresAt. Không nhập cid, role hoặc name.
+201: chỉ có aid/role/cid tự sinh (ví dụ c01), không token hoặc profileStatus. Đăng nhập riêng để nhận accessToken và account tối giản; JSON đăng nhập không có status/tokenType/expiresAt. Không nhập cid, role hoặc name.
 
 POST `/api/v1/auth/login`:
 
@@ -49,7 +53,7 @@ POST `/api/v1/auth/login`:
 
 Ghi accessToken là C_TOKEN. ADMIN login cùng URL, email admin@cab.local và password đã bootstrap → A_TOKEN. Chuẩn bị Customer thứ hai bằng email/phone khác để kiểm ownership, ghi C2_TOKEN.
 
-C_TOKEN GET `/api/v1/customers/me` → customerId. PROFILE_NOT_READY 503 thì chờ rồi Send lại. GET `/api/v1/customers/CUSTOMER_ID` →200. Đổi sang C2_TOKEN →403.
+C_TOKEN GET `/api/v1/customers/me` → cid. PROFILE_NOT_READY 503 thì chờ rồi Send lại. GET `/api/v1/customers/CID` →200. Đổi sang C2_TOKEN →403.
 
 Muốn sửa tên, PATCH `/api/v1/customers/me`, C_TOKEN:
 
@@ -74,10 +78,10 @@ POST `http://localhost:3000/api/v1/auth/register`, No Auth:
 Mong đợi **202**:
 
 ```json
-{ "status": "OTP_REQUIRED", "otpId": "ID_SERVER_TAO", "expiresAt": "THOI_GIAN", "mockCode": "MA_6_SO" }
+{ "status": "OTP_REQUIRED", "oid": "ID_SERVER_TAO", "expiresAt": "THOI_GIAN", "mockCode": "MA_6_SO" }
 ```
 
-Chưa có Account/Driver profile, chưa đăng nhập được. mockCode là OTP giả lập local theo phạm vi đồ án, không phải đã gửi SMS thật. Server chỉ lưu Argon2id password hash và HMAC gắn yêu cầu, không lưu password rõ. Không cần nhập lại otpId vào lần 2.
+Chưa có Account/Driver profile, chưa đăng nhập được. mockCode là OTP giả lập local theo phạm vi đồ án, không phải đã gửi SMS thật. Server chỉ lưu Argon2id password hash và HMAC gắn yêu cầu, không lưu password rõ. Không cần nhập lại oid vào lần 2.
 
 ### Lần 2 — thêm code thật vào chính body rồi Send lại
 
@@ -87,7 +91,7 @@ Chưa có Account/Driver profile, chưa đăng nhập được. mockCode là OTP
 
 Giữ nguyên 4 trường đầu; code thay bằng mockCode thật của response, không gõ chữ minh họa. **201** mới là tạo Account thành công; did và các ID được server cấp. Sai code →400; hết 5 phút/đã dùng/sai 5 lần bị từ chối; gửi xin mã lại quá sớm →429. Đổi email/phone/password/plate giữa hai lần không dùng được OTP cũ.
 
-Login email Driver/password như Customer, ghi D_TOKEN. GET `/api/v1/drivers/me`, D_TOKEN → DRAFT, driverId, did và plateNumber. Hồ sơ vẫn cần gửi duyệt; 201 Account không đồng nghĩa ADMIN đã duyệt.
+Login email Driver/password như Customer, ghi D_TOKEN. GET `/api/v1/drivers/me`, D_TOKEN → DRAFT, did, did và plateNumber. Hồ sơ vẫn cần gửi duyệt; 201 Account không đồng nghĩa ADMIN đã duyệt.
 
 ### Hoàn tất phần “gửi hồ sơ chờ duyệt” của mục 21
 
@@ -109,9 +113,9 @@ Không phải gõ lại biển số, model và color trong luồng cơ bản. En
 
 ## 4. Mục 22–23: ADMIN duyệt, Driver online
 
-A_TOKEN GET `/api/v1/admin/drivers?approvalStatus=PENDING&page=1&limit=10`; GET `/api/v1/drivers/DRIVER_ID` xem chi tiết.
+A_TOKEN GET `/api/v1/admin/drivers?approvalStatus=PENDING&page=1&limit=10`; GET `/api/v1/drivers/DID` xem chi tiết.
 
-A_TOKEN POST `/api/v1/admin/drivers/DRIVER_ID/approval-decisions`:
+A_TOKEN POST `/api/v1/admin/drivers/DID/approval-decisions`:
 
 ```json
 { "decision": "APPROVED" }
@@ -158,30 +162,30 @@ C_TOKEN POST `/api/v1/bookings`; tự thêm `Idempotency-Key: b01`:
 { "pickupCode": "A", "destinationCode": "B" }
 ```
 
-201/SEARCHING/BIKE, ghi bookingId và response gốc. Không tự nhập customerId/vehicleType/amount. API cũng hỗ trợ cặp coordinates để kiểm fixture đặc biệt, nhưng không trộn coordinates với mã A/B.
+201/SEARCHING/BIKE, ghi bid và response gốc. Không tự nhập cid/vehicleType/amount. API cũng hỗ trợ cặp coordinates để kiểm fixture đặc biệt, nhưng không trộn coordinates với mã A/B.
 
-D_TOKEN GET `/api/v1/drivers/me/invitations?status=PENDING&page=1&limit=50`; tìm bookingId đúng chuyến, ghi invitationId. Lời mời sống 30 giây; chuẩn bị request trước và thao tác nhanh, nếu hết hạn thì không sửa thời gian DB.
+D_TOKEN GET `/api/v1/drivers/me/invitations?status=PENDING&page=1&limit=50`; tìm bid đúng chuyến, ghi iid. Lời mời sống 30 giây; chuẩn bị request trước và thao tác nhanh, nếu hết hạn thì không sửa thời gian DB.
 
-D_TOKEN POST `/api/v1/invitations/INVITATION_ID/response`:
+D_TOKEN POST `/api/v1/invitations/IID/response`:
 
 ```json
 { "decision": "ACCEPT" }
 ```
 
-200/ACCEPTED/ASSIGNED, ghi tripId. C_TOKEN GET `/api/v1/bookings/BOOKING_ID` thấy Trip và public Driver snapshot.
+200/ACCEPTED/ASSIGNED, ghi tid. C_TOKEN GET `/api/v1/bookings/BID` thấy Trip và public Driver snapshot.
 
 | Token   | Method | Đường dẫn sau http://localhost:3000 | Body tự nhập           | Kết quả               |
 | ------- | ------ | ----------------------------------- | ---------------------- | --------------------- |
-| D_TOKEN | POST   | /api/v1/trips/TRIP_ID/arrival       | `{}`                   | ARRIVED               |
-| D_TOKEN | POST   | /api/v1/trips/TRIP_ID/start         | `{}`                   | IN_PROGRESS           |
-| D_TOKEN | PUT    | /api/v1/trips/TRIP_ID/location      | `{"locationCode":"B"}` | Vị trí B từ DB        |
-| D_TOKEN | POST   | /api/v1/trips/TRIP_ID/completion    | `{}`                   | COMPLETED, fareAmount |
+| D_TOKEN | POST   | /api/v1/trips/TID/arrival       | `{}`                   | ARRIVED               |
+| D_TOKEN | POST   | /api/v1/trips/TID/start         | `{}`                   | IN_PROGRESS           |
+| D_TOKEN | PUT    | /api/v1/trips/TID/location      | `{"locationCode":"B"}` | Vị trí B từ DB        |
+| D_TOKEN | POST   | /api/v1/trips/TID/completion    | `{}`                   | COMPLETED, fareAmount |
 
 Cước giữ snapshot Booking: `1000 * ceil((10000 + 5000 * distanceKm) / 1000)`. Distance là Haversine A–B, không phải tổng GPS. Driver được release độc lập thanh toán. Chuyến tiếp theo nhớ cập nhật vị trí lại A, vì sau chuyến này Driver có thể đang ở B.
 
 ## 7. Payment, callback thủ công, Review
 
-C_TOKEN POST `/api/v1/trips/TRIP_ID/payments`, header `Idempotency-Key: p01`, body `{}` →201/PENDING/MOCK_ONLINE. Ghi paymentId/referenceCode/amount/response gốc. Số tiền do server lấy từ Trip COMPLETED.
+C_TOKEN POST `/api/v1/trips/TID/payments`, header `Idempotency-Key: p01`, body `{}` →201/PENDING/MOCK_ONLINE. Ghi pid/referenceCode/amount/response gốc. Số tiền do server lấy từ Trip COMPLETED.
 
 Git Bash lấy Unix timestamp:
 
@@ -192,7 +196,7 @@ date +%s
 Tự chuẩn bị JSON một dòng, thay nhãn bằng giá trị thật, amount/timestamp là số:
 
 ```text
-{"eventId":"cb01","paymentId":"PAYMENT_ID","referenceCode":"REFERENCE_CODE","amount":AMOUNT,"currency":"VND","result":"COMPLETED","timestamp":TIMESTAMP}
+{"eventId":"cb01","pid":"PID","referenceCode":"REFERENCE_CODE","amount":AMOUNT,"currency":"VND","result":"COMPLETED","timestamp":TIMESTAMP}
 ```
 
 Tính HMAC offline (không tự gửi HTTP):
@@ -203,9 +207,9 @@ node --env-file=.env scripts/sign-manual-callback.cjs TIMESTAMP 'RAW_JSON_DA_NHA
 
 Postman POST `/api/v1/payments/mock/callback`, No Auth; tự nhập Content-Type application/json, X-Mock-Timestamp và X-Mock-Signature từ kết quả. Body phải giống từng byte đã ký; không format/thêm newline; Send trong 5 phút. Không đặt secret ký vào Postman.
 
-C_TOKEN GET `/api/v1/payments/PAYMENT_ID`, `/api/v1/trips/TRIP_ID/payment-summary` → COMPLETED/hasCompleted=true.
+C_TOKEN GET `/api/v1/payments/PID`, `/api/v1/trips/TID/payment-summary` → COMPLETED/hasCompleted=true.
 
-C_TOKEN POST `/api/v1/trips/TRIP_ID/reviews`:
+C_TOKEN POST `/api/v1/trips/TID/reviews`:
 
 ```json
 { "rating": 5, "comment": "Tot" }
@@ -213,17 +217,17 @@ C_TOKEN POST `/api/v1/trips/TRIP_ID/reviews`:
 
 201; GET cùng URL đọc Review. Duplicate →409, rating 6 →400. Review cần Trip COMPLETED, không bắt buộc đã trả tiền.
 
-Replay b01/p01 giữ key/body →200, cùng ID/snapshot ban đầu. Callback giữ nguyên eventId/body/timestamp/signature →duplicate=true; không ký mới để gọi là replay. ADMIN GET `/api/v1/admin/payments?tripId=TRIP_ID&page=1&limit=10` để đối chiếu số attempts và số lần COMPLETED.
+Replay b01/p01 giữ key/body →200, cùng ID/snapshot ban đầu. Callback giữ nguyên eventId/body/timestamp/signature →duplicate=true; không ký mới để gọi là replay. ADMIN GET `/api/v1/admin/payments?tid=TID&page=1&limit=10` để đối chiếu số attempts và số lần COMPLETED.
 
 ## 8. Hủy và các fixture riêng
 
-Tạo Booking b02 và nhận chuyến riêng, giữ Trip ASSIGNED/ARRIVED. C_TOKEN POST `/api/v1/bookings/BOOKING_ID/cancellation-preview`:
+Tạo Booking b02 và nhận chuyến riêng, giữ Trip ASSIGNED/ARRIVED. C_TOKEN POST `/api/v1/bookings/BID/cancellation-preview`:
 
 ```json
 { "reason": "Doi ke hoach" }
 ```
 
-allowed=true/feeAmount=0/VND. POST `/api/v1/bookings/BOOKING_ID/cancellation`:
+allowed=true/feeAmount=0/VND. POST `/api/v1/bookings/BID/cancellation`:
 
 ```json
 { "reason": "Doi ke hoach", "confirmed": true }
@@ -249,11 +253,11 @@ Có thể cho tất cả Driver offline rồi tạo 5 Booking A→B với key b1
 | 8   | URL mọi request là Gateway, xem cột PORTS; `docker compose port auth_service 50051`                                            | “gRPC không publish ra host. Gateway tự đặt internal metadata, service kiểm secret/peer allowlist; không tin role/ID tự khai từ client.”                                                               |
 | 9   | Customer Register ba trường rồi login                                                                                          | “Server tạo Account ACTIVE và cấp cid/ID. Profile tạo qua account.registered, có thể tạm PROFILE_NOT_READY; không đăng ký lại khi consumer đang chờ.”                                                  |
 | 10  | Login email/password →200/token; sai password →401                                                                             | “Mật khẩu kiểm bằng Argon2id, tài khoản phải ACTIVE; JWT có sub/role/issuer/audience/expiry. Không trả hash/key.”                                                                                      |
-| 11  | C_TOKEN GET /customers/CUSTOMER_ID; C2_TOKEN thử cùng ID                                                                       | “Token hợp lệ chưa đủ: service kiểm đúng chủ hồ sơ; khác chủ bị 403.”                                                                                                                                  |
-| 12  | D_TOKEN hoặc ADMIN GET /drivers/DRIVER_ID; khách xem snapshot qua Booking                                                      | “Hồ sơ riêng và license chỉ owner/ADMIN. Nearby/Trip chỉ trả public snapshot, không lộ giấy phép.”                                                                                                     |
+| 11  | C_TOKEN GET /customers/CID; C2_TOKEN thử cùng ID                                                                       | “Token hợp lệ chưa đủ: service kiểm đúng chủ hồ sơ; khác chủ bị 403.”                                                                                                                                  |
+| 12  | D_TOKEN hoặc ADMIN GET /drivers/DID; khách xem snapshot qua Booking                                                      | “Hồ sơ riêng và license chỉ owner/ADMIN. Nearby/Trip chỉ trả public snapshot, không lộ giấy phép.”                                                                                                     |
 | 13  | ADMIN list có >=5 Driver khác điều kiện; nearby locationCode=A&page=1&limit=2                                                  | “A là điểm mẫu trong DB. Chỉ xét <=1 km, vị trí mới <=120 giây, APPROVED/ACTIVE/online/có xe/không bận. Không phải cả 5 fixture đều được trả.”                                                         |
-| 14  | History có >=5 Booking của cùng Customer; page=1/2, limit=2                                                                    | “History lọc ownership và phân trang, sort createdAt rồi bookingId giảm dần; trang rỗng trả items rỗng.”                                                                                               |
-| 15  | Create b01 body A→B →201/SEARCHING, chưa Trip                                                                                  | “Server đọc tọa độ DB, tự gán BIKE và chụp snapshot khoảng cách/giá. Không nhận amount/customerId/vehicleType tự chọn.”                                                                                |
+| 14  | History có >=5 Booking của cùng Customer; page=1/2, limit=2                                                                    | “History lọc ownership và phân trang, sort createdAt rồi bid giảm dần; trang rỗng trả items rỗng.”                                                                                               |
+| 15  | Create b01 body A→B →201/SEARCHING, chưa Trip                                                                                  | “Server đọc tọa độ DB, tự gán BIKE và chụp snapshot khoảng cách/giá. Không nhận amount/cid/vehicleType tự chọn.”                                                                                |
 | 16  | Poll invitation đúng Booking rồi ACCEPT trong hạn                                                                              | “Mỗi Booking mời tuần tự, 30 giây/offer, tối đa 5 ứng viên ban đầu. Reserve Driver và tạo/activate Trip trước khi hoàn tất phân công; DB unique chống nhận hai chuyến.”                                |
 | 17  | ARRIVED→IN_PROGRESS→location B→COMPLETED                                                                                       | “Không bỏ qua hoặc lùi trạng thái. Driver phải là người được phân công. Cước dựa snapshot Booking, không lấy số tiền khách nhập.”                                                                      |
 | 18  | Chuyến riêng: preview 0 VND, confirm có reason →CANCELED                                                                       | “Customer chỉ hủy SEARCHING hoặc Trip ASSIGNED/ARRIVED. Server kiểm lại lúc xác nhận, ghi người/lý do/thời gian, đóng offer hoặc release; không tạo Payment hủy.”                                      |

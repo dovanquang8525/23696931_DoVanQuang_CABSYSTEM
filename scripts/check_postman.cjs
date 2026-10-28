@@ -22,7 +22,8 @@ if (manifest.current) {
   function replacement(key) {
     assert.ok(values.has(key) || key.startsWith('$'), 'Undefined variable: ' + key);
     if (key === 'baseUrl') return values.get(key);
-    if (/Id$/.test(key)) return id;
+    if (['aid','cid','did','bid','tid','pid','nid','rid','vid','iid','oid'].includes(key)) return key[0]+'01';
+    if(key==='failedPid') return 'p01';
     if (/Email$/.test(key)) return 'audit@example.test';
     if (/Phone$/.test(key)) return '0123';
     if (/Password$/.test(key)) return '123';

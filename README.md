@@ -1,5 +1,7 @@
 # CAB System MVP
 
+**ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
+
 Dự án Microservices cơ bản phục vụ học và bảo vệ môn MSA. Luồng chính: Customer đặt BIKE → Driver nhận chuyến → Trip hoàn thành → Payment mock thành công → Customer đánh giá.
 
 ## Chạy nhanh
@@ -33,7 +35,7 @@ Client/Postman → Gateway bằng REST; Gateway và các service gọi đồng b
 | notification_service | Thông báo từ event |
 | rating_service | Review chuyến đã hoàn thành |
 
-Customer Register dùng email/password/phone và trả accountId/role/cid; Login riêng lấy token. Driver thêm plateNumber, lần đầu nhận OTP 202, gửi lại cùng dữ liệu và code để tạo account. cid/did do server sinh; URL theo ID dùng ObjectId. Vị trí demo dùng A/B từ database của từng owner.
+Customer Register dùng email/password/phone và trả aid/role/cid; Login riêng lấy token. Driver thêm plateNumber, lần đầu nhận OTP 202, gửi lại cùng dữ liệu và code để tạo account. cid/did do server sinh; URL theo ID dùng mã ngắn của đối tượng. Vị trí demo dùng A/B từ database của từng owner.
 
 ## Tài liệu cần đọc
 

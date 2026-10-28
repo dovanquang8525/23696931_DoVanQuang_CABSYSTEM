@@ -1,5 +1,7 @@
 # Ma trận 30 tiêu chí CAB System
 
+**Dữ liệu demo mới 28/10:** sau sao lưu và xác nhận của người dùng, đã thay dữ liệu cũ bằng 5 Customer c01–c05, 5 Driver d01–d05, 5 Booking b01–b05 của c01; giữ ADMIN. Nearby d01/d02 và phân trang 2–2–1 đã kiểm thực qua Gateway. Evidence `.local/evidence/demo-reset-2026-10-28T06-50-57-940Z.json`. Các bằng chứng trước đây vẫn là lịch sử kiểm thử, không còn dùng account/ID cũ để thao tác. Không tự tăng trạng thái PASS của tiêu chí chỉ từ dữ liệu seed; xem hướng dẫn mới trong MANUAL_POSTMAN_30.md.
+
 Cập nhật **28/10/2026**. Đã trích lại trực tiếp [PHIEU_CHAM_PROJECT.pdf](../PHIEU_CHAM_PROJECT.pdf), trang 2–6, đủ 30 mục. Mỗi mục tối đa 1 điểm; chưa có điểm do giảng viên chấm.
 
 **Trạng thái dưới đây là kết quả kiểm tra kỹ thuật trong lượt audit**, không phải xác nhận đã thao tác Postman UI hoặc trình bày trước giảng viên. Mục 1–10 được kiểm regression, không kế thừa PASS từ lời báo đã làm trước đây. PASS chỉ trong phạm vi bằng chứng ghi ở từng hàng. Phần trình bày và browser cần người dùng thực hiện vẫn NOT TESTED.
@@ -9,6 +11,10 @@ Kết quả: **25 PASS kỹ thuật, 1 FAIL (mức tải mục 29), 4 NOT TESTED
 ## Regression Password/Phone demo mới
 
 Ngày 28/10/2026: 35/35 unit tests và 35 HTTP checks validation đạt; hash DB thực vẫn Argon2id. Mục9/10/21/24/25/27/28 có thêm evidence trong [PROJECT_STATUS.md](PROJECT_STATUS.md). Tài khoản mẫu quang123@gmail.com/password 123/phone String 0123 đã Register201/Login200. Các trạng thái tổng thể giữ nguyên 25 PASS kỹ thuật, 1 FAIL tải cao, 4 NOT TESTED phần trình bày/browser; không cộng thêm điểm hoặc đổi PASS chỉ do sửa policy.
+
+## Regression ID công khai mới
+
+Theo yêu cầu mới, API/URL dùng cid/did/aid/bid/tid/pid/nid/rid/vid/iid/oid. Migration có backup, giữ c29 và account _id/password/money/status. GET /customers/c29→200, Customer khác→403; toàn luồng Booking/Trip/Payment/Review và replay/OTP/dispatch đã kiểm lại bằng mã ngắn. 37 unit tests và7 Python callback tests đạt. Bằng chứng chi tiết tại [PROJECT_STATUS.md](PROJECT_STATUS.md). Trạng thái tổng thể30 câu không tự nâng điểm; browser/trình bày/load còn thiếu vẫn giữ nguyên.
 
 ## Tiến độ và thao tác tiếp theo
 

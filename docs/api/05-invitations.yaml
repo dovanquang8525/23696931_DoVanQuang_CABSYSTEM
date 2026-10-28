@@ -2,30 +2,30 @@ openapi: 3.0.3
 info:
   title: CAB MVP — Invitations
   version: 3.0.0
-  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển
-    khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển khai backend. Chỉ
+    BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
 servers:
-- url: http://localhost:3000/api/v1
-  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+  - url: http://localhost:3000/api/v1
+    description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
 security:
-- BearerAuth: []
+  - BearerAuth: []
 tags:
-- name: Invitations
+  - name: Invitations
 paths:
   /drivers/me/invitations:
     get:
       tags:
-      - Invitations
+        - Invitations
       operationId: listMyInvitations
       summary: Xem lời mời thuộc Driver hiện tại
       description: Xem lời mời thuộc Driver hiện tại
       x-grpc: cab.booking.v1.BookingService/ListMyInvitations
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR12
-      - FR13
+        - FR12
+        - FR13
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -94,55 +94,55 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          default: 1
-        description: ""
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 10
-        description: ""
-      - name: status
-        in: query
-        required: false
-        schema:
-          type: string
-          enum:
-          - PENDING
-          - ACCEPTED
-          - REJECTED
-          - EXPIRED
-          - CANCELED
-        description: ""
-  /invitations/{invitationId}/response:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: ""
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: ""
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - PENDING
+              - ACCEPTED
+              - REJECTED
+              - EXPIRED
+              - CANCELED
+          description: ""
+  /invitations/{iid}/response:
     post:
       tags:
-      - Invitations
+        - Invitations
       operationId: respondInvitation
       summary: Chấp nhận/từ chối lời mời
-      description: Đúng Driver, trước expiresAt, Booking SEARCHING. ACCEPT phối hợp reservation/Trip; replay cùng
-        quyết định trả kết quả đã lưu. Trái kết quả cuối/hết hạn 409. Deadline không mở phân công khác.
+      description: Đúng Driver, trước expiresAt, Booking SEARCHING. ACCEPT phối hợp reservation/Trip; replay cùng quyết định trả kết quả
+        đã lưu. Trái kết quả cuối/hết hạn 409. Deadline không mở phân công khác.
       x-grpc: cab.booking.v1.BookingService/RespondInvitation
       x-allowed-roles:
-      - DRIVER
+        - DRIVER
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
-      - FR13
-      - FR14
-      - FR15
-      - AC35
-      - AC36
-      - AC37
-      - AC38
+        - FR13
+        - FR14
+        - FR15
+        - AC35
+        - AC36
+        - AC37
+        - AC38
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -211,16 +211,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: invitationId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: iid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^i[0-9]{2,15}$
+            example: i01
+          description: ""
       requestBody:
         required: true
         content:
@@ -244,17 +244,22 @@ components:
       type: object
       additionalProperties: false
       properties:
-        bookingId: &a1
+        bid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        customerId: *a1
+          minLength: 3
+          maxLength: 16
+          pattern: ^b[0-9]{2,15}$
+          example: b01
+        cid:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^c[a-z0-9]{1,15}$
+          example: c01
         vehicleType:
           type: string
           enum:
-          - BIKE
+            - BIKE
         pickup:
           $ref: "#/components/schemas/Coordinates"
         destination:
@@ -262,34 +267,42 @@ components:
         status:
           type: string
           enum:
-          - SEARCHING
-          - ASSIGNED
-          - COMPLETED
-          - CANCELED
-          - NO_DRIVER
+            - SEARCHING
+            - ASSIGNED
+            - COMPLETED
+            - CANCELED
+            - NO_DRIVER
         distanceKm:
           type: number
           exclusiveMinimum: true
           minimum: 0
         pricingSnapshot:
           $ref: "#/components/schemas/PricingSnapshot"
-        tripId: *a1
-        createdAt: &a2
+        tid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
+        createdAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
-        updatedAt: *a2
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
       required:
-      - bookingId
-      - customerId
-      - vehicleType
-      - pickup
-      - destination
-      - status
-      - distanceKm
-      - pricingSnapshot
-      - createdAt
-      - updatedAt
+        - bid
+        - cid
+        - vehicleType
+        - pickup
+        - destination
+        - status
+        - distanceKm
+        - pricingSnapshot
+        - createdAt
+        - updatedAt
     Coordinates:
       type: object
       additionalProperties: false
@@ -303,8 +316,8 @@ components:
           minimum: -180
           maximum: 180
       required:
-      - latitude
-      - longitude
+        - latitude
+        - longitude
     Error:
       type: object
       additionalProperties: false
@@ -322,21 +335,31 @@ components:
           minLength: 1
           maxLength: 128
       required:
-      - code
-      - message
-      - requestId
+        - code
+        - message
+        - requestId
     Invitation:
       type: object
       additionalProperties: false
       properties:
-        invitationId: &a3
+        iid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        bookingId: *a3
-        driverId: *a3
+          minLength: 3
+          maxLength: 16
+          pattern: ^i[0-9]{2,15}$
+          example: i01
+        bid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^b[0-9]{2,15}$
+          example: b01
+        did:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
+          example: d01
         pickup:
           $ref: "#/components/schemas/Coordinates"
         destination:
@@ -344,29 +367,32 @@ components:
         vehicleType:
           type: string
           enum:
-          - BIKE
+            - BIKE
         status:
           type: string
           enum:
-          - PENDING
-          - ACCEPTED
-          - REJECTED
-          - EXPIRED
-          - CANCELED
-        expiresAt: &a4
+            - PENDING
+            - ACCEPTED
+            - REJECTED
+            - EXPIRED
+            - CANCELED
+        expiresAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
-        respondedAt: *a4
+        respondedAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
       required:
-      - invitationId
-      - bookingId
-      - driverId
-      - pickup
-      - destination
-      - vehicleType
-      - status
-      - expiresAt
+        - iid
+        - bid
+        - did
+        - pickup
+        - destination
+        - vehicleType
+        - status
+        - expiresAt
     InvitationDecision:
       type: object
       additionalProperties: false
@@ -374,10 +400,10 @@ components:
         decision:
           type: string
           enum:
-          - ACCEPT
-          - REJECT
+            - ACCEPT
+            - REJECT
       required:
-      - decision
+        - decision
     InvitationPage:
       type: object
       additionalProperties: false
@@ -398,10 +424,10 @@ components:
           minimum: 0
           maximum: 1000000000000
       required:
-      - items
-      - page
-      - limit
-      - totalItems
+        - items
+        - page
+        - limit
+        - totalItems
     InvitationResult:
       type: object
       additionalProperties: false
@@ -410,15 +436,15 @@ components:
           $ref: "#/components/schemas/Invitation"
         booking:
           $ref: "#/components/schemas/Booking"
-        tripId:
+        tid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
       required:
-      - invitation
-      - booking
+        - invitation
+        - booking
     PricingSnapshot:
       type: object
       additionalProperties: false
@@ -436,6 +462,6 @@ components:
           minimum: 1000
           maximum: 1000
       required:
-      - baseFare
-      - ratePerKm
-      - roundingUnit
+        - baseFare
+        - ratePerKm
+        - roundingUnit

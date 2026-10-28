@@ -8,9 +8,9 @@ const {identity, DomainError} = require('./rpc-security.cjs');
 const {otpDigest, argonOptions,registrationInput,registrationDigest} = require('../services/auth_service/application.cjs');
 const {checkEnvelope} = require('./event-bus.cjs');
 const routes = require('../gateway/identity-routes.cjs');
-test('Admin Customer page preserves legacy records without cid', () => {
+test('Customer pages expose cid and aid and reject long/unknown fields', () => {
   const page = routes.match('GET', '/api/v1/admin/customers').responses.get(200);
-  const legacy = {customerId:'000000000000000000000001',accountId:'000000000000000000000002',
+  const legacy = {cid:'c01',aid:'a01',
     name:'Legacy Customer',createdAt:'2026-10-27T00:00:00Z',updatedAt:'2026-10-27T00:00:00Z'};
   const response = {items:[legacy,{...legacy,cid:'c01'}],page:2,limit:10,totalItems:14};
   assert.equal(page(response), true);
@@ -18,9 +18,9 @@ test('Admin Customer page preserves legacy records without cid', () => {
   assert.equal(page({...response,items:[{...legacy,passwordHash:'secret'}]}), false);
   assert.equal(routes.match('GET','/api/v1/customers/me').responses.get(200)(legacy), true);
 });
-test('Admin Driver page preserves legacy records without did and rejects extra fields', () => {
+test('Driver pages expose did and aid and reject unknown fields', () => {
   const validate = routes.match('GET', '/api/v1/admin/drivers').responses.get(200);
-  const legacy = {driverId:'000000000000000000000001',accountId:'000000000000000000000002',
+  const legacy = {did:'d01',aid:'a01',
     name:'Legacy Driver',approvalStatus:'DRAFT',isOnline:false};
   const page = {items:[legacy,{...legacy,did:'d01'}],page:1,limit:10,totalItems:2};
   assert.equal(validate(page), true);
@@ -30,12 +30,12 @@ test('Admin Driver page preserves legacy records without did and rejects extra f
 });
 test('registration has no session; login returns a compact session', () => {
   const validate = routes.match('POST', '/api/v1/auth/register').responses.get(201);
-  const accountId = '000000000000000000000001';
-  const response = {accountId, role: 'CUSTOMER', cid: 'c01'};
+  const aid = 'a01';
+  const response = {aid, role: 'CUSTOMER', cid: 'c01'};
   assert.equal(validate(response), true);
   assert.equal(validate({...response, accessToken: 'test-token'}), false);
   assert.equal(validate({...response, profileStatus: 'PENDING'}), false);
-  assert.equal(validate({accountId, role: 'DRIVER', did: 'd01'}), true);
+  assert.equal(validate({aid, role: 'DRIVER', did: 'd01'}), true);
   const login = routes.match('POST', '/api/v1/auth/login').responses.get(200);
   const session = {accessToken: 'test-token', account: response};
   assert.equal(login(session), true);
@@ -43,7 +43,7 @@ test('registration has no session; login returns a compact session', () => {
   assert.equal(login({...session, account: {...response, status: 'ACTIVE'}}), false);
   const wire = require('./business.cjs').definition('auth').AuthService.service.Login;
   const decoded = routes.output(wire.responseDeserialize(wire.responseSerialize({access_token: 'test-token',
-    account: {account_id: accountId, role: 'CUSTOMER', cid: 'c01'}})));
+    account: {account_id: aid, role: 'CUSTOMER', cid: 'c01'}})));
   assert.deepEqual(decoded, session);
 });
 test('password keeps whitespace and counts Unicode characters without trimming', () => {
@@ -89,17 +89,23 @@ test('demo Phone/Password policy agrees between Gateway and Auth while retaining
     assert.throws(()=>routes.validate(register,url,{...base,email}),DomainError);
     assert.throws(()=>registrationInput({...base,email}),DomainError);
   }
-  for(const endpoint of ['/api/v1/auth/otp-challenges','/api/v1/auth/otp-challenges/000000000000000000000001/verify']) {
+  for(const endpoint of ['/api/v1/auth/otp-challenges','/api/v1/auth/otp-challenges/o01/verify']) {
     const route=routes.match('POST',endpoint),input=endpoint.endsWith('/verify')?{phone:'abc123',code:'123456'}:{phone:'abc123'};
     assert.doesNotThrow(()=>routes.validate(route,new URL('http://local'+endpoint),input));
   }
 });
 test('OTP HMAC binds ID, phone, purpose and code', () => {
+
   const input = {otpId:'000000000000000000000001',phone:'0900000001',purpose:'DRIVER_REGISTRATION',code:'123456'};
+
   const secret = 'unit-only-secret';
+
   assert.notEqual(otpDigest(input,secret), otpDigest({...input,phone:'0900000002'},secret));
+
   assert.notEqual(otpDigest(input,secret), otpDigest({...input,otpId:'000000000000000000000002'},secret));
+
   assert.notEqual(otpDigest(input,secret), otpDigest(input,secret+'changed'));
+
 });
 test('JWT verifies algorithm, signature, issuer, audience, expiration and subject', () => {
   const previous = process.env.JWT_SECRET;
@@ -132,13 +138,21 @@ test('Argon2id salt differs and stored hash verifies only the correct password',
   assert.equal(await argon2.verify(a,password+'wrong'),false);
 });
 test('event validation rejects secret fields and aggregate identity mismatch', () => {
+
   const event={eventId:'f7817673-d709-542e-b5b7-d6f91db8e202',eventType:'account.registered',
+
     occurredAt:'2026-10-27T00:00:00Z',producer:'auth_service',aggregateId:'000000000000000000000001',
+
     aggregateVersion:1,correlationId:'unit-only',payload:{accountId:'000000000000000000000001',
+
       role:'CUSTOMER',fullName:'Demo',email:'cus01@gmail.com',cid:'c01'}};
+
   assert.equal(checkEnvelope(event),event);
+
   assert.throws(() => checkEnvelope({...event,payload:{...event.payload,password:'secret'}}));
+
   assert.throws(() => checkEnvelope({...event,aggregateId:'000000000000000000000002'}));
+
 });
 test('REST validation rejects public ADMIN, unknown fields and invalid pagination', () => {
   const register = routes.match('POST','/api/v1/auth/register');
@@ -146,7 +160,7 @@ test('REST validation rejects public ADMIN, unknown fields and invalid paginatio
   const valid={phone:'0909212109',email:'cus01@gmail.com',password:'quang123'};
   assert.doesNotThrow(() => routes.validate(register,url,valid));
   assert.throws(() => routes.validate(register,url,{...valid,role:'ADMIN'}),DomainError);
-  assert.throws(() => routes.validate(register,url,{...valid,customerId:'self'}),DomainError);
+  assert.throws(() => routes.validate(register,url,{...valid,cid:'self'}),DomainError);
   const list = routes.match('GET','/api/v1/admin/customers');
   assert.throws(() => routes.validate(list,new URL('http://gateway.local/api/v1/admin/customers?limit=51')),DomainError);
   assert.throws(() => routes.validate(list,new URL('http://gateway.local/api/v1/admin/customers?page=1&page=2')),DomainError);
@@ -159,7 +173,7 @@ test('registration starts Driver OTP before account creation and rejects client 
   assert.doesNotThrow(()=>routes.validate(register,url,first));
   assert.doesNotThrow(()=>routes.validate(register,url,driver));
   for(const body of [{...customer,did:'d01'},{...customer,cid:'c01'},{...customer,code:'123456'},
-    {...driver,otpId:'000000000000000000000001'},{...first,code:'12'},{...customer,name:'extra'},{...customer,password:''}]){
+    {...driver,oid:'000000000000000000000001'},{...first,code:'12'},{...customer,name:'extra'},{...customer,password:''}]){
     assert.throws(()=>routes.validate(register,url,body),DomainError);
   }
   assert.equal(v.loginEmail(' Cus01@GMAIL.COM '),'cus01@gmail.com');

@@ -121,9 +121,13 @@ function validate(route, url, body, headers = {}) {
     if (!route.body && body !== undefined) bad();
     return query;
 }
+const internalNames = {cid:'customer_id',did:'driver_id',aid:'account_id',bid:'booking_id',tid:'trip_id',pid:'payment_id',
+    nid:'notification_id',rid:'review_id',vid:'vehicle_id',iid:'invitation_id',oid:'otp_id'};
+const publicNames = {customerId:'cid',driverId:'did',accountId:'aid',bookingId:'bid',tripId:'tid',paymentId:'pid',
+    notificationId:'nid',reviewId:'rid',vehicleId:'vid',invitationId:'iid',otpId:'oid',recipientAccountId:'aid',activeTripId:'tid'};
 function snake(input) {
     if (!input || typeof input !== "object" || Array.isArray(input)) return input;
-    return Object.fromEntries(Object.entries(input).map(([key, value]) => [key.replace(/[A-Z]/g, (letter) => "_" + letter.toLowerCase()), snake(value)]));
+    return Object.fromEntries(Object.entries(input).map(([key, value]) => [internalNames[key] || key.replace(/[A-Z]/g, (letter) => "_" + letter.toLowerCase()), snake(value)]));
 }
 function camel(input) {
     if (Array.isArray(input)) return input.map(camel);
@@ -178,9 +182,16 @@ function output(value) {
         if ("tripAvailability" in node) node.tripAvailability = { TRIP_AVAILABLE: "AVAILABLE", TRIP_UNAVAILABLE: "UNAVAILABLE", NOT_CREATED: "NOT_CREATED" }[node.tripAvailability];
         if ("paymentAvailability" in node)
             node.paymentAvailability = { PAYMENT_AVAILABLE: "AVAILABLE", PAYMENT_UNAVAILABLE: "UNAVAILABLE", NOT_APPLICABLE: "NOT_APPLICABLE" }[node.paymentAvailability];
+        if (Object.hasOwn(node,'relatedEntityId')) {
+            const field={BOOKING:'bid',TRIP:'tid',PAYMENT:'pid',DRIVER:'did'}[node.relatedEntityType];
+            if(field) { node[field]=node.relatedEntityId; delete node.relatedEntityId; }
+        }
+        for(const [oldName,newName] of Object.entries(publicNames)) {
+            if(Object.hasOwn(node,oldName)) { node[newName]=node[oldName]; delete node[oldName]; }
+        }
         for (const child of Object.values(node)) if (typeof child === "object") complete(child);
     }
     complete(result);
     return result;
 }
-module.exports = { match, normalizeBody, validate, snake, camel, routes, input, output, normalizeSchema };
+module.exports = { match, normalizeBody, validate, snake, camel, routes, input, output, normalizeSchema, publicNames };

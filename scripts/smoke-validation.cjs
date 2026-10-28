@@ -26,7 +26,7 @@ async function main(){
     {email:primary.email,password:primary.password},200,undefined,data=>assert.ok(data.accessToken));
   const token=session.accessToken;
   const profile=await h.poll(()=>h.request('GET','/api/v1/customers/me',undefined,token),r=>r.status===200);
-  assert.ok(profile.data.customerId);
+  assert.ok(profile.data.cid);
   await check('Phone response keeps String and leading zero','GET','/api/v1/auth/me',undefined,200,token,data=>{
     assert.equal(data.phone,'0123');assert.equal(typeof data.phone,'string');assert.equal(data.passwordHash,undefined);
   });
@@ -48,7 +48,7 @@ async function main(){
   await check('Phone whitespace only','POST','/api/v1/auth/register',{...input(),phone:'   '},400);
   const driver={...input(),password:'a',phone:'driver-'+unique(),plateNumber:'VAL-'+unique().slice(0,12)};
   const otp=await check('11 Driver alphabetic phone and short password start OTP','POST','/api/v1/auth/register',driver,202,
-    undefined,data=>{assert.equal(data.status,'OTP_REQUIRED');assert.match(data.mockCode,/^\d{6}$/);assert.equal(data.accountId,undefined);});
+    undefined,data=>{assert.equal(data.status,'OTP_REQUIRED');assert.match(data.mockCode,/^\d{6}$/);assert.equal(data.aid,undefined);});
   await check('Driver has no account before OTP','POST','/api/v1/auth/login',{email:driver.email,password:driver.password},401);
   await check('Driver OTP cooldown unchanged','POST','/api/v1/auth/register',driver,429);
   await check('Driver wrong OTP rejected','POST','/api/v1/auth/register',{

@@ -2,32 +2,32 @@ openapi: 3.0.3
 info:
   title: CAB MVP — Notifications
   version: 3.0.0
-  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển
-    khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển khai backend. Chỉ
+    BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
 servers:
-- url: http://localhost:3000/api/v1
-  description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
+  - url: http://localhost:3000/api/v1
+    description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
 security:
-- BearerAuth: []
+  - BearerAuth: []
 tags:
-- name: Notifications
+  - name: Notifications
 paths:
   /notifications:
     get:
       tags:
-      - Notifications
+        - Notifications
       operationId: listMyNotifications
       summary: Tra cứu thông báo nội bộ của mình
       description: Tra cứu thông báo nội bộ của mình
       x-grpc: cab.notification.v1.NotificationService/ListMyNotifications
       x-allowed-roles:
-      - CUSTOMER
-      - DRIVER
-      - ADMIN
-      x-ownership: recipientAccountId == JWT sub.
+        - CUSTOMER
+        - DRIVER
+        - ADMIN
+      x-ownership: aid == JWT sub.
       x-srs:
-      - FR48
-      - AC71
+        - FR48
+        - AC71
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -96,39 +96,39 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: page
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          default: 1
-        description: ""
-      - name: limit
-        in: query
-        required: false
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 10
-        description: ""
-  /notifications/{notificationId}:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: ""
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: ""
+  /notifications/{nid}:
     get:
       tags:
-      - Notifications
+        - Notifications
       operationId: getNotification
       summary: Xem thông báo theo ID
       description: Xem thông báo theo ID
       x-grpc: cab.notification.v1.NotificationService/GetNotification
       x-allowed-roles:
-      - CUSTOMER
-      - DRIVER
-      - ADMIN
-      x-ownership: Chỉ recipientAccountId == JWT sub; ADMIN không tự đọc thông báo người khác.
+        - CUSTOMER
+        - DRIVER
+        - ADMIN
+      x-ownership: Chỉ aid == JWT sub; ADMIN không tự đọc thông báo người khác.
       x-srs:
-      - FR48
-      - AC71
+        - FR48
+        - AC71
       responses:
         "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
@@ -197,16 +197,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
       parameters:
-      - name: notificationId
-        in: path
-        required: true
-        schema:
-          type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        description: ""
+        - name: nid
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 16
+            pattern: ^n[0-9]{2,15}$
+            example: n01
+          description: ""
 components:
   securitySchemes:
     BearerAuth:
@@ -232,20 +232,25 @@ components:
           minLength: 1
           maxLength: 128
       required:
-      - code
-      - message
-      - requestId
+        - code
+        - message
+        - requestId
     Notification:
       type: object
       additionalProperties: false
       properties:
-        notificationId: &a1
+        nid:
           type: string
-          minLength: 24
-          maxLength: 24
-          pattern: ^[0-9a-f]{24}$
-          example: "000000000000000000000001"
-        recipientAccountId: *a1
+          minLength: 3
+          maxLength: 16
+          pattern: ^n[0-9]{2,15}$
+          example: n01
+        aid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^a[0-9]{2,15}$
+          example: a01
         eventId:
           type: string
           minLength: 1
@@ -253,48 +258,82 @@ components:
         type:
           type: string
           enum:
-          - account.registered
-          - driver.approval_changed
-          - booking.created
-          - booking.invitation_created
-          - booking.assigned
-          - booking.canceled
-          - booking.no_driver
-          - trip.arrived
-          - trip.completed
-          - trip.canceled
-          - payment.completed
-          - payment.failed
+            - account.registered
+            - driver.approval_changed
+            - booking.created
+            - booking.invitation_created
+            - booking.assigned
+            - booking.canceled
+            - booking.no_driver
+            - trip.arrived
+            - trip.completed
+            - trip.canceled
+            - payment.completed
+            - payment.failed
         content:
           type: string
           minLength: 1
           maxLength: 1000
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
-            vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ
+            cảnh.
         relatedEntityType:
           type: string
           enum:
-          - BOOKING
-          - TRIP
-          - PAYMENT
-          - DRIVER
-        relatedEntityId: *a1
-        occurredAt: &a2
+            - BOOKING
+            - TRIP
+            - PAYMENT
+            - DRIVER
+        occurredAt:
           type: string
           format: date-time
           example: 2026-10-27T00:00:00Z
-        createdAt: *a2
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-10-27T00:00:00Z
+        bid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^b[0-9]{2,15}$
+          example: b01
+        tid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^t[0-9]{2,15}$
+          example: t01
+        pid:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: ^p[0-9]{2,15}$
+          example: p01
+        did:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
+          example: d01
       required:
-      - notificationId
-      - recipientAccountId
-      - eventId
-      - type
-      - content
-      - relatedEntityType
-      - relatedEntityId
-      - occurredAt
-      - createdAt
+        - nid
+        - aid
+        - eventId
+        - type
+        - content
+        - relatedEntityType
+        - occurredAt
+        - createdAt
+      oneOf:
+        - required:
+            - bid
+        - required:
+            - tid
+        - required:
+            - pid
+        - required:
+            - did
     NotificationPage:
       type: object
       additionalProperties: false
@@ -315,7 +354,7 @@ components:
           minimum: 0
           maximum: 1000000000000
       required:
-      - items
-      - page
-      - limit
-      - totalItems
+        - items
+        - page
+        - limit
+        - totalItems

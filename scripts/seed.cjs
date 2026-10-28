@@ -6,6 +6,7 @@ const b=require('./business.cjs');
 const {ownDatabase,mongoUri,required}=require('./runtime-config.cjs');
 const {argonOptions}=require('../services/auth_service/application.cjs');
 const {encrypt}=require('./driver-crypto.cjs');
+const {allocateProfileCode}=require('./profile-codes.cjs');
 const tag='cab-demo-v1';
 let phase='configuration';
 const accountId=n=>'100000000000000000'+String(n).padStart(6,'0');
@@ -15,8 +16,6 @@ const people=[{n:0,phone:'0909000000',role:'ADMIN',name:'Demo Admin'},
   ...Array.from({length:5},(_,j)=>({n:11+j,phone:'09090000'+String(11+j),role:'DRIVER',name:'Demo Driver '+(j+1)}))];
 for(const person of people){
   person.email=person.n===0?'admin@cab.local':person.role==='CUSTOMER'?'fixture.c'+person.n+'@cab.local':'fixture.d'+(person.n-10)+'@cab.local';
-  if(person.role==='CUSTOMER')person.cid='cseed'+String(person.n).padStart(2,'0');
-  if(person.role==='DRIVER')person.did='dseed'+String(person.n-10).padStart(2,'0');
 }
 function seedPassword(){
   const index=process.argv.indexOf('--password');
@@ -59,11 +58,13 @@ async function seed(service,db,client){
       }
       const id=new ObjectId(accountId(p.n)),time=new Date(),passwordHash=await argon2.hash(password,argonOptions);
       await c.tx(async session=>{
-        await db.collection('accounts').insertOne({_id:id,phone:p.phone,email:p.email,
-          ...(p.cid?{cid:p.cid}:{}),...(p.did?{did:p.did}:{}),passwordHash,role:p.role,status:'ACTIVE',
+        const profile=p.role==='ADMIN'?undefined:await allocateProfileCode(db,p.role,session);
+        const profileFields=profile?{[profile.field]:profile.code}:{};
+        await db.collection('accounts').insertOne({_id:id,aid:await b.allocateId(db,'a',session),phone:p.phone,email:p.email,
+          ...profileFields,passwordHash,role:p.role,status:'ACTIVE',
           seedTag:tag,createdAt:time,updatedAt:time},{session});
         if(p.role!=='ADMIN')await c.emit('account.registered',id.toHexString(),{accountId:id.toHexString(),role:p.role,
-          fullName:p.name,email:p.email,...(p.cid?{cid:p.cid}:{did:p.did})},session);
+          fullName:p.name,email:p.email,...profileFields},session);
       });
     }
   }else if(service==='driver_service'){
@@ -82,7 +83,7 @@ async function seed(service,db,client){
         seedConfigured:tag,approval_status:status,is_online:j===0||j===4,
         licenseNumberEncrypted:encrypt('DEMO-LICENSE-'+(j+1)),
         location:{latitude:10.8+j*0.0002,longitude:106.7,updated_at:new Date(Date.now()-(j===4?180000:0)).toISOString()},
-        vehicle:{vehicle_id:new ObjectId().toHexString(),driver_id:row.driver_id,plate_number:'DEMO-'+(j+1),
+        vehicle:{vehicle_id:await b.allocateId(db,'v'),driver_id:row.driver_id,plate_number:'DEMO-'+(j+1),
           vehicle_type:'BIKE',model:'Demo Bike',color:'Black',is_active:true}},$inc:{version:1}});
     }
   }else if(service==='booking_service'){
@@ -103,7 +104,7 @@ async function seed(service,db,client){
       const id=new ObjectId('200000000000000000'+String(j).padStart(6,'0')),time=new Date(Date.now()-j*60000).toISOString();
       const existing=await db.collection('bookings').findOne({_id:id});
       if(existing){if(existing.seedTag!==tag)throw new Error('Seed ID collision');continue;}
-      const row={_id:id,booking_id:id.toHexString(),customer_id:profile.customer_id,customerAccountId:accountId(1),
+      const row={_id:id,booking_id:await b.allocateId(db,'b'),customer_id:profile.customer_id,customerAccountId:accountId(1),
         pickup:{latitude:0,longitude:0},destination:{latitude:0.01,longitude:0.01},vehicle_type:'BIKE',status:'NO_DRIVER',
         distance_km:b.distance({latitude:0,longitude:0},{latitude:0.01,longitude:0.01}),
         pricing_snapshot:{base_fare:10000,rate_per_km:5000,rounding_unit:1000},created_at:time,updated_at:time,

@@ -7,20 +7,21 @@ const {required} = require('../../scripts/runtime-config.cjs');
 const {grpc, fail, authorization, safeEqual, addHandlers} = require('../../scripts/rpc-security.cjs');
 const v = require('../../scripts/identity-validation.cjs');
 const {createBus} = require('../../scripts/event-bus.cjs');
+const {allocateId}=require('../../scripts/short-ids.cjs');
 const {allocateProfileCode}=require('../../scripts/profile-codes.cjs');
 const argonOptions = {type: argon2.argon2id, memoryCost: 19456, timeCost: 2, parallelism: 1};
 function otpDigest({otpId, phone, purpose, code}, secret = required('OTP_HMAC_SECRET')) {
   return crypto.createHmac('sha256', secret).update([otpId, phone, purpose, code].join('\n')).digest('hex');
 }
 function accountView(row) {
-  return {account_id: row._id.toHexString(), phone: row.phone, role: row.role, status: row.status,
+  return {account_id: row.aid, phone: row.phone, role: row.role, status: row.status,
     email:row.email,...(row.cid?{cid:row.cid}:{}),...(row.did?{did:row.did}:{})};
 }
 function issueSession(row) {
   const issuedAt = Math.floor(Date.now() / 1000), expiresAt = issuedAt + 3600;
   const accessToken = jwt.sign({sub: row._id.toHexString(), role: row.role, iat: issuedAt, exp: expiresAt},
     required('JWT_SECRET'), {algorithm: 'HS256', issuer: 'cab-auth', audience: 'cab-api'});
-  return {access_token: accessToken, account: {account_id: row._id.toHexString(), role: row.role,
+  return {access_token: accessToken, account: {account_id: row.aid, role: row.role,
     ...(row.cid ? {cid: row.cid} : {}), ...(row.did ? {did: row.did} : {})}};
 }
 function registrationInput(input){
@@ -46,6 +47,7 @@ async function create({db, client, server}) {
   const accounts = db.collection('accounts'), challenges = db.collection('otp_challenges');
   const cooldowns = db.collection('otp_cooldowns'), outbox = db.collection('outbox_events');
   await accounts.createIndex({phone: 1}, {unique: true});
+  await accounts.createIndex({aid:1},{unique:true,partialFilterExpression:{aid:{$type:'string'}}});
   await accounts.createIndex({email:1},{unique:true,partialFilterExpression:{email:{$type:'string'}}});
   await accounts.createIndex({cid:1},{unique:true,partialFilterExpression:{cid:{$type:'string'}}});
   await accounts.createIndex({did:1},{unique:true,partialFilterExpression:{did:{$type:'string'}}});
@@ -79,7 +81,7 @@ async function create({db, client, server}) {
             nextAllowedAt: new Date(now.getTime() + 60000)}}, {upsert: true, session});
           await challenges.updateMany({phone, purpose: input.purpose, invalidatedAt: {$exists: false},
             consumedAt: {$exists: false}}, {$set: {invalidatedAt: now}}, {session});
-          await challenges.insertOne({_id: otpId, phone, purpose: input.purpose, failedAttempts: 0,
+          await challenges.insertOne({_id: otpId, oid:await allocateId(db,'o',session), phone, purpose: input.purpose, failedAttempts: 0,
             codeHash: otpDigest({otpId: otpId.toHexString(), phone, purpose: input.purpose, code}),
             createdAt: now, expiresAt,...(registration?{registration}:{})}, {session});
         });
@@ -87,7 +89,7 @@ async function create({db, client, server}) {
         if (error.code === 11000) fail(grpc.status.RESOURCE_EXHAUSTED, 'RATE_LIMITED', 'Wait before requesting another OTP.', 60);
         throw error;
       }
-      return {otp_id: otpId.toHexString(), expires_at: expiresAt.toISOString(),
+      return {otp_id: (await challenges.findOne({_id:otpId})).oid, expires_at: expiresAt.toISOString(),
         ...(process.env.OTP_MOCK_MODE === 'true' ? {mock_code: code} : {})};
     },
     async VerifyOtp(input) {
@@ -95,12 +97,12 @@ async function create({db, client, server}) {
       const otpId = v.id(input.otp_id), phone = v.phone(input.phone);
       if (typeof input.code !== 'string' || !/^[0-9]{6}$/.test(input.code)) v.invalid();
       const result = await tx(async session => {
-        const row = await challenges.findOne({_id: new ObjectId(otpId), phone,
+        const row = await challenges.findOne({oid: otpId, phone,
           purpose: 'DRIVER_REGISTRATION'}, {session});
         const now = new Date();
         if (!row || row.expiresAt <= now || row.invalidatedAt || row.consumedAt ||
             row.verifiedAt || row.failedAttempts >= 5) return {invalid: true};
-        if (!safeEqual(row.codeHash, otpDigest({otpId, phone, purpose: row.purpose, code: input.code}))) {
+        if (!safeEqual(row.codeHash, otpDigest({otpId:row._id.toHexString(), phone, purpose: row.purpose, code: input.code}))) {
           await challenges.updateOne({_id: row._id}, {$inc: {failedAttempts: 1}}, {session});
           return {invalid: true};
         }
@@ -141,7 +143,7 @@ async function create({db, client, server}) {
           passwordHash=proof.registration.passwordHash;
         }
         const {field:codeField,code}=await allocateProfileCode(db,role,session);
-        const account = {_id: accountId, phone, email,[codeField]:code,passwordHash,role,status: 'ACTIVE',
+        const account = {_id: accountId, aid:await allocateId(db,'a',session), phone, email,[codeField]:code,passwordHash,role,status: 'ACTIVE',
           createdAt: now, updatedAt: now};
         await accounts.insertOne(account, {session});
         const envelope = {eventId, eventType: 'account.registered', occurredAt: now.toISOString(),
@@ -153,7 +155,7 @@ async function create({db, client, server}) {
       });
       if(result.invalid)fail(grpc.status.INVALID_ARGUMENT,'INVALID_INPUT','OTP is invalid, expired, used or does not match the registration.');
       const account = result.account;
-      return {account_id: accountId.toHexString(), role,
+      return {account_id: account.aid, role,
         ...(role === 'CUSTOMER' ? {cid: account.cid} : {did: account.did})};
     },
     async Login(input) {
@@ -169,9 +171,9 @@ async function create({db, client, server}) {
     async GetIdentity(input, call) { v.fields(input, []); return accountView(await activeIdentity(call)); },
     async GetAccountAccess(input) {
       v.fields(input, ['account_id'], ['account_id']);
-      const row = await accounts.findOne({_id: new ObjectId(v.id(input.account_id))});
+      const row = await accounts.findOne({_id: new ObjectId(v.objectId(input.account_id))});
       if (!row) fail(grpc.status.NOT_FOUND, 'NOT_FOUND', 'Account does not exist.');
-      return {account_id: row._id.toHexString(), role: row.role, status: row.status};
+      return {account_id: row._id.toHexString(), aid:row.aid, role: row.role, status: row.status};
     }
   };
   addHandlers(server, 'auth', methods);

@@ -28,7 +28,8 @@ function password(value) {
   if (typeof value !== 'string' || value.length === 0) invalid();
   return value;
 }
-function id(value) { if (typeof value !== 'string' || !/^[0-9a-f]{24}$/.test(value)) invalid(); return value; }
+function id(value) { if (typeof value !== 'string' || !/^[a-z][a-z0-9]{1,15}$/.test(value)) invalid(); return value; }
+function objectId(value) { if (typeof value !== 'string' || !/^[0-9a-f]{24}$/.test(value)) invalid(); return value; }
 function email(value) {
   if (typeof value !== 'string') invalid();
   const result = value.trim();
@@ -46,4 +47,4 @@ function profileCode(value,prefix) {
   if(typeof value!=='string'||!new RegExp('^'+prefix+'[a-z0-9]{1,15}$').test(value))invalid();
   return value;
 }
-module.exports = {invalid, fields, text, phone, password, id, email, loginEmail, profileCode, pagination};
+module.exports = {invalid, fields, text, phone, password, id, objectId, email, loginEmail, profileCode, pagination};

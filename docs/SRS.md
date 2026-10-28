@@ -1,8 +1,10 @@
 # CAB System — Đặc tả yêu cầu hệ thống MVP
 
+**ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
+
 **Validation demo cập nhật 28/10/2026:** Password là String không rỗng (ít nhất 1 ký tự, ví dụ "123" hoặc "a"), không trim và không yêu cầu độ phức tạp; Phone là String không rỗng sau trim (ví dụ "0123", "123", "abc123"), giữ số 0 đầu và vẫn unique. Email giữ định dạng cơ bản. Chỉ áp dụng cho học tập/demo local; không phải chính sách production. Argon2id, JWT, role/ownership và OTP Driver giữ nguyên.
 
-**Quyết định mới nhất — Identity v3:** cid/did do Auth tự sinh bằng counter transaction, không phải dữ liệu người dùng nhập. Customer Register email/password/phone; Driver thêm plateNumber, gửi lần đầu nhận OTP 202, gửi lại thông tin + code để tạo account 201 (không nhập otpId). Name dùng mã tự sinh ban đầu. Driver DRAFT hoàn thiện licenseNumber rồi Submit để PENDING; không bỏ bước duyệt hồ sơ. Booking dùng pickupCode/destinationCode A/B, vị trí/nearby dùng locationCode từ fixture DB của owner; vẫn hỗ trợ coordinates khi cần, không trộn hai dạng. Password ít nhất 1, quy tắc bảo mật/trip/payment giữ nguyên. Các đoạn v2 nói phải tự nhập cid/did được thay bởi quyết định này. Xem docs/api/contracts.md.
+**Quyết định mới nhất — Identity v3:** cid/did do Auth tự sinh bằng counter transaction, không phải dữ liệu người dùng nhập. Customer Register email/password/phone; Driver thêm plateNumber, gửi lần đầu nhận OTP 202, gửi lại thông tin + code để tạo account 201 (không nhập oid). Name dùng mã tự sinh ban đầu. Driver DRAFT hoàn thiện licenseNumber rồi Submit để PENDING; không bỏ bước duyệt hồ sơ. Booking dùng pickupCode/destinationCode A/B, vị trí/nearby dùng locationCode từ fixture DB của owner; vẫn hỗ trợ coordinates khi cần, không trộn hai dạng. Password ít nhất 1, quy tắc bảo mật/trip/payment giữ nguyên. Các đoạn v2 nói phải tự nhập cid/did được thay bởi quyết định này. Xem docs/api/contracts.md.
 
 
 | Thuộc tính      | Giá trị                                                                                                            |
@@ -564,7 +566,7 @@ flowchart TD
     I -- "Không" --> J["Giữ kết quả FAILED"]
 ```
 
-Mỗi retry hợp lệ tạo paymentId và khóa mới; gửi lại khóa cũ không phải retry. Trip và Payment có trạng thái riêng. Chi tiết chuyến thể hiện paymentSummary từ payment_service; không ghi đè Trip.status bằng trạng thái thanh toán.
+Mỗi retry hợp lệ tạo pid và khóa mới; gửi lại khóa cũ không phải retry. Trip và Payment có trạng thái riêng. Chi tiết chuyến thể hiện paymentSummary từ payment_service; không ghi đè Trip.status bằng trạng thái thanh toán.
 
 ### 6.8. BPR07 — Xem lịch sử và đánh giá tài xế
 
@@ -612,7 +614,7 @@ Mỗi retry hợp lệ tạo paymentId và khóa mới; gửi lại khóa cũ kh
 | BR02, BR20 | FR02  | Đăng nhập                       | Hệ thống xác thực thông tin đăng nhập và trạng thái tài khoản; cấp JWT khi hợp lệ, từ chối khi không hợp lệ.                                                                                                             |
 | BR02       | FR03  | Cập nhật thông tin cá nhân      | Hệ thống cho phép người dùng xem và cập nhật các trường thông tin cá nhân được phép; không cho tự sửa vai trò, trạng thái duyệt hoặc quyền.                                                                              |
 | BR03       | FR05  | Quản lý hồ sơ tài xế            | Hệ thống cho phép tài xế xem và cập nhật hồ sơ của mình theo trạng thái cho phép; `ADMIN` tra cứu danh sách và chi tiết hồ sơ theo quyền.                                                                                |
-| BR03       | FR06  | Quản lý phương tiện             | Hệ thống ghi nhận, tra cứu và cập nhật một xe BIKE thuộc mỗi tài xế; kiểm tra biển số không trùng và driverId duy nhất. Từ chối thay đổi xe đang dùng cho trip chưa kết thúc.                                            |
+| BR03       | FR06  | Quản lý phương tiện             | Hệ thống ghi nhận, tra cứu và cập nhật một xe BIKE thuộc mỗi tài xế; kiểm tra biển số không trùng và did duy nhất. Từ chối thay đổi xe đang dùng cho trip chưa kết thúc.                                            |
 | BR02, BR03 | FR43  | Xác thực OTP đăng ký tài xế     | Hệ thống tạo OTP giả lập và xác minh mã gắn với số điện thoại, mục đích đăng ký và thời hạn hiệu lực. OTP sai, hết hạn hoặc đã sử dụng không được chấp nhận.                                                             |
 | BR03       | FR44  | Gửi hồ sơ tài xế để duyệt       | Hệ thống kiểm tra thông tin hồ sơ và xe trước khi nhận yêu cầu gửi duyệt; ghi nhận trạng thái `PENDING`. Hồ sơ bị từ chối có thể được chỉnh sửa và gửi lại.                                                              |
 | BR03, BR17 | FR45  | Duyệt hoặc từ chối hồ sơ tài xế | Hệ thống cho phép `ADMIN` xử lý hồ sơ `PENDING`; lưu kết quả, người xử lý và thời điểm. Từ chối phải có lý do; tài xế nhận thông báo kết quả.                                                                            |
@@ -755,7 +757,7 @@ Trạng thái hồ sơ, online/offline, tình trạng bận và trạng thái t�
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ---------------- |
 | RULE05 | Customer chỉ gửi tọa độ điểm đón/đến; server luôn gán `vehicleType = BIKE`. Không nhận trường vehicleType từ body đặt xe (trường ngoài schema bị từ chối). Latitude [-90,90], longitude [-180,180]; hai điểm không trùng. | Demo; nhu cầu tọa độ từ KH | FR09             |
 | RULE06 | Tài xế được xét phải có tài khoản `ACTIVE`, hồ sơ `APPROVED`, online, không bận, có xe đang sử dụng phù hợp và vị trí đủ mới.                                                                                             | KH + Demo                  | FR07, FR10, FR46 |
-| RULE07 | Chỉ xét tài xế cách điểm đón **không quá 1 km**, tính bằng Haversine. Sắp xếp khoảng cách tăng dần; bằng khoảng cách thì sắp xếp `driverId` tăng dần.                                                                     | PC + Demo                  | FR10–FR11, FR46  |
+| RULE07 | Chỉ xét tài xế cách điểm đón **không quá 1 km**, tính bằng Haversine. Sắp xếp khoảng cách tăng dần; bằng khoảng cách thì sắp xếp `did` tăng dần.                                                                     | PC + Demo                  | FR10–FR11, FR46  |
 | RULE08 | Một booking có tối đa một trip; một tài xế có tối đa một trip ở trạng thái `ASSIGNED`, `ARRIVED` hoặc `IN_PROGRESS` tại một thời điểm.                                                                                    | Demo                       | FR14             |
 | RULE09 | Chỉ xác nhận phân công khi booking còn `SEARCHING`, lời mời còn `PENDING` và chưa hết hạn, tài xế vẫn đủ điều kiện. Tìm thấy ứng viên không đồng nghĩa đã phân công.                                                      | Demo                       | FR13–FR14        |
 | RULE10 | Mỗi lời mời có hiệu lực **30 giây**, tính theo thời gian server. Chấp nhận tại hoặc sau `expiresAt` bị từ chối. Mỗi booking chỉ có một lời mời còn hiệu lực.                                                              | KH + Demo                  | FR12–FR15        |
@@ -785,7 +787,7 @@ Giới hạn danh sách và thời hạn lời mời tạo ra tối đa **150 gi
 | RULE20 | Server tính cước khi trip hoàn thành theo công thức tại mục 8.6; số tiền client gửi không được dùng làm khoản phải trả.                                                                                            | KH + Demo                         | FR22               |
 | RULE21 | Chỉ hỗ trợ `MOCK_ONLINE`, chỉ sau Trip `COMPLETED` có fareAmount hợp lệ; không thanh toán trước chuyến hoặc khi đã CANCELED.                                                                                       | Demo; thanh toán sau chuyến từ KH | FR23, FR25         |
 | RULE22 | Ngoài phạm vi: quy tắc xác nhận tiền mặt cũ; giữ mã để truy xuất, không triển khai.                                                                                                                                | Thay đổi MVP                      | FR24 ngoài phạm vi |
-| RULE23 | Payment online chỉ thành công sau callback có chữ ký hợp lệ và khớp `paymentId`, mã tham chiếu, số tiền, tiền tệ `VND`. Client báo thành công không đủ căn cứ.                                                     | Demo                              | FR26               |
+| RULE23 | Payment online chỉ thành công sau callback có chữ ký hợp lệ và khớp `pid`, mã tham chiếu, số tiền, tiền tệ `VND`. Client báo thành công không đủ căn cứ.                                                     | Demo                              | FR26               |
 | RULE24 | Một trip chỉ được ghi nhận thanh toán thành công một lần. Cùng khóa idempotency và cùng dữ liệu → trả kết quả cũ; cùng khóa nhưng khác dữ liệu → từ chối xung đột. Callback lặp không tạo thêm kết quả thanh toán. | PC + Demo                         | FR25–FR26          |
 | RULE25 | Chỉ retry khi lần trước `FAILED`; tối đa **3 lần khởi tạo online**, gồm lần đầu và 2 retry. Mỗi retry dùng payment và khóa idempotency mới. Không retry khi `PENDING` hoặc `COMPLETED`.                            | KH + Demo                         | FR27–FR28          |
 | RULE26 | Trip và payment có trạng thái riêng. Payment thất bại hoặc đang chờ không thay đổi trip `COMPLETED`; không giữ tài xế ở trạng thái bận chỉ vì khách chưa thanh toán.                                               | Demo                              | FR17, FR26–FR28    |
@@ -829,7 +831,7 @@ Không làm tròn distanceKm trước khi tính. Ví dụ 2 km → 20.000 VND; 2
 | RULE34 | Hồ sơ chuyển `DRAFT → PENDING → APPROVED` hoặc `REJECTED`. Hồ sơ `REJECTED` có thể sửa và gửi lại `PENDING`. Chỉ `ADMIN` được quyết định duyệt; lý do từ chối dài **1–300 ký tự**.                                           | FR44–FR45        |
 | RULE35 | Mỗi tài xế có tối đa một xe đang sử dụng; biển số sau chuẩn hóa là duy nhất. Không đổi hoặc sửa xe đang dùng cho trip chưa kết thúc.                                                                                         | FR06             |
 | RULE36 | Nearby và Booking history dùng `page ≥ 1`, `limit` từ **1–50**, mặc định `page = 1`, `limit = 10`. Sai kiểu hoặc ngoài giới hạn → từ chối; trang không có dữ liệu → danh sách trống.                                         | FR33, FR46       |
-| RULE37 | Booking history sắp xếp `createdAt` giảm dần; bằng thời điểm thì `bookingId` giảm dần. Chỉ trả booking thuộc khách hàng đang truy vấn.                                                                                       | FR33             |
+| RULE37 | Booking history sắp xếp `createdAt` giảm dần; bằng thời điểm thì `bid` giảm dần. Chỉ trả booking thuộc khách hàng đang truy vấn.                                                                                       | FR33             |
 | RULE38 | ETA demo dùng khoảng cách đường thẳng từ tài xế đến điểm đón, tốc độ giả định **20 km/h**: `etaMinutes = ceil(distanceKm × 60 / 20)`. Chỉ cung cấp khi có tài xế được phân công và vị trí đủ mới; tại `ARRIVED`, ETA bằng 0. | FR19             |
 | RULE39 | Gửi lại thao tác đến điểm đón, bắt đầu, hoàn thành hoặc hủy đã thành công không tạo thêm lần chuyển trạng thái, phí hoặc thay đổi thời điểm đã lưu.                                                                          | FR17, FR21       |
 | RULE40 | Khi trip được phân công, booking chuyển `ASSIGNED`; trip hoàn thành → booking `COMPLETED`; hủy hợp lệ sau phân công → cả booking và trip `CANCELED`. Booking `NO_DRIVER` hoặc hủy trước phân công không có trip.             | FR14, FR17, FR21 |
@@ -873,19 +875,19 @@ Các quy tắc trên là lựa chọn demo, không mô tả khả năng tính tu
 
 | Mã     | Quy tắc                                                                                                                                                                                                                                                                                                                         | Nguồn                   | Liên kết                           |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------------- |
-| RULE41 | Account được tạo tại Auth; profile khởi tạo bất đồng bộ từ account.registered, upsert theo accountId. Khi khỏe, đồng bộ trong 5 giây; profile chưa có thì chặn nghiệp vụ phụ thuộc bằng 503 PROFILE_NOT_READY.                                                                                                                  | Demo                    | FR01; AC01–AC02, AC100             |
+| RULE41 | Account được tạo tại Auth; profile khởi tạo bất đồng bộ từ account.registered, upsert theo aid. Khi khỏe, đồng bộ trong 5 giây; profile chưa có thì chặn nghiệp vụ phụ thuộc bằng 503 PROFILE_NOT_READY.                                                                                                                  | Demo                    | FR01; AC01–AC02, AC100             |
 | RULE42 | Chỉ BIKE trong Vehicle/Booking/snapshot; body tạo Booking không có trường vehicleType. Chỉ một Vehicle active; không phát triển màn hình/danh mục đổi loại xe.                                                                                                                                                                  | Demo                    | FR06, FR09; AC15, AC31             |
 | RULE43 | Idempotency-Key bắt buộc cho tạo Booking/Payment và retry Payment; gắn account/đối tượng, chuẩn hóa payload trước băm. Cùng key/payload trả cùng ID và kết quả; khác payload trả 409. Giữ key suốt vòng đời dữ liệu demo, không hết hạn trước khi chống replay.                                                                 | PC30 + Demo             | FR09, FR25–FR27; AC32, AC60, AC105 |
 | RULE44 | Chỉ MOCK_ONLINE, tối đa 3 lần khởi tạo gồm lần đầu; FAILED mới được retry với key mới. Không tự thu tiền khi nhận trip.completed. Customer phải chủ động yêu cầu thanh toán.                                                                                                                                                    | KH + Demo               | FR23, FR25–FR28                    |
 | RULE45 | Cửa sổ rate limit 60 giây: login 10/IP; yêu cầu OTP 5/IP và cách nhau 60 giây/phone; verify OTP 10/IP kèm giới hạn 5 lần sai/challenge; tạo Booking 10/account, đồng thời 120/IP. Request vượt ngưỡng trả 429, Retry-After; request bị chặn không tạo dữ liệu.                                                                  | PC29 + Demo             | NFR04, NFR25; AC92, AC97           |
-| RULE46 | Callback có eventId, paymentId, referenceCode, amount, VND, result, timestamp; chữ ký HMAC-SHA256 trên raw body cùng timestamp. Kiểm tra timestamp lệch tối đa 300 giây cho event mới; callback trùng hợp lệ đã ghi nhận trả kết quả cũ, không cập nhật lại. Sai chữ ký luôn bị từ chối.                                        | Demo                    | FR26; AC61–AC63, AC105             |
+| RULE46 | Callback có eventId, pid, referenceCode, amount, VND, result, timestamp; chữ ký HMAC-SHA256 trên raw body cùng timestamp. Kiểm tra timestamp lệch tối đa 300 giây cho event mới; callback trùng hợp lệ đã ghi nhận trả kết quả cũ, không cập nhật lại. Sai chữ ký luôn bị từ chối.                                        | Demo                    | FR26; AC61–AC63, AC105             |
 | RULE47 | JWT dùng HS256, issuer=cab-auth, audience=cab-api, thời hạn 60 phút; xác minh chữ ký/thuật toán/iss/aud/exp và sub. Chỉ Auth cấp token; key ngoài source/DB. Không chấp nhận alg=none hoặc tự tin role từ body/header client.                                                                                                   | Demo; xác thực từ KH/PC | FR40; AC95                         |
 | RULE48 | API Gateway kiểm tra JWT và quyền chung. Service nhận JWT qua metadata, tự xác minh và kiểm tra role/ownership; trạng thái Account ACTIVE được kiểm tra qua Auth gRPC, Auth kiểm tra DB của mình. Không xác minh được Auth thì fail closed với 503, không bỏ qua kiểm tra; Auth down có thể chặn API được bảo vệ.               | Demo                    | NFR01, NFR26                       |
 | RULE49 | OTP mock dùng mã 6 chữ số, chỉ lưu codeHash có khóa bí mật riêng. Môi trường local test có mockCode trong phản hồi yêu cầu OTP khi OTP_MOCK_MODE=true; không log mã, không dùng SMS thật. Tắt chế độ demo thì không trả mã; bằng chứng xác minh chỉ dùng một lần, hết hiệu lực cùng expiresAt của challenge (5 phút từ tạo mã). | PC21 + Demo             | FR43; AC09–AC12                    |
 
 Callback của mock vẫn là endpoint Gateway nhưng dùng chữ ký provider, không dùng JWT Customer. Khóa ký callback chỉ có trong mock adapter và payment_service. Công cụ demo ký callback là script do Codex tạo, không đặt secret thật trong Postman Collection/Environment được commit. Script có thể giao lại callback mới có chữ ký trên cùng payment/reference để phục hồi PENDING; không tạo giao dịch khác.
 
-Hết timeout gRPC không chứng minh phía nhận chưa ghi dữ liệu. Operation quan trọng phải được tra cứu lại theo operationId/bookingId/paymentId trước khi thử hướng khác. Event trip.completed/trip.canceled chỉ giải phóng đúng activeTripId của tài xế, không xóa phân công mới do event đến trễ.
+Hết timeout gRPC không chứng minh phía nhận chưa ghi dữ liệu. Operation quan trọng phải được tra cứu lại theo operationId/bid/pid trước khi thử hướng khác. Event trip.completed/trip.canceled chỉ giải phóng đúng tid của tài xế, không xóa phân công mới do event đến trễ.
 
 ## 9. Mô hình dữ liệu — Data Modeling
 
@@ -966,7 +968,7 @@ erDiagram
     ACCOUNT ||--o{ NOTIFICATION : "nhận"
 
     ACCOUNT {
-        ObjectId accountId PK
+        string aid PK
         string phone UK
         string passwordHash
         string role
@@ -976,7 +978,7 @@ erDiagram
     }
 
     OTP_CHALLENGE {
-        ObjectId otpId PK
+        string oid PK
         string phone
         string purpose
         string codeHash
@@ -989,8 +991,8 @@ erDiagram
     }
 
     CUSTOMER_PROFILE {
-        ObjectId customerId PK
-        ObjectId accountId FK,UK
+        string cid PK
+        string aid FK,UK
         string fullName
         string email
         datetime createdAt
@@ -998,8 +1000,8 @@ erDiagram
     }
 
     DRIVER_PROFILE {
-        ObjectId driverId PK
-        ObjectId accountId FK,UK
+        string did PK
+        string aid FK,UK
         string fullName
         string email
         object licenseNumberEncrypted
@@ -1009,7 +1011,7 @@ erDiagram
         datetime reviewedAt
         string rejectionReason
         boolean isOnline
-        ObjectId activeTripId FK
+        string tid FK
         double latitude
         double longitude
         datetime locationUpdatedAt
@@ -1018,8 +1020,8 @@ erDiagram
     }
 
     VEHICLE {
-        ObjectId vehicleId PK
-        ObjectId driverId FK,UK
+        string vid PK
+        string did FK,UK
         string plateNumber UK
         string vehicleType
         string model
@@ -1030,8 +1032,8 @@ erDiagram
     }
 
     BOOKING {
-        ObjectId bookingId PK
-        ObjectId customerId FK
+        string bid PK
+        string cid FK
         string idempotencyKey
         string requestHash
         double pickupLatitude
@@ -1044,7 +1046,7 @@ erDiagram
         int baseFare
         int ratePerKm
         int roundingUnit
-        ObjectId[] candidateDriverIds
+        string[] candidateDids
         string cancellationReason
         ObjectId canceledByAccountId FK
         int cancellationFee
@@ -1054,9 +1056,9 @@ erDiagram
     }
 
     TRIP_INVITATION {
-        ObjectId invitationId PK
-        ObjectId bookingId FK
-        ObjectId driverId FK
+        string iid PK
+        string bid FK
+        string did FK
         int candidateOrder
         string status
         datetime expiresAt
@@ -1065,10 +1067,10 @@ erDiagram
     }
 
     TRIP {
-        ObjectId tripId PK
-        ObjectId bookingId FK,UK
-        ObjectId driverId FK
-        ObjectId vehicleId FK
+        string tid PK
+        string bid FK,UK
+        string did FK
+        string vid FK
         object bookingSnapshot
         object vehicleSnapshot
         string status
@@ -1086,8 +1088,8 @@ erDiagram
     }
 
     PAYMENT {
-        ObjectId paymentId PK
-        ObjectId tripId FK
+        string pid PK
+        string tid FK
         string method
         string status
         int amount
@@ -1102,21 +1104,21 @@ erDiagram
     }
 
     NOTIFICATION {
-        ObjectId notificationId PK
-        ObjectId recipientAccountId FK
+        string nid PK
+        string aid FK
         string eventId
         string type
         string content
         string relatedEntityType
-        ObjectId relatedEntityId
+        string relatedEntityId
         datetime createdAt
     }
 
     REVIEW {
-        ObjectId reviewId PK
-        ObjectId tripId FK,UK
-        ObjectId customerId FK
-        ObjectId driverId FK
+        string rid PK
+        string tid FK,UK
+        string cid FK
+        string did FK
         int rating
         string comment
         datetime createdAt
@@ -1133,7 +1135,7 @@ erDiagram
 | `OtpChallenge.codeHash`                | Giá trị băm của OTP; không lưu mã rõ                                            |
 | `verifiedAt`, `consumedAt`             | Phân biệt OTP đã xác minh với bằng chứng xác minh đã được dùng để đăng ký       |
 | `DriverProfile.approvalStatus`         | Trạng thái hồ sơ; độc lập với trạng thái tài khoản và online                    |
-| `DriverProfile.activeTripId`           | Trip chưa kết thúc đang được tài xế nhận; `null` khi không bận                  |
+| `DriverProfile.tid`           | Trip chưa kết thúc đang được tài xế nhận; `null` khi không bận                  |
 | `locationUpdatedAt`                    | Thời điểm server nhận vị trí hợp lệ; dùng kiểm tra ngưỡng 120 giây              |
 | `Vehicle.isActive`                     | Xe đang được tài xế sử dụng để nhận chuyến                                      |
 | `Booking.candidateDriverIds`           | Danh sách ban đầu đã sắp xếp, tối đa 5 tài xế; không bổ sung vòng tìm mới       |
@@ -1175,22 +1177,22 @@ Các trường văn bản dùng trim trước kiểm tra (trừ password): REST 
 | Collection      | Index / ràng buộc                                                 | Mục đích                                                          |
 | --------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Account         | Unique phone, email; partial unique cid và did                    | Không trùng email đăng nhập, phone hoặc mã hồ sơ                  |
-| CustomerProfile | Unique `accountId`                                                | Một hồ sơ khách hàng cho mỗi tài khoản                            |
-| DriverProfile   | Unique `accountId`                                                | Một hồ sơ tài xế cho mỗi tài khoản                                |
+| CustomerProfile | Unique `aid`                                                | Một hồ sơ khách hàng cho mỗi tài khoản                            |
+| DriverProfile   | Unique `aid`                                                | Một hồ sơ tài xế cho mỗi tài khoản                                |
 | Vehicle         | Unique `plateNumber` đã chuẩn hóa                                 | Không trùng biển số                                               |
-| Vehicle         | Unique `driverId` trong MVP (mỗi Driver tối đa một Vehicle)       | Một Vehicle cho mỗi Driver trong MVP; luôn BIKE active khi hợp lệ |
-| Booking         | Unique `(customerId, idempotencyKey)`                             | Chống tạo booking trùng                                           |
-| Booking         | Index `(customerId, createdAt, _id)`                              | Tra cứu lịch sử và sắp xếp ổn định                                |
-| TripInvitation  | Unique `(bookingId, driverId)`                                    | Không mời lại cùng tài xế trong booking                           |
-| TripInvitation  | Partial unique `bookingId` khi `status = PENDING`                 | Tối đa một lời mời đang chờ                                       |
+| Vehicle         | Unique `did` trong MVP (mỗi Driver tối đa một Vehicle)       | Một Vehicle cho mỗi Driver trong MVP; luôn BIKE active khi hợp lệ |
+| Booking         | Unique `(cid, idempotencyKey)`                             | Chống tạo booking trùng                                           |
+| Booking         | Index `(cid, createdAt, _id)`                              | Tra cứu lịch sử và sắp xếp ổn định                                |
+| TripInvitation  | Unique `(bid, did)`                                    | Không mời lại cùng tài xế trong booking                           |
+| TripInvitation  | Partial unique `bid` khi `status = PENDING`                 | Tối đa một lời mời đang chờ                                       |
 | TripInvitation  | Index `(status, expiresAt)`                                       | Tìm lời mời cần xử lý timeout                                     |
-| Trip            | Unique `bookingId`                                                | Một booking có tối đa một trip                                    |
-| Trip            | Partial unique `driverId` với trạng thái chưa kết thúc            | Ngăn tài xế có hai trip đang hoạt động                            |
-| Payment         | Unique `(tripId, idempotencyKey)`                                 | Chống tạo lần thanh toán trùng                                    |
+| Trip            | Unique `bid`                                                | Một booking có tối đa một trip                                    |
+| Trip            | Partial unique `did` với trạng thái chưa kết thúc            | Ngăn tài xế có hai trip đang hoạt động                            |
+| Payment         | Unique `(tid, idempotencyKey)`                                 | Chống tạo lần thanh toán trùng                                    |
 | Payment         | Unique `referenceCode` khi có giá trị                             | Định danh giao dịch mock                                          |
-| Payment         | Partial unique `tripId` với trạng thái `PENDING` hoặc `COMPLETED` | Tối đa một lần thanh toán đang chờ hoặc đã thành công             |
-| Notification    | Unique `(eventId, recipientAccountId, type)`                      | Chống thông báo trùng                                             |
-| Review          | Unique `tripId`                                                   | Một đánh giá cho mỗi trip                                         |
+| Payment         | Partial unique `tid` với trạng thái `PENDING` hoặc `COMPLETED` | Tối đa một lần thanh toán đang chờ hoặc đã thành công             |
+| Notification    | Unique `(eventId, aid, type)`                      | Chống thông báo trùng                                             |
+| Review          | Unique `tid`                                                   | Một đánh giá cho mỗi trip                                         |
 
 **Index không thay thế kiểm tra nghiệp vụ.** Ví dụ, lời mời vẫn có thể lưu `PENDING` dù đã qua `expiresAt`; server phải kiểm tra thời hạn khi tài xế phản hồi và đóng lời mời trước khi mời ứng viên tiếp theo.
 
@@ -1211,11 +1213,11 @@ Các trường văn bản dùng trim trước kiểm tra (trừ password): REST 
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | DriverProfile.licenseNumberEncrypted | Thay licenseNumber plaintext bằng object {ciphertext, iv, authTag, keyVersion}, dùng AES-256-GCM, IV mới cho mỗi lần mã hóa. API chỉ cho chủ hồ sơ và ADMIN đọc dữ liệu cần thiết; danh sách nearby/Trip dùng dữ liệu đã lọc. Không lưu key trong document. |
 | Account.passwordHash                 | Băm bằng Argon2id có salt riêng; cấu hình demo memoryCost=19456 KiB, timeCost=2, parallelism=1; không mã hóa mật khẩu để giải mã. Password ít nhất 1 ký tự Unicode; không trim password.                                                                         |
-| OtpChallenge.codeHash                | Giá trị xác minh có khóa (HMAC) với secret OTP ngoài DB; gắn otpId, phone, purpose và mã. Không lưu mockCode plaintext.                                                                                                                                     |
-| Trip ownership/cancellation          | Lưu customerId và customerAccountId, driverAccountId từ nguồn hợp lệ; dữ liệu hủy có reason, canceledByAccountId, canceledAt, fee=0; không lấy ownership từ client.                                                                                         |
-| Phân công                            | Booking lưu operationId/version và kết quả để phục hồi; Driver giữ chỗ có điều kiện; Trip unique bookingId và assignmentConfirmed. Các trường là chi tiết kỹ thuật, không thêm trạng thái Trip công khai.                                                   |
+| OtpChallenge.codeHash                | Giá trị xác minh có khóa (HMAC) với secret OTP ngoài DB; gắn oid, phone, purpose và mã. Không lưu mockCode plaintext.                                                                                                                                     |
+| Trip ownership/cancellation          | Lưu cid và customerAccountId, driverAccountId từ nguồn hợp lệ; dữ liệu hủy có reason, canceledByAccountId, canceledAt, fee=0; không lấy ownership từ client.                                                                                         |
+| Phân công                            | Booking lưu operationId/version và kết quả để phục hồi; Driver giữ chỗ có điều kiện; Trip unique bid và assignmentConfirmed. Các trường là chi tiết kỹ thuật, không thêm trạng thái Trip công khai.                                                   |
 | Payment                              | Bổ sung customerAccountId, callbackEventId, result timestamp, lastFailureReason nếu cần; giữ amount, referenceCode, idempotencyKey, requestHash và attemptNumber 1–3. Không còn confirmedByAccountId của CASH.                                              |
-| Index Payment                        | Bổ sung unique (tripId,attemptNumber); kết hợp unique (tripId,idempotencyKey), referenceCode và partial unique tripId khi PENDING/COMPLETED để bảo vệ retry đồng thời.                                                                                      |
+| Index Payment                        | Bổ sung unique (tid,attemptNumber); kết hợp unique (tid,idempotencyKey), referenceCode và partial unique tid khi PENDING/COMPLETED để bảo vệ retry đồng thời.                                                                                      |
 | Event phục hồi                       | EventId cố định qua các lần gửi lại. Dữ liệu outbox/inbox hoặc trạng thái published/processed phải lưu bền vững tại DB sở hữu; không tạo service mới.                                                                                                       |
 
 ERD mục 9.4 thể hiện dữ liệu nghiệp vụ chính; bảng này bổ sung các trường kỹ thuật không vẽ hết để giữ sơ đồ dễ đọc. Khi triển khai phải đưa chúng vào schema/contracts phù hợp. Các nhãn FK trong ERD chỉ là tham chiếu logic, không phải ràng buộc MongoDB xuyên database.
@@ -1549,12 +1551,12 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 
 **Luồng chính**
 
-1. Customer gửi email/password/phone. Driver gửi thêm plateNumber: lần đầu chỉ tạo challenge và trả 202 OTP_REQUIRED; sau đó gửi cùng thông tin + code 6 số, không nhập otpId. Không nhận cid/did/role/name.
+1. Customer gửi email/password/phone. Driver gửi thêm plateNumber: lần đầu chỉ tạo challenge và trả 202 OTP_REQUIRED; sau đó gửi cùng thông tin + code 6 số, không nhập oid. Không nhận cid/did/role/name.
 2. Auth kiểm email/phone duy nhất, password ít nhất 1 ký tự. Driver phải có OTP đúng, chưa hết hạn/chưa dùng và gắn đúng dữ liệu đã gửi; chưa đúng thì không tạo Account.
 3. Transaction Auth tự cấp cid/did, tạo Account ACTIVE, consume OTP Driver nếu có và lưu outbox account.registered; không ghi DB service khác. Tên ban đầu dùng mã tự sinh.
-4. Gateway trả 201 chỉ gồm accountId/role/cid hoặc did; không trả token hoặc profileStatus. Customer không cần OTP; Driver hoàn tất OTP rồi mới được tạo Account. Không khẳng định profile đã có nếu consumer chưa xử lý.
-5. Customer/Driver nhận event và upsert profile theo accountId; Driver khởi tạo DRAFT/offline, chưa được nhận chuyến.
-6. Người dùng đăng nhập riêng để nhận accessToken và account tối giản (accountId, role, cid/did nếu có), không tokenType/expiresAt/status trong JSON đăng nhập, rồi tra cứu hồ sơ. Khi hệ thống khỏe, profile được tạo trong 5 giây kể từ khi Account được lưu.
+4. Gateway trả 201 chỉ gồm aid/role/cid hoặc did; không trả token hoặc profileStatus. Customer không cần OTP; Driver hoàn tất OTP rồi mới được tạo Account. Không khẳng định profile đã có nếu consumer chưa xử lý.
+5. Customer/Driver nhận event và upsert profile theo aid; Driver khởi tạo DRAFT/offline, chưa được nhận chuyến.
+6. Người dùng đăng nhập riêng để nhận accessToken và account tối giản (aid, role, cid/did nếu có), không tokenType/expiresAt/status trong JSON đăng nhập, rồi tra cứu hồ sơ. Khi hệ thống khỏe, profile được tạo trong 5 giây kể từ khi Account được lưu.
 
 **Thay thế / ngoại lệ**
 
@@ -1632,7 +1634,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 **Luồng chính**
 
 1. Người dùng yêu cầu danh sách thông báo.
-2. Hệ thống trả thông báo có `recipientAccountId` là tài khoản hiện tại.
+2. Hệ thống trả thông báo có `aid` là tài khoản hiện tại.
 3. Người dùng chọn một thông báo.
 4. Hệ thống kiểm tra người nhận và trả chi tiết.
 
@@ -1663,7 +1665,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 2. Hệ thống kiểm tra tọa độ và phân trang; không có lựa chọn loại xe.
 3. Hệ thống lọc tài xế `ACTIVE`, hồ sơ `APPROVED`, online, không bận, có xe phù hợp và vị trí không quá 120 giây.
 4. Hệ thống giữ tài xế cách tọa độ truy vấn không quá 1 km.
-5. Hệ thống sắp xếp khoảng cách tăng dần; bằng khoảng cách thì `driverId` tăng dần.
+5. Hệ thống sắp xếp khoảng cách tăng dần; bằng khoảng cách thì `did` tăng dần.
 6. Hệ thống trả trang kết quả và thông tin được phép hiển thị.
 
 **Thay thế / ngoại lệ**
@@ -1815,7 +1817,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 1. Khách hàng gửi `page` và `limit`.
 2. Hệ thống kiểm tra tham số.
 3. Hệ thống lấy booking thuộc khách hàng.
-4. Hệ thống sắp xếp `createdAt` giảm dần; bằng thời điểm thì `bookingId` giảm dần.
+4. Hệ thống sắp xếp `createdAt` giảm dần; bằng thời điểm thì `bid` giảm dần.
 5. Hệ thống trả trang kết quả.
 6. Khi khách hàng chọn một booking, hệ thống trả chi tiết trip, cước và thanh toán liên quan.
 
@@ -2093,7 +2095,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 
 **Luồng chính**
 
-1. Tài xế gửi tripId và tọa độ.
+1. Tài xế gửi tid và tọa độ.
 2. Hệ thống kiểm tra quyền, trạng thái trip và tọa độ.
 3. Hệ thống lưu vị trí mới nhất và thời điểm server nhận.
 4. Hệ thống cập nhật vị trí hiện tại của tài xế từ bản cập nhật hợp lệ.
@@ -2259,7 +2261,7 @@ Giữ mã từ phiên bản trước, không có actor hoặc luồng triển kh
 
 **Luồng chính**
 
-1. Payment Mock gửi paymentId, mã tham chiếu, số tiền, tiền tệ, kết quả và chữ ký.
+1. Payment Mock gửi pid, mã tham chiếu, số tiền, tiền tệ, kết quả và chữ ký.
 2. Hệ thống xác minh chữ ký và kiểm tra dữ liệu callback.
 3. Hệ thống tìm payment và đối chiếu mã tham chiếu, số tiền, tiền tệ.
 4. Hệ thống kiểm tra payment còn `PENDING`.
@@ -2288,7 +2290,7 @@ Hai điều kiện sau được chốt cho đặc tả cơ bản và cần bổ 
 | Cập nhật hồ sơ xét duyệt    | DRIVER chỉ sửa thông tin xét duyệt khi `DRAFT` hoặc `REJECTED`; `PENDING` và `APPROVED` chỉ được xem |
 | Đổi số điện thoại đăng nhập | Ngoài phạm vi demo; UC03 chỉ cập nhật thông tin cá nhân được phép như họ tên và email                |
 
-Mục chấm 11 yêu cầu tra cứu Customer bằng customerId; mục 12 yêu cầu tra cứu Driver bằng driverId. UC03/UC23 và UC13/UC22 phải bao phủ tra cứu theo ID, không chỉ /me hoặc danh sách. ADMIN đọc chi tiết Customer/Driver; Customer đọc hồ sơ mình và dữ liệu Driver công khai trong phạm vi được cấp (nearby/Trip của mình). API Driver chỉ dành cho thao tác tài xế không được dùng để cấp quyền Customer sửa hồ sơ; gọi sai role → 403. Đường dẫn REST cụ thể được chốt trong YAML giai đoạn 5.
+Mục chấm 11 yêu cầu tra cứu Customer bằng cid; mục 12 yêu cầu tra cứu Driver bằng did. UC03/UC23 và UC13/UC22 phải bao phủ tra cứu theo ID, không chỉ /me hoặc danh sách. ADMIN đọc chi tiết Customer/Driver; Customer đọc hồ sơ mình và dữ liệu Driver công khai trong phạm vi được cấp (nearby/Trip của mình). API Driver chỉ dành cho thao tác tài xế không được dùng để cấp quyền Customer sửa hồ sơ; gọi sai role → 403. Đường dẫn REST cụ thể được chốt trong YAML giai đoạn 5.
 
 UC14 demo chỉ tạo/cập nhật một xe BIKE active thuộc Driver; không triển khai danh mục chọn loại xe hoặc lịch sử đổi nhiều xe. Các mô tả chọn xe đang sử dụng chỉ có ý nghĩa kỹ thuật, không yêu cầu thêm xe thứ hai để bảo vệ đồ án.
 
@@ -2321,7 +2323,7 @@ Trong các bảng dưới đây:
 
 | Mã AC | FR / UC           | Điều kiện / hành động                                                                                                                 | Kết quả chấp nhận                                                                                                                                                                                           |
 | ----- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AC01  | FR01 / UC01       | Người dùng đăng ký CUSTOMER với dữ liệu hợp lệ và số điện thoại chưa tồn tại                                                          | Tạo Account ACTIVE role CUSTOMER; Register 201: accountId/role/cid, no token or profileStatus; Login: accessToken/account; trong 5 giây khi khỏe có một CustomerProfile liên kết và không có DriverProfile. |
+| AC01  | FR01 / UC01       | Người dùng đăng ký CUSTOMER với dữ liệu hợp lệ và số điện thoại chưa tồn tại                                                          | Tạo Account ACTIVE role CUSTOMER; Register 201: aid/role/cid, no token or profileStatus; Login: accessToken/account; trong 5 giây khi khỏe có một CustomerProfile liên kết và không có DriverProfile. |
 | AC02  | FR01, FR43 / UC01 | Người dùng đăng ký DRIVER với bằng chứng OTP hợp lệ, đúng số điện thoại, đúng mục đích và chưa dùng                                   | Tạo Account ACTIVE role DRIVER, tiêu thụ OTP cục bộ; trong 5 giây khi khỏe có một DriverProfile DRAFT/offline. Trả trạng thái profile chờ nếu consumer chưa hoàn tất.                                       |
 | AC03  | FR01 / UC01       | Đăng ký thiếu trường bắt buộc, phone thiếu/null/sai kiểu hoặc rỗng sau trim, password thiếu/null/sai kiểu hoặc rỗng hoặc số điện thoại trùng | Từ chối đăng ký; không báo thành công hoặc tạo thêm tài khoản.                                                                                                                                              |
 | AC04  | FR01 / UC01       | Yêu cầu đăng ký công khai role `ADMIN` hoặc vai trò không được hỗ trợ                                                                 | Từ chối; không tạo tài khoản với vai trò yêu cầu.                                                                                                                                                           |
@@ -2359,7 +2361,7 @@ Trong các bảng dưới đây:
 | AC26  | FR08 / UC17             | DRIVER gửi latitude thuộc `[-90, 90]` và longitude thuộc `[-180, 180]`                                             | Lưu vị trí mới và thời điểm server nhận; không tự thay đổi trạng thái online.                                                                          |
 | AC27  | FR08 / UC17             | DRIVER gửi tọa độ thiếu hoặc ngoài miền giá trị                                                                    | Từ chối; vị trí hợp lệ trước đó và thời điểm của nó không bị ghi đè.                                                                                   |
 | AC28  | FR46 / UC05             | CUSTOMER truy vấn nearby bằng tọa độ và phân trang hợp lệ; server chỉ xét BIKE                                     | Chỉ trả tài xế đủ điều kiện, không bận, vị trí không quá 120 giây và khoảng cách không quá 1 km; không trả dữ liệu nhạy cảm.                           |
-| AC29  | FR46 / UC05             | Kết quả có nhiều tài xế hoặc khoảng cách bằng nhau                                                                 | Sắp xếp khoảng cách tăng dần, sau đó `driverId` tăng dần; phân trang theo thứ tự này.                                                                  |
+| AC29  | FR46 / UC05             | Kết quả có nhiều tài xế hoặc khoảng cách bằng nhau                                                                 | Sắp xếp khoảng cách tăng dần, sau đó `did` tăng dần; phân trang theo thứ tự này.                                                                  |
 | AC30  | FR33, FR46 / UC05, UC10 | Truy vấn nearby hoặc Booking history                                                                               | Mặc định `page = 1`, `limit = 10`; chỉ nhận page nguyên ≥ 1 và limit nguyên từ 1–50. Input sai bị từ chối; trang không có dữ liệu trả danh sách trống. |
 
 ### 13.5. Đặt xe và phân công tài xế
@@ -2368,7 +2370,7 @@ Trong các bảng dưới đây:
 | ----- | ---------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | AC31  | FR09 / UC06                  | CUSTOMER gửi điểm đón, điểm đến khác nhau, tọa độ hợp lệ và khóa idempotency; server tự gán BIKE | Tạo một Booking `SEARCHING`; server lưu khoảng cách Haversine và thông số giá áp dụng.                                                                  |
 | AC32  | FR09 / UC06                  | Gửi lại cùng khóa idempotency và cùng dữ liệu của khách hàng                                     | Trả booking đã tạo; không tạo booking hoặc vòng tìm kiếm mới. Cùng khóa nhưng khác dữ liệu bị từ chối xung đột.                                         |
-| AC33  | FR10–FR11 / UC06             | Hệ thống lập danh sách ứng viên                                                                  | Chỉ chọn tài xế đủ điều kiện trong bán kính 1 km; sắp xếp khoảng cách tăng dần, sau đó `driverId` tăng dần; lưu tối đa 5 ứng viên ban đầu.              |
+| AC33  | FR10–FR11 / UC06             | Hệ thống lập danh sách ứng viên                                                                  | Chỉ chọn tài xế đủ điều kiện trong bán kính 1 km; sắp xếp khoảng cách tăng dần, sau đó `did` tăng dần; lưu tối đa 5 ứng viên ban đầu.              |
 | AC34  | FR12 / UC06                  | Booking còn `SEARCHING` và có ứng viên tiếp theo                                                 | Tạo một lời mời `PENDING`, hiệu lực 30 giây theo thời gian server; booking không có hai lời mời còn hiệu lực.                                           |
 | AC35  | FR13 / UC18                  | Đúng tài xế phản hồi lời mời `PENDING` trước `expiresAt`                                         | Tiếp nhận chấp nhận hoặc từ chối. Phản hồi tại hoặc sau `expiresAt` không được dùng để phân công.                                                       |
 | AC36  | FR14 / UC06, UC18            | Tài xế chấp nhận và mọi điều kiện vẫn hợp lệ                                                     | Tạo đúng một Trip `ASSIGNED`; lưu tài xế, xe và snapshot cần thiết; booking `ASSIGNED`, lời mời `ACCEPTED`, tài xế được ghi nhận bận.                   |
@@ -2406,7 +2408,7 @@ Trong các bảng dưới đây:
 | AC58  | FR24 / UC21 ngoài phạm vi | Điều kiện xác nhận lặp tiền mặt cũ được lưu mã                                       | Không nghiệm thu trong MVP; không có test thực thi tương ứng.                                                                   |
 | AC59  | FR25 / UC09               | CUSTOMER khởi tạo online khi đủ điều kiện                                            | Tạo Payment `PENDING`, phương thức `MOCK_ONLINE`, tiền tệ `VND`, mã tham chiếu và số tiền do server xác định.                   |
 | AC60  | FR25 / UC09               | Gửi lại cùng khóa và dữ liệu hoặc đang có payment `PENDING`                          | Yêu cầu lặp trả payment cũ; không tạo thêm payment khi đang chờ. Cùng khóa nhưng khác dữ liệu bị từ chối.                       |
-| AC61  | FR26 / UC27               | Callback có chữ ký hợp lệ và khớp paymentId, mã tham chiếu, số tiền, tiền tệ         | Cập nhật payment `PENDING` thành `COMPLETED` hoặc `FAILED` theo kết quả; lưu thời điểm và tạo thông báo.                        |
+| AC61  | FR26 / UC27               | Callback có chữ ký hợp lệ và khớp pid, mã tham chiếu, số tiền, tiền tệ         | Cập nhật payment `PENDING` thành `COMPLETED` hoặc `FAILED` theo kết quả; lưu thời điểm và tạo thông báo.                        |
 | AC62  | FR26 / UC27               | Callback sai chữ ký, sai dữ liệu hoặc không tìm thấy giao dịch                       | Từ chối; không thay đổi payment hoặc ghi nhận đã thanh toán.                                                                    |
 | AC63  | FR26 / UC27               | Callback được gửi lặp hoặc trái kết quả cuối                                         | Callback trùng không xử lý thêm; callback trái kết quả cuối bị từ chối và ghi log; không có hai thanh toán thành công cho trip. |
 | AC64  | FR27 / UC09               | Payment online trước đó `FAILED`, chưa có thanh toán thành công và còn lượt khởi tạo | Cho tạo payment mới bằng khóa mới; tổng tối đa 3 lần online, gồm lần đầu và 2 retry.                                            |
@@ -2422,7 +2424,7 @@ Trong các bảng dưới đây:
 | AC69  | FR32 / UC09, UC27                  | Payment được ghi nhận thành công hoặc thất bại                                   | Tạo thông báo đúng khách hàng, nhất quán trạng thái payment đã lưu.                                                                      |
 | AC70  | FR30–FR32, FR45 / Các UC liên quan | Cùng sự kiện thông báo được xử lý lại hoặc tạo thông báo lỗi                     | Không tạo thông báo trùng cho cùng người nhận và loại; lỗi thông báo được ghi log, không đảo ngược nghiệp vụ.                            |
 | AC71  | FR48 / UC04                        | Người dùng xem danh sách hoặc chi tiết thông báo                                 | Chỉ trả thông báo gửi cho tài khoản hiện tại; không trả thông báo của người khác.                                                        |
-| AC72  | FR33 / UC10                        | CUSTOMER xem Booking history                                                     | Chỉ trả booking thuộc mình, gồm cả kết quả hủy và `NO_DRIVER`; sắp xếp `createdAt` giảm dần, sau đó `bookingId` giảm dần; có phân trang. |
+| AC72  | FR33 / UC10                        | CUSTOMER xem Booking history                                                     | Chỉ trả booking thuộc mình, gồm cả kết quả hủy và `NO_DRIVER`; sắp xếp `createdAt` giảm dần, sau đó `bid` giảm dần; có phân trang. |
 | AC73  | FR34 / UC11                        | CUSTOMER của trip `COMPLETED` gửi đánh giá hợp lệ và trip chưa có review         | Tạo một Review cho đúng tài xế của trip; rating nguyên 1–5, comment tùy chọn tối đa 500 ký tự; không bắt buộc đã thanh toán.             |
 | AC74  | FR34 / UC11                        | Review sai quyền, sai điểm, quá dài, trip chưa hoàn thành hoặc đã có review      | Từ chối; không tạo hoặc sửa review đã lưu.                                                                                               |
 | AC75  | FR35 / UC23                        | ADMIN tra cứu khách hàng                                                         | Trả thông tin khách hàng được phép xem; không cung cấp quyền sửa hồ sơ khách hàng qua UC này.                                            |
@@ -2479,7 +2481,7 @@ AC57–AC58 chỉ giữ lịch sử và không thuộc tập nghiệm thu. Các 
 | AC102 | Từ môi trường chưa có hạ tầng, lệnh đã hướng dẫn tạo và khởi động Compose mục tiêu 12 container; network/volumes/healthcheck và DB user/8 URI được kiểm tra; không cần tạo DB thủ công. Nếu có transaction, replica set đã initialized.                                                                                                      |
 | AC103 | Seed chạy lại không nhân bản dữ liệu; có ADMIN, hai Customer kiểm tra ownership, ít nhất 5 Driver khác trạng thái/vị trí và 5 Booking của Customer cần thử. ID liên kết hợp lệ, giá/trạng thái phù hợp; vị trí được refresh trước nearby.                                                                                                    |
 | AC104 | Có báo cáo đủ mục chấm 1–30 và RTM; mỗi kết luận có expected/actual/evidence, trạng thái đúng NFR30. Không tạo mục chấm 31; chưa chạy ghi NOT_RUN/BLOCKED, không ghi PASS.                                                                                                                                                                   |
-| AC105 | Replay cùng key và body trả cùng paymentId/kết quả; cùng key khác body → 409; callback trùng không ghi thêm. Gửi đồng thời nhiều payment/retry không có hơn một PENDING/COMPLETED cho Trip và không vượt 3 attempt. Callback sai chữ ký, sai amount/reference/timestamp bị từ chối; không có double charge kể cả dùng key mới sau COMPLETED. |
+| AC105 | Replay cùng key và body trả cùng pid/kết quả; cùng key khác body → 409; callback trùng không ghi thêm. Gửi đồng thời nhiều payment/retry không có hơn một PENDING/COMPLETED cho Trip và không vượt 3 attempt. Callback sai chữ ký, sai amount/reference/timestamp bị từ chối; không có double charge kể cả dùng key mới sau COMPLETED. |
 
 AC93–AC105 tương ứng TC93–TC105 dự kiến; cần tách test con theo positive/negative/boundary/concurrency/failure trước khi thực thi. Không đồng nhất một AC với một test duy nhất.
 
@@ -2714,8 +2716,8 @@ Tên mục giữ theo PHIEU_CHAM_PROJECT.pdf, lược tiền tố POSTMAN. Đây
 | 8   | Kiểm tra mọi request đều phải đi qua Gateway | NFR26                            | AC98                   | Client qua Gateway; port gRPC không publish; internal RPC vẫn trực tiếp        |
 | 9   | Đăng ký tài khoản khách hàng                 | FR01; UC01                       | AC01, AC03–AC04        | Postman đăng ký→profile→login; DB account/profile                              |
 | 10  | Đăng nhập khách hàng                         | FR02; UC02                       | AC05–AC06              | Postman đúng/sai; JWT hợp lệ, không lộ secret                                  |
-| 11  | Lấy thông tin khách hàng với mã số           | FR03, FR35; UC03, UC23           | AC07–AC08, AC75, AC80  | GET theo customerId với token và kiểm tra ownership                            |
-| 12  | Lấy thông tin tài xế với mã số               | FR05, FR18, FR45; UC13, UC22     | AC13–AC14, AC42, AC80  | GET theo driverId đúng phạm vi; không lộ licenseNumber trong nearby            |
+| 11  | Lấy thông tin khách hàng với mã số           | FR03, FR35; UC03, UC23           | AC07–AC08, AC75, AC80  | GET theo cid với token và kiểm tra ownership                            |
+| 12  | Lấy thông tin tài xế với mã số               | FR05, FR18, FR45; UC13, UC22     | AC13–AC14, AC42, AC80  | GET theo did đúng phạm vi; không lộ licenseNumber trong nearby            |
 | 13  | Liệt kê danh sách tài xế tại khu vực         | FR46; UC05; NFR29                | AC28–AC30, AC103       | Ít nhất 5 Driver khác trạng thái; 1 km, limit/paging, vị trí mới               |
 | 14  | Liệt kê danh sách các booking của Customer   | FR33; UC10; NFR29                | AC30, AC72, AC103      | Ít nhất 5 Booking, đúng Customer, thứ tự, limit/paging                         |
 | 15  | Đặt xe                                       | FR09–FR12, FR15–FR16; UC06       | AC31–AC34, AC39–AC41   | Booking SEARCHING→offer, BIKE server, chưa tạo Trip sớm                        |
