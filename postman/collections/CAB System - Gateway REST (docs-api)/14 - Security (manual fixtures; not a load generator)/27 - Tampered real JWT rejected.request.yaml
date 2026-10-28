@@ -1,0 +1,43 @@
+$kind: http-request
+description: |-
+  Source: docs/api/01-auth.yaml | operationId: getIdentity
+
+  Xem định danh Account
+url: "{{baseUrl}}{{apiPrefix}}/auth/me"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{tamperedToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      const token = pm.variables.get('customerToken');
+      if (!token || token.split('.').length !== 3) throw new Error('Login CUSTOMER first');
+      const parts = token.split('.');
+      const payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+      payload.role = 'ADMIN'; payload.sub = '000000000000000000000099';
+      parts[1] = btoa(JSON.stringify(payload)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+      pm.variables.set('tamperedToken', parts.join('.'));
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      const expected = [401];
+      pm.test('HTTP status matches scenario', () => pm.expect(pm.response.code).to.be.oneOf(expected));
+      pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/application\/json/i));
+      const body = pm.response.json();
+      const schemas = {"401": {"type": "object", "additionalProperties": false, "properties": {"code": {"type": "string", "minLength": 1, "maxLength": 64}, "message": {"type": "string", "minLength": 1, "maxLength": 500}, "requestId": {"type": "string", "minLength": 1, "maxLength": 128}}, "required": ["code", "message", "requestId"]}};
+      if (schemas[pm.response.code]) pm.test('Response matches API schema', () => pm.response.to.have.jsonSchema(schemas[pm.response.code]));
+      if (expected.includes(pm.response.code) && pm.response.code < 300) {
+        for (const key of ['customerId','driverId','bookingId','tripId','paymentId','invitationId','notificationId','reviewId','otpId']) {
+          if (body[key]) pm.environment.set(key, body[key]);
+        }
+        if (body.booking) {
+          pm.environment.set('bookingId', body.booking.bookingId);
+          if (body.booking.tripId) pm.environment.set('tripId', body.booking.tripId);
+        }
+      }
+    language: text/javascript
+order: 5000

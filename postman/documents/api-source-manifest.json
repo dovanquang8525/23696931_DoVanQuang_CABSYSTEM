@@ -45,12 +45,16 @@
   "runtimeStatus": "NOT_RUN",
   "primary": {
     "collection": {
-      "path": "postman/collections/CAB-MVP.postman_collection.json",
-      "sha256": "de13e806ae504cd72915821868ff93b94475c0eba0f490618b259d3cac146931"
+      "path": "postman/collections/CAB MVP — Phase 6 Testing",
+      "sha256": "40dabe9a1865734e28e852fc785e5f72f8559a849f804c1d2d86b5f6cb34a86a",
+      "preV3Sha256": "de13e806ae504cd72915821868ff93b94475c0eba0f490618b259d3cac146931",
+      "integrityStatus": "STATIC_OK",
+      "format": "3.0.0"
     },
     "environment": {
       "path": "postman/environments/CAB-Local.postman_environment copy.json",
-      "sha256": "6f8d96c1aee6f0781da4e457248e3c53cca81333861c43ba4890f1d4c55d5988"
+      "sha256": "6f8d96c1aee6f0781da4e457248e3c53cca81333861c43ba4890f1d4c55d5988",
+      "integrityStatus": "STATIC_OK"
     },
     "variableStyle": "snake_case",
     "requestCount": 142,
@@ -58,12 +62,17 @@
   },
   "compatibility": {
     "collection": {
-      "path": "postman/collections/CAB-System.postman_collection.json",
-      "sha256": "acf6dcbbddd24923a969abdb8dceab15c91b1f5f37b1f0c23fbf74176461b4b9"
+      "path": "postman/collections/CAB System - Gateway REST (docs-api)",
+      "sha256": "a17980e9123302a780f8f9ee48b1d3fe745ce70bfd90f1bdb72d7cccf6adc06a",
+      "preV3Sha256": "acf6dcbbddd24923a969abdb8dceab15c91b1f5f37b1f0c23fbf74176461b4b9",
+      "integrityStatus": "STATIC_OK",
+      "format": "3.0.0"
     },
     "environment": {
-      "path": "postman/environments/CAB-Local.postman_environment.json",
-      "sha256": "823a8218adf2530d78288cf6108b2d6effb51991ff13508134d222d03bd5a2f5"
+      "path": "postman/environments/CAB - Local Gateway (template).environment.yaml",
+      "sha256": "64942ddb07cfc98f7d6648f8382f3eba998a9ec83327aa8a432290c06caf2e2e",
+      "preV3Sha256": "823a8218adf2530d78288cf6108b2d6effb51991ff13508134d222d03bd5a2f5",
+      "integrityStatus": "STATIC_OK"
     },
     "variableStyle": "camelCase",
     "requestCount": 78,
@@ -119,5 +128,45 @@
     "compatibilityScript": "scripts/sign_mock_callback.py",
     "signedBytes": "ASCII(timestamp) + LF + raw UTF-8 body; no reserialization"
   },
-  "generationPolicy": "No in-place synchronization. Historical generator writes only to a new explicit candidate directory; Phase 6 preservation review required before adoption."
+  "generationPolicy": "No in-place synchronization. Historical generator writes only to a new explicit candidate directory; Phase 6 preservation review required before adoption.",
+  "identity": {
+    "collection": {
+      "path": "postman/collections/CAB Identity — Auth Customer smoke",
+      "format": "3.0.0",
+      "sha256": "db0894c83e22e9d1b7f504656ac7f8907fe7ba2cb713273d65f521717086eaf4",
+      "integrityStatus": "STATIC_OK"
+    },
+    "requestCount": 15,
+    "variableStyle": "baseUrl",
+    "runtimeStatus": "NOT_RUN"
+  },
+  "migration": {
+    "format": "3.0.0",
+    "userInventorySnapshot": "7e3fedd32997c70a571219ac18bca01d9ad0e54ba893a43e67e2af3f86eb04e8",
+    "preservationStatus": "STATIC_OK",
+    "runtimeStatus": "NOT_RUN",
+    "verifiedSnapshot": "7e3fedd32997c70a571219ac18bca01d9ad0e54ba893a43e67e2af3f86eb04e8"
+  },
+  "identityV2Migration": {
+    "status": "OUTDATED_COLLECTIONS",
+    "decision": "docs/api/IDENTITY_V2_DECISION.md",
+    "currentApi": "docs/api/",
+    "currentAcceptanceGuide": "docs/MANUAL_POSTMAN_30.md",
+    "reason": "User switched to manually entered email/cid/did/name requests. Existing v3 request bodies/scripts were preserved as v1 references, not rebaselined as current tests.",
+    "runtimeStatus": "NOT_RUN",
+    "currentRevision": "Registration v3: generated profile codes, register-first OTP, DB location codes"
+  },
+  "current": {
+    "collection": "postman/collections/CAB Current - Gateway REST",
+    "environment": "postman/environments/CAB Current - local template.environment.yaml",
+    "apiSource": "docs/api",
+    "checkedAt": "2026-10-28",
+    "status": "STATIC_ONLY",
+    "legacy": "Older primary/compatibility and v3 collections remain preserved references; their checker must still report OUTDATED.",
+    "sha256": {
+      "postman/collections/CAB Current - Gateway REST": "f0f4aa82766b5c90d4f72ce44e323f70253d2bee7eab8da31061f5df877c088e",
+      "postman/environments/CAB Current - local template.environment.yaml": "228dbaf547efca293524a2ed481947ca5464ba12eb52a3a7b511db31ba073dd8"
+    },
+    "validationPolicy": "Local demo: nonempty String password and trimmed nonempty String phone; Argon2id and email validation retained."
+  }
 }

@@ -1,0 +1,51 @@
+$kind: http-request
+name: respondInvitation | Chấp nhận/từ chối lời mời
+description: |-
+  Source: docs/api/05-invitations.yaml | operationId: respondInvitation
+
+  Đúng Driver, trước expiresAt, Booking SEARCHING. ACCEPT phối hợp reservation/Trip; replay cùng quyết định trả kết quả đã lưu. Trái kết quả cuối/hết hạn 409. Deadline không mở phân công khác.
+url: "{{baseUrl}}{{apiPrefix}}/invitations/{{invitationId}}/response"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "decision": "ACCEPT"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{driverToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      const authReference = "{{driverToken}}";
+      const needed = [pm.request.url.toString(), pm.request.body ? pm.request.body.raw : '', authReference];
+      const keys = new Set(needed.join(' ').match(/\{\{[A-Za-z][A-Za-z0-9_]*\}\}/g) || []);
+      for (const token of keys) {
+        const key = token.slice(2,-2);
+        if (!pm.variables.get(key)) throw new Error('Set local environment variable: ' + key);
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      const expected = [200];
+      pm.test('HTTP status matches scenario', () => pm.expect(pm.response.code).to.be.oneOf(expected));
+      pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/application\/json/i));
+      const body = pm.response.json();
+      const schemas = {"200": {"type": "object", "additionalProperties": false, "properties": {"invitation": {"type": "object", "additionalProperties": false, "properties": {"invitationId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "bookingId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "driverId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "pickup": {"type": "object", "additionalProperties": false, "properties": {"latitude": {"type": "number", "minimum": -90, "maximum": 90}, "longitude": {"type": "number", "minimum": -180, "maximum": 180}}, "required": ["latitude", "longitude"]}, "destination": {"type": "object", "additionalProperties": false, "properties": {"latitude": {"type": "number", "minimum": -90, "maximum": 90}, "longitude": {"type": "number", "minimum": -180, "maximum": 180}}, "required": ["latitude", "longitude"]}, "vehicleType": {"type": "string", "enum": ["BIKE"]}, "status": {"type": "string", "enum": ["PENDING", "ACCEPTED", "REJECTED", "EXPIRED", "CANCELED"]}, "expiresAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "respondedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}}, "required": ["invitationId", "bookingId", "driverId", "pickup", "destination", "vehicleType", "status", "expiresAt"]}, "booking": {"type": "object", "additionalProperties": false, "properties": {"bookingId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "customerId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "vehicleType": {"type": "string", "enum": ["BIKE"]}, "pickup": {"type": "object", "additionalProperties": false, "properties": {"latitude": {"type": "number", "minimum": -90, "maximum": 90}, "longitude": {"type": "number", "minimum": -180, "maximum": 180}}, "required": ["latitude", "longitude"]}, "destination": {"type": "object", "additionalProperties": false, "properties": {"latitude": {"type": "number", "minimum": -90, "maximum": 90}, "longitude": {"type": "number", "minimum": -180, "maximum": 180}}, "required": ["latitude", "longitude"]}, "status": {"type": "string", "enum": ["SEARCHING", "ASSIGNED", "COMPLETED", "CANCELED", "NO_DRIVER"]}, "distanceKm": {"type": "number", "exclusiveMinimum": 0}, "pricingSnapshot": {"type": "object", "additionalProperties": false, "properties": {"baseFare": {"type": "integer", "minimum": 10000, "maximum": 10000}, "ratePerKm": {"type": "integer", "minimum": 5000, "maximum": 5000}, "roundingUnit": {"type": "integer", "minimum": 1000, "maximum": 1000}}, "required": ["baseFare", "ratePerKm", "roundingUnit"]}, "tripId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "createdAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "updatedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}}, "required": ["bookingId", "customerId", "vehicleType", "pickup", "destination", "status", "distanceKm", "pricingSnapshot", "createdAt", "updatedAt"]}, "tripId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}}, "required": ["invitation", "booking"]}};
+      if (schemas[pm.response.code]) pm.test('Response matches API schema', () => pm.response.to.have.jsonSchema(schemas[pm.response.code]));
+      if (expected.includes(pm.response.code) && pm.response.code < 300) {
+        for (const key of ['customerId','driverId','bookingId','tripId','paymentId','invitationId','notificationId','reviewId','otpId']) {
+          if (body[key]) pm.environment.set(key, body[key]);
+        }
+        if (body.booking) {
+          pm.environment.set('bookingId', body.booking.bookingId);
+          if (body.booking.tripId) pm.environment.set('tripId', body.booking.tripId);
+        }
+      }
+    language: text/javascript
+order: 2000

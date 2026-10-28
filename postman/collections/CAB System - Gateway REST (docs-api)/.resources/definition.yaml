@@ -1,0 +1,6 @@
+$kind: collection
+name: CAB System - Gateway REST (docs/api)
+description: "Source: docs/api/01-auth.yaml through 10-health.yaml. Catalog plus manual scenario folders; do not run the entire collection as one workflow. Runtime NOT_RUN; backend not implemented. Import local environment. All requests use Gateway REST, no direct gRPC. See postman/README.md."
+variables:
+  baseUrl: http://localhost:3000
+  apiPrefix: /api/v1

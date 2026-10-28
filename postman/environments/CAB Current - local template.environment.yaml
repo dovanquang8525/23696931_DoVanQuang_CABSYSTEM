@@ -1,0 +1,76 @@
+name: CAB Current - local template
+values:
+  - key: baseUrl
+    value: 'http://localhost:3000'
+  - key: customerToken
+    value: ''
+  - key: driverToken
+    value: ''
+  - key: adminToken
+    value: ''
+  - key: customer2Token
+    value: ''
+  - key: customerEmail
+    value: ''
+  - key: customerPassword
+    value: ''
+  - key: customerPhone
+    value: ''
+  - key: customer2Email
+    value: ''
+  - key: customer2Password
+    value: ''
+  - key: customer2Phone
+    value: ''
+  - key: driverEmail
+    value: ''
+  - key: driverPassword
+    value: ''
+  - key: driverPhone
+    value: ''
+  - key: adminEmail
+    value: admin@cab.local
+  - key: adminPassword
+    value: ''
+  - key: plateNumber
+    value: ''
+  - key: licenseNumber
+    value: ''
+  - key: customerId
+    value: ''
+  - key: driverId
+    value: ''
+  - key: bookingId
+    value: ''
+  - key: tripId
+    value: ''
+  - key: paymentId
+    value: ''
+  - key: failedPaymentId
+    value: ''
+  - key: invitationId
+    value: ''
+  - key: notificationId
+    value: ''
+  - key: otpId
+    value: ''
+  - key: otpCode
+    value: ''
+  - key: bookingKey
+    value: ''
+  - key: paymentKey
+    value: ''
+  - key: retryKey
+    value: ''
+  - key: callbackPayload
+    value: ''
+  - key: callbackTimestamp
+    value: ''
+  - key: callbackSignature
+    value: ''
+  - key: bookingSnapshot
+    value: ''
+  - key: paymentSnapshot
+    value: ''
+  - key: tamperedToken
+    value: ''

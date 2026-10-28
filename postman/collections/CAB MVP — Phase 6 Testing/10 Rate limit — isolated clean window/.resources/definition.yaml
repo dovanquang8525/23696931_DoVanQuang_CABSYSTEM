@@ -1,0 +1,3 @@
+$kind: collection
+description: Chỉ chạy folder này sau cửa sổ 60 giây sạch, không chạy đồng thời folder tạo Booking khác. 1 create + 9 replay cùng key, request11 phải429; cancel fixture sau đó. Đây không phải bài tải >1000 req/s.
+order: 11000

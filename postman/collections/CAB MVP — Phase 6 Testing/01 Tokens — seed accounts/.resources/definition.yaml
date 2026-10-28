@@ -1,0 +1,3 @@
+$kind: collection
+description: Điền credential local từ seed; không commit environment đã có password/token. Chạy folder này trước 02/03/04/05.
+order: 2000

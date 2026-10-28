@@ -1,0 +1,54 @@
+$kind: http-request
+name: handleMockCallback | Tiếp nhận callback mock đã ký
+description: |-
+  Source: docs/api/07-payments.yaml | operationId: handleMockCallback
+
+  Không dùng JWT Customer. HMAC-SHA256 trên ASCII(timestamp)+LF+raw UTF-8 body; X-Mock-Timestamp bằng body.timestamp. Gateway giữ raw bytes và chuyển gRPC. Sai chữ ký 401; mismatch/timestamp mới quá ±300 giây 400; trái kết quả cuối 409. Duplicate hợp lệ trả 200/duplicate=true trước kiểm tuổi event đã xử lý; luôn verify signature. Script mock giữ secret ngoài Git/Postman.
+url: "{{baseUrl}}{{apiPrefix}}/payments/mock/callback"
+method: POST
+headers:
+  Accept: application/json
+  X-Mock-Signature: "{{callbackSignature}}"
+  X-Mock-Timestamp: "{{callbackTimestamp}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: "{{callbackRawBody}}"
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    code: |-
+      const body = pm.variables.get('callbackRawBody');
+      const parsed = JSON.parse(body);
+      if (String(parsed.timestamp) !== String(pm.variables.get('callbackTimestamp'))) throw new Error('Callback timestamp mismatch');
+      if (!/^sha256=[0-9a-f]{64}$/.test(pm.variables.get('callbackSignature') || '')) throw new Error('Sign callback outside Postman first');
+      pm.request.body.update(body);
+
+      const authReference = "";
+      const needed = [pm.request.url.toString(), pm.request.body ? pm.request.body.raw : '', authReference];
+      const keys = new Set(needed.join(' ').match(/\{\{[A-Za-z][A-Za-z0-9_]*\}\}/g) || []);
+      for (const token of keys) {
+        const key = token.slice(2,-2);
+        if (!pm.variables.get(key)) throw new Error('Set local environment variable: ' + key);
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      const expected = [200];
+      pm.test('HTTP status matches scenario', () => pm.expect(pm.response.code).to.be.oneOf(expected));
+      pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/application\/json/i));
+      const body = pm.response.json();
+      const schemas = {"200": {"type": "object", "additionalProperties": false, "properties": {"paymentId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "accepted": {"type": "boolean", "enum": [true]}, "duplicate": {"type": "boolean"}, "status": {"type": "string", "enum": ["COMPLETED", "FAILED"]}}, "required": ["paymentId", "accepted", "duplicate", "status"]}};
+      if (schemas[pm.response.code]) pm.test('Response matches API schema', () => pm.response.to.have.jsonSchema(schemas[pm.response.code]));
+      if (expected.includes(pm.response.code) && pm.response.code < 300) {
+        for (const key of ['customerId','driverId','bookingId','tripId','paymentId','invitationId','notificationId','reviewId','otpId']) {
+          if (body[key]) pm.environment.set(key, body[key]);
+        }
+        if (body.booking) {
+          pm.environment.set('bookingId', body.booking.bookingId);
+          if (body.booking.tripId) pm.environment.set('tripId', body.booking.tripId);
+        }
+      }
+    language: text/javascript
+order: 5000

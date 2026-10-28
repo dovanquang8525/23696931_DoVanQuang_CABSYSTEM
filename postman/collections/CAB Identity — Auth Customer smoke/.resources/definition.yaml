@@ -1,0 +1,4 @@
+$kind: collection
+description: Focused development smoke through Gateway only. Uses baseUrl. Does not replace CAB-MVP or establish full grading, DB encryption, Driver onboarding or broker recovery acceptance. Run with a 250 ms delay in a clean rate-limit window; local OTP_MOCK_MODE=true is required.
+variables:
+  baseUrl: http://localhost:3000

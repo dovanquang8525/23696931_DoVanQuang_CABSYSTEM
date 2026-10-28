@@ -1,75 +1,47 @@
 # CAB System MVP
 
-Hệ thống đặt xe CAB đang ở giai đoạn thiết kế, chưa hoàn tất triển khai backend hoặc Docker. Phạm vi MVP chỉ hỗ trợ BIKE; payment mock được thực hiện sau khi Trip ở trạng thái COMPLETED.
+Dự án Microservices cơ bản phục vụ học và bảo vệ môn MSA. Luồng chính: Customer đặt BIKE → Driver nhận chuyến → Trip hoàn thành → Payment mock thành công → Customer đánh giá.
 
-## Tài liệu
+## Chạy nhanh
 
-- [SRS hiện có](docs/SRS.md): bản gốc được chuyển từ `srs.md` (Git lưu tên `SRS.MD`).
-- [SRS 2.0](docs/srs2.md): bản ngày 26/10/2026, vốn là file chưa được Git theo dõi; giữ riêng nguyên nội dung. Chưa hợp nhất hay thay thế bản gốc.
-- [Bounded Context](docs/Bounded-Context.md), [kiến trúc](docs/ARCHITECTURE.md), [ma trận chấm điểm](docs/GRADING_MATRIX.md).
-- [Trạng thái và báo cáo tổ chức repository](docs/PROJECT_STATUS.md): kiểm tra bảo toàn file, nguồn thiếu và tham chiếu cần xử lý.
+Chuẩn bị Node.js >=22, Docker Desktop đang chạy và PowerShell tại root repository, nơi có `compose.yaml`:
 
-SRS 2.0 ghi rõ YAML và thiết kế cũ chưa đồng bộ. Các tài liệu được bảo toàn để đối chiếu; không coi chúng là contracts đã hoàn thiện.
+```powershell
+npm.cmd ci
+npm.cmd run setup:local
+npm.cmd test
+npm.cmd run check
+docker compose config --quiet
+docker compose up -d --build
+Invoke-RestMethod http://localhost:3000/ready
+```
 
-## Đúng 8 microservices
+`setup:local` chỉ điền cấu hình thiếu. Giữ `.env` và các key đang dùng với volumes cũ. Kết quả đúng: `infra_init` exit 0; Gateway, 8 service, MongoDB, Redis và RabbitMQ healthy; `/ready` trả HTTP 200. Khi lỗi, xem [hướng dẫn local](docs/BACKEND_RUNBOOK.md).
+
+## Kiến trúc
+
+Client/Postman → Gateway bằng REST; Gateway và các service gọi đồng bộ bằng gRPC. RabbitMQ truyền event bất đồng bộ. Mỗi service có database logic và tài khoản MongoDB riêng; chỉ dùng một MongoDB instance. Redis thực hiện rate limiting tại Gateway.
 
 | Service | Trách nhiệm |
 | --- | --- |
-| auth_service | Identity & Access |
-| customer_service | Customer Profile |
-| driver_service | Driver & Vehicle |
-| booking_service | Booking & Dispatch |
-| trip_service | Trip Execution & Fare |
-| payment_service | Payment |
-| notification_service | Notification |
-| rating_service | Rating |
+| auth_service | Account, đăng nhập/JWT, OTP mock Driver |
+| customer_service | Hồ sơ Customer |
+| driver_service | Driver, Vehicle BIKE, vị trí và online/offline |
+| booking_service | Booking, tìm Driver và invitation |
+| trip_service | Trạng thái chuyến và tính cước |
+| payment_service | Payment mock sau COMPLETED, callback/retry/idempotency |
+| notification_service | Thông báo từ event |
+| rating_service | Review chuyến đã hoàn thành |
 
-## Công nghệ dự kiến
+Customer Register dùng email/password/phone và trả accountId/role/cid; Login riêng lấy token. Driver thêm plateNumber, lần đầu nhận OTP 202, gửi lại cùng dữ liệu và code để tạo account. cid/did do server sinh; URL theo ID dùng ObjectId. Vị trí demo dùng A/B từ database của từng owner.
 
-Client → Gateway dùng REST; Gateway → Service và giao tiếp đồng bộ nội bộ dùng gRPC. RabbitMQ phục vụ event bất đồng bộ, Redis phục vụ rate limiting tại Gateway. MongoDB có 8 database logic, mỗi service sở hữu một database. Docker dành cho giai đoạn triển khai tiếp theo; chưa có Compose. Ngôn ngữ và framework triển khai chưa được chốt trong lần tổ chức này.
+## Tài liệu cần đọc
 
-## Cấu trúc repository
+1. [BACKEND_RUNBOOK.md](docs/BACKEND_RUNBOOK.md): cài đặt, khởi động, kiểm tra và xử lý lỗi.
+2. [postman/README.md](postman/README.md): collection hiện hành, biến và thứ tự chạy.
+3. [MANUAL_POSTMAN_30.md](docs/MANUAL_POSTMAN_30.md): thao tác tay và câu trả lời bảo vệ từng mục.
+4. [ARCHITECTURE.md](docs/ARCHITECTURE.md): giải thích gRPC, RabbitMQ, Redis và quyền sở hữu dữ liệu.
+5. [GRADING_MATRIX.md](docs/GRADING_MATRIX.md): nội dung phiếu gốc và tiến độ.
+6. [PROJECT_STATUS.md](docs/PROJECT_STATUS.md): phát hiện audit, thay đổi, bằng chứng và giới hạn ngày 28/10/2026.
 
-```text
-.
-├── AGENTS.md
-├── README.md
-├── .postman/                       # Metadata Postman giữ nguyên
-├── api-specifications/             # 10 YAML và tài liệu mapping hiện có
-├── docs/
-│   ├── SRS.md
-│   ├── srs2.md
-│   ├── Bounded-Context.md
-│   ├── ARCHITECTURE.md
-│   ├── GRADING_MATRIX.md
-│   ├── PROJECT_STATUS.md
-│   ├── diagrams/
-│   │   ├── erd/ERD.png
-│   │   ├── bounded-context/bounded-context-model.png
-│   │   └── microservice/CAB_ThietKe_MicroService_8_BoundedContext.docx
-│   ├── references/
-│   └── prompts/                    # Dành cho P01–P30, chưa viết prompt
-├── gateway/
-├── proto/
-├── services/
-│   ├── auth_service/
-│   ├── customer_service/
-│   ├── driver_service/
-│   ├── booking_service/
-│   ├── trip_service/
-│   ├── payment_service/
-│   ├── notification_service/
-│   └── rating_service/
-├── infra/
-├── scripts/
-└── postman/
-    ├── collections/
-    ├── documents/
-    ├── environments/
-    ├── flows/
-    ├── globals/workspace.globals.yaml
-    ├── mocks/
-    └── specs/
-```
-
-Các thư mục trống cần lưu trong Git có `.gitkeep`. Các thư mục cũ `ddd/`, `erd/` hiện trống sau khi chuyển file, không có file được theo dõi tại đó. Không có hướng dẫn chạy hệ thống vì backend, contracts và hạ tầng chưa triển khai.
+Yêu cầu nghiệp vụ ở [SRS](docs/SRS.md), [Bounded Context](docs/Bounded-Context.md); API hiện hành ở [docs/api](docs/api/). Phiếu gốc: [PHIEU_CHAM_PROJECT.pdf](PHIEU_CHAM_PROJECT.pdf). Tài liệu nguồn/mô hình và collection cũ được giữ để đối chiếu.

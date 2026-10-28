@@ -1,0 +1,60 @@
+$kind: http-request
+name: listTrips | ADMIN tra cứu Trip
+description: |-
+  Source: docs/api/06-trips.yaml | operationId: listTrips
+
+  ADMIN tra cứu Trip
+url: "{{baseUrl}}{{apiPrefix}}/admin/trips?page={{page}}&limit={{limit}}"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: page
+    value: "{{page}}"
+    disabled: false
+  - key: limit
+    value: "{{limit}}"
+    disabled: false
+  - key: customerId
+    value: "{{customerId}}"
+    disabled: true
+  - key: driverId
+    value: "{{driverId}}"
+    disabled: true
+  - key: status
+    value: ASSIGNED
+    disabled: true
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      const authReference = "{{adminToken}}";
+      const needed = [pm.request.url.toString(), pm.request.body ? pm.request.body.raw : '', authReference];
+      const keys = new Set(needed.join(' ').match(/\{\{[A-Za-z][A-Za-z0-9_]*\}\}/g) || []);
+      for (const token of keys) {
+        const key = token.slice(2,-2);
+        if (!pm.variables.get(key)) throw new Error('Set local environment variable: ' + key);
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      const expected = [200];
+      pm.test('HTTP status matches scenario', () => pm.expect(pm.response.code).to.be.oneOf(expected));
+      pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/application\/json/i));
+      const body = pm.response.json();
+      const schemas = {"200": {"type": "object", "additionalProperties": false, "properties": {"items": {"type": "array", "items": {"type": "object", "additionalProperties": false, "properties": {"tripId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "bookingId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "customerId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "driverId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "vehicleId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "status": {"type": "string", "enum": ["ASSIGNED", "ARRIVED", "IN_PROGRESS", "COMPLETED", "CANCELED"]}, "pickup": {"type": "object", "additionalProperties": false, "properties": {"latitude": {"type": "number", "minimum": -90, "maximum": 90}, "longitude": {"type": "number", "minimum": -180, "maximum": 180}}, "required": ["latitude", "longitude"]}, "destination": {"type": "object", "additionalProperties": false, "properties": {"latitude": {"type": "number", "minimum": -90, "maximum": 90}, "longitude": {"type": "number", "minimum": -180, "maximum": 180}}, "required": ["latitude", "longitude"]}, "vehicleType": {"type": "string", "enum": ["BIKE"]}, "driver": {"type": "object", "additionalProperties": false, "properties": {"driverId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "fullName": {"type": "string", "minLength": 1, "maxLength": 100, "pattern": "^[^<>]*$", "description": "Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ cảnh."}, "vehicle": {"type": "object", "additionalProperties": false, "properties": {"vehicleId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "driverId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "plateNumber": {"type": "string", "minLength": 1, "maxLength": 20, "pattern": "^[^<>]*$", "description": "Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ cảnh."}, "vehicleType": {"type": "string", "enum": ["BIKE"]}, "model": {"type": "string", "minLength": 1, "maxLength": 100, "pattern": "^[^<>]*$", "description": "Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ cảnh."}, "color": {"type": "string", "minLength": 1, "maxLength": 30, "pattern": "^[^<>]*$", "description": "Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị vẫn escape theo ngữ cảnh."}, "isActive": {"type": "boolean", "enum": [true]}}, "required": ["vehicleId", "driverId", "plateNumber", "vehicleType", "model", "color", "isActive"]}}, "required": ["driverId", "fullName", "vehicle"]}, "distanceKm": {"type": "number", "minimum": 0}, "fareAmount": {"anyOf": [{"type": "integer", "minimum": 0, "maximum": 1000000000000, "description": "null khi chưa xác định; không dùng 0 để thay null."}, {"type": "null"}]}, "currency": {"type": "string", "enum": ["VND"]}, "latestLocation": {"type": "object", "additionalProperties": false, "properties": {"latitude": {"type": "number", "minimum": -90, "maximum": 90}, "longitude": {"type": "number", "minimum": -180, "maximum": 180}, "updatedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}}, "required": ["latitude", "longitude", "updatedAt"]}, "assignedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "arrivedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "startedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "completedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "canceledAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}}, "required": ["tripId", "bookingId", "customerId", "driverId", "vehicleId", "status", "pickup", "destination", "vehicleType", "distanceKm", "fareAmount", "currency", "assignedAt", "driver"]}}, "page": {"type": "integer", "minimum": 1}, "limit": {"type": "integer", "minimum": 1, "maximum": 50}, "totalItems": {"type": "integer", "minimum": 0, "maximum": 1000000000000}}, "required": ["items", "page", "limit", "totalItems"]}};
+      if (schemas[pm.response.code]) pm.test('Response matches API schema', () => pm.response.to.have.jsonSchema(schemas[pm.response.code]));
+      if (expected.includes(pm.response.code) && pm.response.code < 300) {
+        for (const key of ['customerId','driverId','bookingId','tripId','paymentId','invitationId','notificationId','reviewId','otpId']) {
+          if (body[key]) pm.environment.set(key, body[key]);
+        }
+        if (body.booking) {
+          pm.environment.set('bookingId', body.booking.bookingId);
+          if (body.booking.tripId) pm.environment.set('tripId', body.booking.tripId);
+        }
+      }
+    language: text/javascript
+order: 6000

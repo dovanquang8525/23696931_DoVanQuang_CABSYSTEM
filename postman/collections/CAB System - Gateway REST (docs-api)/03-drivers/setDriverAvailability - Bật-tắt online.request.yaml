@@ -1,0 +1,51 @@
+$kind: http-request
+name: setDriverAvailability | Bật/tắt online
+description: |-
+  Source: docs/api/03-drivers.yaml | operationId: setDriverAvailability
+
+  Online cần ACTIVE/APPROVED/BIKE/vị trí <=120 giây; offline không hủy Trip đang có.
+url: "{{baseUrl}}{{apiPrefix}}/drivers/me/availability"
+method: PUT
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "isOnline": true
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{driverToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      const authReference = "{{driverToken}}";
+      const needed = [pm.request.url.toString(), pm.request.body ? pm.request.body.raw : '', authReference];
+      const keys = new Set(needed.join(' ').match(/\{\{[A-Za-z][A-Za-z0-9_]*\}\}/g) || []);
+      for (const token of keys) {
+        const key = token.slice(2,-2);
+        if (!pm.variables.get(key)) throw new Error('Set local environment variable: ' + key);
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      const expected = [200];
+      pm.test('HTTP status matches scenario', () => pm.expect(pm.response.code).to.be.oneOf(expected));
+      pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/application\/json/i));
+      const body = pm.response.json();
+      const schemas = {"200": {"type": "object", "additionalProperties": false, "properties": {"driverId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "isOnline": {"type": "boolean"}}, "required": ["driverId", "isOnline"]}};
+      if (schemas[pm.response.code]) pm.test('Response matches API schema', () => pm.response.to.have.jsonSchema(schemas[pm.response.code]));
+      if (expected.includes(pm.response.code) && pm.response.code < 300) {
+        for (const key of ['customerId','driverId','bookingId','tripId','paymentId','invitationId','notificationId','reviewId','otpId']) {
+          if (body[key]) pm.environment.set(key, body[key]);
+        }
+        if (body.booking) {
+          pm.environment.set('bookingId', body.booking.bookingId);
+          if (body.booking.tripId) pm.environment.set('tripId', body.booking.tripId);
+        }
+      }
+    language: text/javascript
+order: 7000

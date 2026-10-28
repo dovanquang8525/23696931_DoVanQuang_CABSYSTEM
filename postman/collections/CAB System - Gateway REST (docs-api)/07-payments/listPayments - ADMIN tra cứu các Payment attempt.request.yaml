@@ -1,0 +1,57 @@
+$kind: http-request
+name: listPayments | ADMIN tra cứu các Payment attempt
+description: |-
+  Source: docs/api/07-payments.yaml | operationId: listPayments
+
+  ADMIN tra cứu các Payment attempt
+url: "{{baseUrl}}{{apiPrefix}}/admin/payments?page={{page}}&limit={{limit}}"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: page
+    value: "{{page}}"
+    disabled: false
+  - key: limit
+    value: "{{limit}}"
+    disabled: false
+  - key: tripId
+    value: "{{tripId}}"
+    disabled: true
+  - key: status
+    value: PENDING
+    disabled: true
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      const authReference = "{{adminToken}}";
+      const needed = [pm.request.url.toString(), pm.request.body ? pm.request.body.raw : '', authReference];
+      const keys = new Set(needed.join(' ').match(/\{\{[A-Za-z][A-Za-z0-9_]*\}\}/g) || []);
+      for (const token of keys) {
+        const key = token.slice(2,-2);
+        if (!pm.variables.get(key)) throw new Error('Set local environment variable: ' + key);
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      const expected = [200];
+      pm.test('HTTP status matches scenario', () => pm.expect(pm.response.code).to.be.oneOf(expected));
+      pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/application\/json/i));
+      const body = pm.response.json();
+      const schemas = {"200": {"type": "object", "additionalProperties": false, "properties": {"items": {"type": "array", "items": {"type": "object", "additionalProperties": false, "properties": {"paymentId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "tripId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "method": {"type": "string", "enum": ["MOCK_ONLINE"]}, "status": {"type": "string", "enum": ["PENDING", "COMPLETED", "FAILED"]}, "amount": {"type": "integer", "minimum": 0, "maximum": 1000000000000}, "currency": {"type": "string", "enum": ["VND"]}, "referenceCode": {"type": "string", "minLength": 1, "maxLength": 128}, "attemptNumber": {"type": "integer", "minimum": 1, "maximum": 3}, "createdAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "confirmedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "failureCode": {"type": "string", "minLength": 1, "maxLength": 64}}, "required": ["paymentId", "tripId", "method", "status", "amount", "currency", "referenceCode", "attemptNumber", "createdAt"]}}, "page": {"type": "integer", "minimum": 1}, "limit": {"type": "integer", "minimum": 1, "maximum": 50}, "totalItems": {"type": "integer", "minimum": 0, "maximum": 1000000000000}}, "required": ["items", "page", "limit", "totalItems"]}};
+      if (schemas[pm.response.code]) pm.test('Response matches API schema', () => pm.response.to.have.jsonSchema(schemas[pm.response.code]));
+      if (expected.includes(pm.response.code) && pm.response.code < 300) {
+        for (const key of ['customerId','driverId','bookingId','tripId','paymentId','invitationId','notificationId','reviewId','otpId']) {
+          if (body[key]) pm.environment.set(key, body[key]);
+        }
+        if (body.booking) {
+          pm.environment.set('bookingId', body.booking.bookingId);
+          if (body.booking.tripId) pm.environment.set('tripId', body.booking.tripId);
+        }
+      }
+    language: text/javascript
+order: 6000

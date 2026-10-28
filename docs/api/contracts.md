@@ -1,10 +1,35 @@
 # Quy ước hợp đồng CAB MVP
 
+**Validation demo cập nhật 28/10/2026:** Password là String không rỗng (ít nhất 1 ký tự, ví dụ "123" hoặc "a"), không trim và không yêu cầu độ phức tạp; Phone là String không rỗng sau trim (ví dụ "0123", "123", "abc123"), giữ số 0 đầu và vẫn unique. Email giữ định dạng cơ bản. Chỉ áp dụng cho học tập/demo local; không phải chính sách production. Argon2id, JWT, role/ownership và OTP Driver giữ nguyên.
+
+## Hiện hành — đăng ký hai bước và vị trí từ DB (Identity v3)
+
+- Register Customer chỉ nhận email/password/phone, trả 201 gồm accountId/role/cid, không token hoặc profileStatus. Login riêng trả accessToken và account tối giản, không status/tokenType/expiresAt. Auth cấp cid bằng counter MongoDB trong cùng transaction; không nhận cid/did/role/name từ client. ID ObjectId/JWT sub/ownership không đổi.
+- Register Driver nhận cùng ba trường + plateNumber. Lần đầu trả 202 `{status:OTP_REQUIRED,otpId,expiresAt,mockCode?}`, chưa có Account. Lần hai giữ nguyên thông tin, thêm code 6 số; server tra challenge theo phone, kiểm HMAC gắn email/phone/password/plate và xác minh OTP, rồi transaction consume OTP + cấp did + insert Account/outbox. Không cần client nhập otpId. Không lưu password rõ trong pending registration; chỉ Argon2id hash và HMAC request binding. Giữ cooldown 60 giây, expiry 5 phút, sai tối đa 5 lần, rate limit OTP ở cả hai bước.
+- Account Driver hoàn tất OTP vẫn là profile DRAFT. Driver bổ sung licenseNumber (giấy phép demo), rồi Submit để tạo xe BIKE từ plate đã nhập và chuyển PENDING. Plate được kiểm unique ở Driver aggregate lúc tạo/upsert Vehicle; plate trùng khi Submit trả 409. Model BIKE/color Khong ro là giá trị demo có thể sửa bằng API Vehicle hiện có. Không thêm sự kiện hoặc service mới.
+- A=(10.8,106.7), B=(10.81,106.71) là fixture trong demo_locations của booking_db, driver_db và trip_db, được upsert chỉ khi chưa tồn tại lúc service startup. Mỗi service chỉ đọc DB của mình. Không overwrite điểm mẫu đã chỉnh và không giả đây là GPS/bản đồ thật.
+- Booking nhận `{pickupCode:A,destinationCode:B}` (giá trị JSON là string), hoặc cặp coordinates; không trộn hai dạng. Hash idempotency dùng mã đã nhập, snapshot giữ tọa độ/cước cũ ngay cả khi preset sau này thay đổi. Driver/Trip location nhận `{locationCode:A}` thay coordinates; Nearby nhận query locationCode=A hoặc latitude/longitude. Vẫn kiểm tuổi vị trí 120 giây, trạng thái Trip, khoảng cách 1 km và fare snapshot.
+- REST dùng name, login dùng email; password vẫn ít nhất 1 ký tự. Không xóa DB trong lần chỉnh này. Collection cũ vẫn OUTDATED; hướng dẫn nhập tay 30 mục hiện hành ở docs/MANUAL_POSTMAN_30.md.
+
+Phần Identity v2 tiếp theo được bảo toàn làm lịch sử; khi mâu thuẫn về body đăng ký hoặc mã nhập tay thì dùng quy tắc v3 ở trên.
+
+## Identity v2 — quyết định nhập tay hiện hành (27/10/2026)
+
+Theo [quyết định người dùng](IDENTITY_V2_DECISION.md), đăng nhập chỉ nhận `{email,password}`. Email trim/lowercase và unique tại Auth; phone giữ unique để liên hệ/OTP. Password GIỮ ít nhất 1 ký tự; ví dụ quang123. Demo hiện hành chấp nhận "123" và "a".
+
+Register Customer nhận đúng `{cid,password,phone,email}`; Driver nhận `{did,password,phone,email,otpId}`. cid/did là mã hồ sơ tự nhập, unique theo loại, 2–16 ký tự lowercase bắt đầu c/d; không thay customerId/driverId/Account ID ObjectId. Đúng một cid hoặc did suy ra role; cấm gửi role và không có public ADMIN registration. Name ban đầu bằng mã hồ sơ, có thể sửa qua PATCH name sau.
+
+REST dùng **name** thay fullName; mapper chuyển PATCH name thành protobuf full_name và full_name trong response thành name, cả public Driver snapshot. Protobuf/event nội bộ vẫn dùng full_name/fullName; event account.registered bổ sung email và đúng một cid/did. Request OTP public chỉ nhận phone, purpose DRIVER_REGISTRATION do Gateway gán nội bộ. Không thay topology hoặc thêm event type.
+
+Profile.email là contact email của profile; email đăng nhập do Auth sở hữu và không bị thay qua PATCH profile. Đây là hai bản dữ liệu ban đầu giống nhau; chưa có API đổi email đăng nhập. Các collection v3 cũ được bảo toàn, đánh dấu OUTDATED; nghiệm thu hiện hành dùng request gõ tay theo docs/MANUAL_POSTMAN_30.md.
+
 ## 1. Cổng vào và phạm vi
+
+ADMIN tra cứu Customer qua GET `/api/v1/admin/customers`, dùng JWT ADMIN và phân trang. Item danh sách cho phép thiếu cid đối với hồ sơ cũ tạo trước Identity v3; không bỏ hồ sơ hoặc tự gán mã giả để hợp thức hóa dữ liệu. Các endpoint hồ sơ Customer khác vẫn giữ schema hiện hành. Bootstrap sửa Admin cũ là công cụ local `seed.cjs --admin-only --repair-admin --password ...`, chỉ tác động đúng Admin seed ACTIVE sau kiểm tra ID/seedTag/phone/role/email.
 
 REST nghiệp vụ dùng `http://localhost:3000/api/v1`; health Gateway dùng root `http://localhost:3000`. Địa chỉ là cấu hình local mục tiêu, chưa có hệ thống chạy. Không công khai REST/gRPC nghiệp vụ tại các service. Gateway gọi đúng RPC trong rest-grpc-mapping.md; RPC nội bộ không tự động trở thành route public.
 
-Profile Customer/Driver thuộc service riêng; Account ACTIVE có thể đăng nhập khi profile đang chờ event. Register trả 201 kèm profileStatus=PENDING; consumer upsert profile, mục tiêu 5 giây khi khỏe. API phụ thuộc profile chưa có trả 503 PROFILE_NOT_READY, không 404 như hồ sơ chắc không tồn tại hoặc yêu cầu người dùng đăng ký lại.
+Profile Customer/Driver thuộc service riêng; Account ACTIVE có thể đăng nhập khi profile đang chờ event. Register hoàn tất trả 201 chỉ gồm accountId/role/cid hoặc did, không token hoặc profileStatus. Customer không cần OTP; Driver chỉ chờ xác thực ở bước 202 OTP_REQUIRED. Login riêng trả accessToken và account tối giản (accountId, role, cid/did nếu có), không tokenType/expiresAt/status. JWT vẫn có thời hạn nội bộ. Consumer upsert profile, mục tiêu 5 giây khi khỏe. API phụ thuộc profile chưa có trả 503 PROFILE_NOT_READY.
 
 Đây là hợp đồng triển khai, không có dữ liệu DB/secret thật. Nguồn hiện hành là [SRS](../SRS.md), [Bounded Context](../Bounded-Context.md) và [Architecture](../ARCHITECTURE.md), không phải đường dẫn reference/ hoặc tài liệu legacy; bộ hợp đồng cụ thể hóa đường dẫn, tên field/RPC và mã phản hồi, không tự nhận đã sửa tài liệu nguồn hoặc code.
 
@@ -24,7 +49,7 @@ Mỗi RPC tối đa 5 giây, child dùng budget còn lại của parent. Timeout
 | --- | --- |
 | ID nghiệp vụ | String 24 ký tự hex lowercase của ObjectId; eventId UUID, correlationId chuỗi tối đa 128 |
 | Thời gian | RFC3339 UTC string; callback timestamp là Unix seconds integer |
-| Tên field | Protobuf snake_case → REST camelCase bằng mapper rõ ràng; không trả object protobuf nguyên trạng |
+| Tên field | Protobuf snake_case → REST camelCase; ngoại lệ full_name → name theo Identity v2; không trả object protobuf nguyên trạng |
 | Tiền | int64 protobuf → JSON integer trong miền an toàn <=10^12; không trả long string cho REST |
 | fare_amount | optional int64 absent → fareAmount:null; không bật defaults làm thành 0 |
 | Resource lồng chưa có/lỗi | Omit trip/paymentSummary và dùng tripAvailability/paymentAvailability; không dùng null để trộn NOT_CREATED và UNAVAILABLE |

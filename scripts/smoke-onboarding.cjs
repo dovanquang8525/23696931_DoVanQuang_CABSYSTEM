@@ -1,0 +1,38 @@
+'use strict';
+const assert=require('node:assert/strict');
+const crypto=require('node:crypto');
+const h=require('./runtime-http.cjs');
+async function main(){
+  const admin=await h.login('0909000000'),phone='0'+crypto.randomInt(100000000,1000000000),password='Demo-'+crypto.randomBytes(12).toString('hex');
+  const email=phone+'@example.test',registration={phone,email,password,plateNumber:'DEMO-'+phone};
+  const challenge=h.expect(await h.request('POST','/api/v1/auth/register',registration),202,'first Driver registration starts OTP');
+  assert.equal(challenge.status,'OTP_REQUIRED');assert.equal(challenge.accountId,undefined);
+  assert.match(challenge.mockCode,/^\d{6}$/);
+  h.expect(await h.request('POST','/api/v1/auth/login',{email,password}),401,'no account before OTP');
+  h.expect(await h.request('POST','/api/v1/auth/register',registration),429,'OTP cooldown');
+  h.expect(await h.request('POST','/api/v1/auth/register',{...registration,plateNumber:'CHANGED',code:challenge.mockCode}),400,'OTP bound to submitted registration');
+  const wrong=String((Number(challenge.mockCode)+1)%1000000).padStart(6,'0');
+  h.expect(await h.request('POST','/api/v1/auth/register',{...registration,code:wrong}),400,'wrong OTP does not register');
+  const registered=h.expect(await h.request('POST','/api/v1/auth/register',{...registration,code:challenge.mockCode}),201,'second Driver registration completes OTP');
+  assert.match(registered.did,/^d[0-9]+$/);
+  const auth=h.expect(await h.request('POST','/api/v1/auth/login',{email,password}),200,'login new Driver'),driver=auth.accessToken;
+  const profile=await h.poll(()=>h.request('GET','/api/v1/drivers/me',undefined,driver),r=>r.status===200);
+  assert.equal(profile.data.approvalStatus,'DRAFT');
+  h.expect(await h.request('PUT','/api/v1/drivers/me/availability',{isOnline:true},driver),409,'DRAFT cannot online');
+  h.expect(await h.request('PATCH','/api/v1/drivers/me',{licenseNumber:'DEMO-'+phone},driver),200,'license profile');
+  h.expect(await h.request('POST','/api/v1/drivers/me/submissions',{},driver),200,'submit PENDING');
+  const vehicle=h.expect(await h.request('GET','/api/v1/drivers/me/vehicle',undefined,driver),200,'BIKE vehicle from registered plate');
+  assert.equal(vehicle.plateNumber,registration.plateNumber);
+  h.expect(await h.request('PATCH','/api/v1/drivers/me',{name:'Change pending'},driver),409,'PENDING profile locked');
+  const decision='/api/v1/admin/drivers/'+profile.data.driverId+'/approval-decisions';
+  const rejected=h.expect(await h.request('POST',decision,{decision:'REJECTED',reason:'Demo resubmission'},admin),200,'ADMIN reject');
+  assert.equal(rejected.approvalStatus,'REJECTED');
+  h.expect(await h.request('PATCH','/api/v1/drivers/me',{name:'Updated Driver'},driver),200,'edit REJECTED');
+  h.expect(await h.request('POST','/api/v1/drivers/me/submissions',{},driver),200,'resubmit');
+  const approved=h.expect(await h.request('POST',decision,{decision:'APPROVED'},admin),200,'ADMIN approve');
+  assert.equal(approved.approvalStatus,'APPROVED');
+  await h.refresh(driver);
+  h.expect(await h.request('PUT','/api/v1/drivers/me/availability',{isOnline:false},driver),200,'Driver offline');
+  await h.poll(()=>h.request('GET','/api/v1/notifications',undefined,driver),r=>r.status===200&&r.data.items.some(x=>x.type==='driver.approval_changed'));
+}
+void main().then(()=>h.record('onboarding')).catch(error=>{h.record('onboarding',error);console.error('Onboarding failed: '+String(error.message).split('\n')[0]);process.exitCode=1;});

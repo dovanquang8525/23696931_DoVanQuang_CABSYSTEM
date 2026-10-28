@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/auth/otp-challenges/{{otpId}}/verify"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "phone": "{{driver_phone}}",
+      "code": "{{otp_code}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('OTP verified',()=>pm.expect(pm.response.json().verified).to.eql(true));
+    language: text/javascript
+order: 12000

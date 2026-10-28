@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
   title: CAB MVP — Trips
-  version: 1.0.0
-  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa
-    triển khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+  version: 3.0.0
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển
+    khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
 servers:
 - url: http://localhost:3000/api/v1
   description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
@@ -29,73 +29,72 @@ paths:
       - FR18
       - AC42
       responses:
-        '200':
+        "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Trip'
-        '400':
-          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+                $ref: "#/components/schemas/Trip"
+        "400":
+          description: "INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: "FORBIDDEN: sai role, ownership hoặc Account DISABLED."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
-            xử lý.'
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang xử lý."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '429':
-          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: "RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
           headers:
             Retry-After:
               description: Số giây còn lại trong cửa sổ rate limit.
               schema:
                 type: integer
                 minimum: 1
-        '500':
-          description: 'INTERNAL_ERROR: không trả stack trace.'
+        "500":
+          description: "INTERNAL_ERROR: không trả stack trace."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '503':
+                $ref: "#/components/schemas/Error"
+        "503":
           description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '504':
+                $ref: "#/components/schemas/Error"
+        "504":
           description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
       parameters:
       - name: tripId
         in: path
@@ -105,16 +104,17 @@ paths:
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        description: ''
+          example: "000000000000000000000001"
+        description: ""
   /trips/{tripId}/arrival:
     post:
       tags:
       - Trips
       operationId: arriveTrip
-      summary: 'Đến điểm đón: ASSIGNED → ARRIVED'
-      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công
-        trả kết quả đã lưu, không sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ COMPLETED/fareAmount=null.
+      summary: "Đến điểm đón: ASSIGNED → ARRIVED"
+      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công trả
+        kết quả đã lưu, không sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ
+        COMPLETED/fareAmount=null.
       x-grpc: cab.trip.v1.TripService/ArriveTrip
       x-allowed-roles:
       - DRIVER
@@ -124,73 +124,72 @@ paths:
       - AC45
       - AC46
       responses:
-        '200':
+        "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Trip'
-        '400':
-          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+                $ref: "#/components/schemas/Trip"
+        "400":
+          description: "INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: "FORBIDDEN: sai role, ownership hoặc Account DISABLED."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
-            xử lý.'
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang xử lý."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '429':
-          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: "RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
           headers:
             Retry-After:
               description: Số giây còn lại trong cửa sổ rate limit.
               schema:
                 type: integer
                 minimum: 1
-        '500':
-          description: 'INTERNAL_ERROR: không trả stack trace.'
+        "500":
+          description: "INTERNAL_ERROR: không trả stack trace."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '503':
+                $ref: "#/components/schemas/Error"
+        "503":
           description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '504':
+                $ref: "#/components/schemas/Error"
+        "504":
           description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
       parameters:
       - name: tripId
         in: path
@@ -200,14 +199,14 @@ paths:
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        description: ''
+          example: "000000000000000000000001"
+        description: ""
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmptyInput'
+              $ref: "#/components/schemas/EmptyInput"
             examples:
               demo:
                 summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
@@ -217,9 +216,10 @@ paths:
       tags:
       - Trips
       operationId: startTrip
-      summary: 'Bắt đầu: ARRIVED → IN_PROGRESS'
-      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công
-        trả kết quả đã lưu, không sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ COMPLETED/fareAmount=null.
+      summary: "Bắt đầu: ARRIVED → IN_PROGRESS"
+      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công trả
+        kết quả đã lưu, không sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ
+        COMPLETED/fareAmount=null.
       x-grpc: cab.trip.v1.TripService/StartTrip
       x-allowed-roles:
       - DRIVER
@@ -229,73 +229,72 @@ paths:
       - AC45
       - AC46
       responses:
-        '200':
+        "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Trip'
-        '400':
-          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+                $ref: "#/components/schemas/Trip"
+        "400":
+          description: "INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: "FORBIDDEN: sai role, ownership hoặc Account DISABLED."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
-            xử lý.'
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang xử lý."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '429':
-          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: "RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
           headers:
             Retry-After:
               description: Số giây còn lại trong cửa sổ rate limit.
               schema:
                 type: integer
                 minimum: 1
-        '500':
-          description: 'INTERNAL_ERROR: không trả stack trace.'
+        "500":
+          description: "INTERNAL_ERROR: không trả stack trace."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '503':
+                $ref: "#/components/schemas/Error"
+        "503":
           description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '504':
+                $ref: "#/components/schemas/Error"
+        "504":
           description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
       parameters:
       - name: tripId
         in: path
@@ -305,14 +304,14 @@ paths:
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        description: ''
+          example: "000000000000000000000001"
+        description: ""
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmptyInput'
+              $ref: "#/components/schemas/EmptyInput"
             examples:
               demo:
                 summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
@@ -322,9 +321,10 @@ paths:
       tags:
       - Trips
       operationId: completeTrip
-      summary: 'Hoàn thành và tính cước: IN_PROGRESS → COMPLETED'
-      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công
-        trả kết quả đã lưu, không sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ COMPLETED/fareAmount=null.
+      summary: "Hoàn thành và tính cước: IN_PROGRESS → COMPLETED"
+      description: Chỉ Driver được phân công, assignmentConfirmed=true. CAS trạng thái; lặp mốc đã thành công trả
+        kết quả đã lưu, không sửa timestamp. Sai thứ tự 409. Cước từ server; thiếu snapshot giữ
+        COMPLETED/fareAmount=null.
       x-grpc: cab.trip.v1.TripService/CompleteTrip
       x-allowed-roles:
       - DRIVER
@@ -334,73 +334,72 @@ paths:
       - AC53
       - AC46
       responses:
-        '200':
+        "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Trip'
-        '400':
-          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+                $ref: "#/components/schemas/Trip"
+        "400":
+          description: "INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: "FORBIDDEN: sai role, ownership hoặc Account DISABLED."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
-            xử lý.'
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang xử lý."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '429':
-          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: "RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
           headers:
             Retry-After:
               description: Số giây còn lại trong cửa sổ rate limit.
               schema:
                 type: integer
                 minimum: 1
-        '500':
-          description: 'INTERNAL_ERROR: không trả stack trace.'
+        "500":
+          description: "INTERNAL_ERROR: không trả stack trace."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '503':
+                $ref: "#/components/schemas/Error"
+        "503":
           description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '504':
+                $ref: "#/components/schemas/Error"
+        "504":
           description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
       parameters:
       - name: tripId
         in: path
@@ -410,14 +409,14 @@ paths:
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        description: ''
+          example: "000000000000000000000001"
+        description: ""
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmptyInput'
+              $ref: "#/components/schemas/EmptyInput"
             examples:
               demo:
                 summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
@@ -428,8 +427,7 @@ paths:
       - Trips
       operationId: updateTripLocation
       summary: Cập nhật vị trí trong chuyến IN_PROGRESS
-      description: Đúng Driver/Trip và trạng thái; lưu Trip trước, đồng bộ Driver gRPC có dữ liệu retry khi
-        lỗi.
+      description: Đúng Driver/Trip và trạng thái; lưu Trip trước, đồng bộ Driver gRPC có dữ liệu retry khi lỗi.
       x-grpc: cab.trip.v1.TripService/UpdateTripLocation
       x-allowed-roles:
       - DRIVER
@@ -439,73 +437,72 @@ paths:
       - AC47
       - AC48
       responses:
-        '200':
+        "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Location'
-        '400':
-          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+                $ref: "#/components/schemas/Location"
+        "400":
+          description: "INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: "FORBIDDEN: sai role, ownership hoặc Account DISABLED."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
-            xử lý.'
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang xử lý."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '429':
-          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: "RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
           headers:
             Retry-After:
               description: Số giây còn lại trong cửa sổ rate limit.
               schema:
                 type: integer
                 minimum: 1
-        '500':
-          description: 'INTERNAL_ERROR: không trả stack trace.'
+        "500":
+          description: "INTERNAL_ERROR: không trả stack trace."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '503':
+                $ref: "#/components/schemas/Error"
+        "503":
           description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '504':
+                $ref: "#/components/schemas/Error"
+        "504":
           description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
       parameters:
       - name: tripId
         in: path
@@ -515,20 +512,49 @@ paths:
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        description: ''
+          example: "000000000000000000000001"
+        description: ""
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Coordinates'
+              type: object
+              additionalProperties: false
+              properties:
+                latitude:
+                  type: number
+                  minimum: -90
+                  maximum: 90
+                longitude:
+                  type: number
+                  minimum: -180
+                  maximum: 180
+                locationCode:
+                  type: string
+                  minLength: 1
+                  maxLength: 16
+                  pattern: ^[A-Z][A-Z0-9]{0,15}$
+                  example: A
+              oneOf:
+              - required:
+                - locationCode
+                not:
+                  anyOf:
+                  - required:
+                    - latitude
+                  - required:
+                    - longitude
+              - required:
+                - latitude
+                - longitude
+                not:
+                  required:
+                  - locationCode
             examples:
               demo:
-                summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
                 value:
-                  latitude: 10.805
-                  longitude: 106.705
+                  locationCode: B
   /admin/trips:
     get:
       tags:
@@ -544,73 +570,72 @@ paths:
       - FR36
       - FR37
       responses:
-        '200':
+        "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TripPage'
-        '400':
-          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+                $ref: "#/components/schemas/TripPage"
+        "400":
+          description: "INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: "FORBIDDEN: sai role, ownership hoặc Account DISABLED."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
-            xử lý.'
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang xử lý."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '429':
-          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: "RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
           headers:
             Retry-After:
               description: Số giây còn lại trong cửa sổ rate limit.
               schema:
                 type: integer
                 minimum: 1
-        '500':
-          description: 'INTERNAL_ERROR: không trả stack trace.'
+        "500":
+          description: "INTERNAL_ERROR: không trả stack trace."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '503':
+                $ref: "#/components/schemas/Error"
+        "503":
           description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '504':
+                $ref: "#/components/schemas/Error"
+        "504":
           description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
       parameters:
       - name: page
         in: query
@@ -619,7 +644,7 @@ paths:
           type: integer
           minimum: 1
           default: 1
-        description: ''
+        description: ""
       - name: limit
         in: query
         required: false
@@ -628,7 +653,7 @@ paths:
           minimum: 1
           maximum: 50
           default: 10
-        description: ''
+        description: ""
       - name: customerId
         in: query
         required: false
@@ -637,8 +662,8 @@ paths:
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        description: ''
+          example: "000000000000000000000001"
+        description: ""
       - name: driverId
         in: query
         required: false
@@ -647,8 +672,8 @@ paths:
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        description: ''
+          example: "000000000000000000000001"
+        description: ""
       - name: status
         in: query
         required: false
@@ -660,7 +685,7 @@ paths:
           - IN_PROGRESS
           - COMPLETED
           - CANCELED
-        description: ''
+        description: ""
 components:
   securitySchemes:
     BearerAuth:
@@ -693,19 +718,24 @@ components:
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        fullName:
+          example: "000000000000000000000001"
+        name:
           type: string
           minLength: 1
           maxLength: 100
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
-            khi hiển thị vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
+            vẫn escape theo ngữ cảnh.
         vehicle:
-          $ref: '#/components/schemas/Vehicle'
+          $ref: "#/components/schemas/Vehicle"
+        did:
+          type: string
+          minLength: 2
+          maxLength: 16
+          pattern: ^d[a-z0-9]{1,15}$
       required:
       - driverId
-      - fullName
+      - name
       - vehicle
     EmptyInput:
       type: object
@@ -752,7 +782,7 @@ components:
         updatedAt:
           type: string
           format: date-time
-          example: '2026-10-27T00:00:00Z'
+          example: 2026-10-27T00:00:00Z
       required:
       - latitude
       - longitude
@@ -761,16 +791,16 @@ components:
       type: object
       additionalProperties: false
       properties:
-        tripId: &id001
+        tripId: &a1
           type: string
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        bookingId: *id001
-        customerId: *id001
-        driverId: *id001
-        vehicleId: *id001
+          example: "000000000000000000000001"
+        bookingId: *a1
+        customerId: *a1
+        driverId: *a1
+        vehicleId: *a1
         status:
           type: string
           enum:
@@ -780,34 +810,34 @@ components:
           - COMPLETED
           - CANCELED
         pickup:
-          $ref: '#/components/schemas/Coordinates'
+          $ref: "#/components/schemas/Coordinates"
         destination:
-          $ref: '#/components/schemas/Coordinates'
+          $ref: "#/components/schemas/Coordinates"
         vehicleType:
           type: string
           enum:
           - BIKE
         driver:
-          $ref: '#/components/schemas/DriverPublic'
+          $ref: "#/components/schemas/DriverPublic"
         distanceKm:
           type: number
           minimum: 0
         fareAmount:
-          $ref: '#/components/schemas/Fare'
+          $ref: "#/components/schemas/Fare"
         currency:
           type: string
           enum:
           - VND
         latestLocation:
-          $ref: '#/components/schemas/Location'
-        assignedAt: &id002
+          $ref: "#/components/schemas/Location"
+        assignedAt: &a2
           type: string
           format: date-time
-          example: '2026-10-27T00:00:00Z'
-        arrivedAt: *id002
-        startedAt: *id002
-        completedAt: *id002
-        canceledAt: *id002
+          example: 2026-10-27T00:00:00Z
+        arrivedAt: *a2
+        startedAt: *a2
+        completedAt: *a2
+        canceledAt: *a2
       required:
       - tripId
       - bookingId
@@ -830,7 +860,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/Trip'
+            $ref: "#/components/schemas/Trip"
         page:
           type: integer
           minimum: 1
@@ -851,20 +881,20 @@ components:
       type: object
       additionalProperties: false
       properties:
-        vehicleId: &id003
+        vehicleId: &a3
           type: string
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        driverId: *id003
+          example: "000000000000000000000001"
+        driverId: *a3
         plateNumber:
           type: string
           minLength: 1
           maxLength: 20
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
-            khi hiển thị vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
+            vẫn escape theo ngữ cảnh.
         vehicleType:
           type: string
           enum:
@@ -874,15 +904,15 @@ components:
           minLength: 1
           maxLength: 100
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
-            khi hiển thị vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
+            vẫn escape theo ngữ cảnh.
         color:
           type: string
           minLength: 1
           maxLength: 30
           pattern: ^[^<>]*$
-          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script;
-            khi hiển thị vẫn escape theo ngữ cảnh.
+          description: Văn bản thuần; trim trước kiểm tra. Demo từ chối dấu < > để không nhận HTML/script; khi hiển thị
+            vẫn escape theo ngữ cảnh.
         isActive:
           type: boolean
           enum:

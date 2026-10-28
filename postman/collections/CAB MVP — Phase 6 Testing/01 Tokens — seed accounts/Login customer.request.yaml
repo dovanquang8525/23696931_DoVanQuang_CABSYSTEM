@@ -1,0 +1,56 @@
+$kind: http-request
+description: |-
+  AC: AC05, AC06
+  Phone/password, Account ACTIVE. 10 request/phút/IP. Sai credential 401 không tiết lộ tài khoản tồn tại. JWT 60 phút.
+url: "{{base_url}}/api/v1/auth/login"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "phone": "{{customer_phone}}",
+      "password": "{{customer_password}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    code: |-
+      (function () {
+      const prereq = [];
+      const absent=prereq.filter(k=>!String(pm.environment.get(k)||'').trim());
+      if(absent.length){pm.execution.skipRequest();throw new Error('BLOCKED: thiếu tiên quyết '+absent.join(', '));}
+
+      const required = ["base_url", "customer_password", "customer_phone"];
+      const missing = required.filter(k => !String(pm.environment.get(k) || '').trim());
+      if (missing.length) { pm.execution.skipRequest(); throw new Error('BLOCKED: thiếu environment: ' + missing.join(', ')); }
+      })();
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      (function () {
+      const expected = 200;
+      pm.test('HTTP đúng kỳ vọng: '+expected, function () { pm.expect(pm.response.code).to.eql(expected); });
+      pm.test('Phản hồi JSON', function () { pm.expect((pm.response.headers.get('Content-Type') || '').toLowerCase()).to.include('application/json'); });
+      let j;
+      try { j=pm.response.json(); } catch (e) { throw new Error('Response không phải JSON hợp lệ'); }
+      function noSecrets(v) {
+        if (!v || typeof v !== 'object') return;
+        Object.keys(v).forEach(k => { if (['passwordHash','codeHash','secret','signingKey','licenseNumberEncrypted','stack','stackTrace'].includes(k)) throw new Error('Lộ field nhạy cảm: '+k); noSecrets(v[k]); });
+      }
+      pm.test('Không lộ hash/key/stack trong JSON', function () { noSecrets(j); });
+      if (pm.response.code !== expected) { pm.execution.setNextRequest(null); return; }
+      if (expected>=400) pm.test('Error envelope',function(){ ['code','message','requestId'].forEach(k=>pm.expect(j[k]).to.be.a('string').and.not.empty); });
+
+
+      pm.test('Đúng role CUSTOMER',()=>pm.expect(j.account.role).to.eql('CUSTOMER'));
+      pm.test('JWT và Account ACTIVE',()=>{pm.expect(j.accessToken).to.be.a('string').and.not.empty;pm.expect(j.account.status).to.eql('ACTIVE');});
+      if (j.account.role!=='CUSTOMER' || !j.accessToken) { pm.execution.setNextRequest(null); return; }
+      pm.environment.set('customer_token',j.accessToken);
+      pm.environment.set('customer_account_id',j.account.accountId);
+      })();
+    language: text/javascript
+order: 1000

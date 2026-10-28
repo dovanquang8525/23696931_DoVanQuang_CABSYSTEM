@@ -29,26 +29,35 @@ message OtpVerification {
 message RegisterRequest {
   string phone = 1;
   string password = 2;
-  string full_name = 3;
-  cab.common.v1.Account.Role role = 4;
-  optional string otp_id = 5;
+  reserved 3, 4, 5; // Former name/role/OTP proof input. Current Driver confirmation uses code + phone.
+  string email = 6;
+  reserved 7, 8; // Former client-supplied profile codes; now allocated by Auth.
+  optional string plate_number = 9;
+  optional string code = 10;
 }
 
 message Registration {
   string account_id = 1;
   cab.common.v1.Account.Role role = 2;
-  string profile_status = 3;
+  reserved 3; // Removed profile_status: registration completion is not OTP pending.
+  optional string cid = 4;
+  optional string did = 5;
+  string status = 6;
+  string otp_id = 7;
+  string expires_at = 8;
+  optional string mock_code = 9;
+  reserved 10, 11, 12; // Registration does not issue a session.
 }
 
 message LoginRequest {
-  string phone = 1;
+  reserved 1; // Former phone login; do not reuse its wire tag.
   string password = 2;
+  string email = 3;
 }
 
 message Session {
   string access_token = 1;
-  string token_type = 2;
-  string expires_at = 3;
+  reserved 2, 3; // Omit token type and expiry from the public login response.
   cab.common.v1.Account account = 4;
 }
 

@@ -110,7 +110,7 @@
   {
     "method": "cab.driver.v1.DriverService/UpdateDriverLocation",
     "allowedPeers": "gateway",
-    "requestType": "cab.common.v1.Coordinates",
+    "requestType": "DriverLocationInput",
     "responseType": "cab.common.v1.Location"
   },
   {

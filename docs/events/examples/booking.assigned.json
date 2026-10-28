@@ -22,7 +22,8 @@
         "model": "Demo Bike",
         "color": "Black",
         "isActive": true
-      }
+      },
+      "did": "d01"
     }
   }
 }

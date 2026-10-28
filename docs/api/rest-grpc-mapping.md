@@ -1,5 +1,9 @@
 # REST → gRPC mapping
 
+Identity v3: Register không nhận cid/did/role/name/otpId. Driver có plateNumber, lần đầu trả OTP_REQUIRED 202; lần sau thêm code, tạo account 201. Protobuf RegisterRequest dành riêng tag 3/4/5/7/8 cũ, plate_number tag9 và code tag10. DriverLocationInput/UpdateTripLocationRequest/NearbyRequest có location_code; Booking Create có pickup_code/destination_code. Danh sách 47 REST operation/peer allowlist giữ nguyên, chỉ mở rộng request/response của operation đã có.
+
+Identity v2: Register dùng cid/did/email và không nhận role/name; Login dùng email, password. RequestOtp REST chỉ có phone, Gateway đặt purpose DRIVER_REGISTRATION vào RPC nội bộ. PATCH name được map sang full_name trong Customer/Driver RPC; response full_name thành REST name. Các ID nội bộ và danh sách RPC/REST endpoint dưới đây giữ nguyên. Register protobuf dành riêng các tag cũ 3/4; Login dành riêng tag phone cũ 1, email dùng tag mới 3.
+
 Base path: /api/v1, trừ Health dùng root. Đây là contract mapping, chưa phải routing đã chạy.
 
 | YAML | Method | REST path | operationId | Target |

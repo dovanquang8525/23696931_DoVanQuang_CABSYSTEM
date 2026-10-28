@@ -1,0 +1,5 @@
+# Offline Postman contract checker dependencies; not backend runtime dependencies.
+PyYAML>=6.0,<7
+jsonschema>=4.20,<5
+# Read the original grading PDF without changing the source document.
+pypdf>=5,<7

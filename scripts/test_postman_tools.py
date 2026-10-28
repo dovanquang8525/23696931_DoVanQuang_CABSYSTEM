@@ -5,7 +5,6 @@ Uses synthetic credentials only. Never generates or rewrites a collection.
 import copy
 import hashlib
 import hmac
-import importlib.util
 import json
 import os
 from pathlib import Path
@@ -19,6 +18,7 @@ sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 from prepare_callback import prepare, write_private_environment
+from postman_io import load_environment
 
 
 class PostmanToolTests(unittest.TestCase):
@@ -115,21 +115,43 @@ class PostmanToolTests(unittest.TestCase):
             self.assertNotEqual(refused.returncode, 0)
             self.assertEqual(digest, hashlib.sha256(primary_out.read_bytes()).hexdigest())
 
-    def test_generator_never_targets_live_artifacts(self):
-        paths = list((ROOT / 'postman/collections').glob('*.json'))
-        paths += list((ROOT / 'postman/environments').glob('*.json'))
-        paths.append(ROOT / 'postman/documents/api-source-manifest.json')
-        before = {p: p.read_bytes() for p in paths}
-        spec = importlib.util.spec_from_file_location('candidate_generator', ROOT / 'scripts/sync_postman.py')
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)  # Import must have no output side effects.
-        for target in [ROOT / 'postman', ROOT / 'postman/collections', ROOT / 'docs/api', ROOT / '.local/postman-candidates', ROOT / '.local/postman-candidates/../escape']:
-            with self.subTest(target=target.name), self.assertRaises(ValueError):
-                module.candidate_directory(target)
-        for arguments in [[], ['--output-dir', str(ROOT / 'postman')]]:
-            refused = subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/sync_postman.py')] + arguments, capture_output=True)
-            self.assertNotEqual(refused.returncode, 0)
-        self.assertEqual(before, {p: p.read_bytes() for p in paths})
+    def test_yaml_input_output_preserves_signed_bytes_and_session(self):
+        with tempfile.TemporaryDirectory(prefix='cab-postman-yaml-') as folder:
+            work = Path(folder).resolve()
+            source = work / '.env.session.yaml'
+            source.write_text(
+                'name: synthetic\nvalues:\n'
+                '  - key: baseUrl\n    value: http://localhost:3000\n'
+                '  - key: customer_token\n    value: synthetic-token\n'
+                '  - key: booking_original\n    value: \'{"status":"SEARCHING"}\'\n',
+                encoding='utf-8')
+            environment = load_environment(source)
+            prepared = prepare(**{**self.kwargs, 'environment': environment})
+            output = work / '.env.signed.yaml'
+            write_private_environment(output, prepared)
+            restored = load_environment(output)
+            values = {entry['key']: entry['value'] for entry in restored['values']}
+            original_values = {entry['key']: entry['value'] for entry in prepared['values']}
+            self.assertEqual(values, original_values)
+            self.assertEqual(values['baseUrl'], 'http://localhost:3000')
+            self.assertEqual(values['customer_token'], 'synthetic-token')
+            self.assertEqual(values['booking_original'], '{"status":"SEARCHING"}')
+            self.assertNotIn(self.secret, output.read_text(encoding='utf-8'))
+            with self.assertRaises(ValueError):
+                write_private_environment(output, prepared)
+
+    def test_live_v3_artifacts_are_not_private_signer_output(self):
+        paths = list((ROOT / 'postman/collections').rglob('*.yaml'))
+        paths += list((ROOT / 'postman/environments').glob('*'))
+        paths = [path for path in paths if path.is_file()]
+        before = {path: path.read_bytes() for path in paths}
+        prepared = prepare(**self.kwargs)
+        for target in [ROOT / 'postman/environments/new.environment.yaml',
+                       ROOT / 'postman/collections/new.request.yaml',
+                       ROOT / 'postman/documents/api-source-manifest.json']:
+            with self.subTest(path=target.name), self.assertRaises(ValueError):
+                write_private_environment(target, prepared)
+        self.assertEqual(before, {path: path.read_bytes() for path in paths})
 
 
 if __name__ == '__main__':

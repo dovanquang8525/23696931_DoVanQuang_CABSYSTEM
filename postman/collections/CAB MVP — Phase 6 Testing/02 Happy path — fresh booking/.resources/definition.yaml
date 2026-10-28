@@ -1,0 +1,3 @@
+$kind: collection
+description: "Fixture: Driver seed là ứng viên gần nhất, không bận; mock SUCCESS tự callback qua Gateway. Runner delay 500 ms; poll tối đa poll_limit. Không chạy thủ công chậm quá offer 30 giây."
+order: 3000

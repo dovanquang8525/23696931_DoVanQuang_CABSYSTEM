@@ -1,0 +1,3 @@
+$kind: collection
+description: Các test lỗi kỳ vọng 400/401/403/409 không được chấp nhận 500 hoặc 503 như PASS. JWT thật của Customer2 phải hợp lệ để chứng minh ownership. Cần Trip hủy từ folder 04.
+order: 6000

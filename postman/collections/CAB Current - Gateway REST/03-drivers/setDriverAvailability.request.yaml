@@ -1,0 +1,37 @@
+$kind: http-request
+description: Chọn từng request theo postman/README.md. Không Run toàn bộ collection. Mọi request qua Gateway; cần fixture đúng trạng thái.
+url: "{{baseUrl}}/api/v1/drivers/me/availability"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "isOnline": true
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{driverToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP status', () => pm.expect(pm.response.code).to.be.oneOf([200]));
+      const data = pm.response.json();
+      pm.test('JSON response', () => pm.expect(data).to.be.an('object'));
+      if (pm.response.code < 300) {
+      if (data.customerId) pm.environment.set('customerId', data.customerId);
+      if (data.driverId) pm.environment.set('driverId', data.driverId);
+      if (data.bookingId) pm.environment.set('bookingId', data.bookingId);
+      if (data.tripId) pm.environment.set('tripId', data.tripId);
+      if (data.paymentId) pm.environment.set('paymentId', data.paymentId);
+      if (data.notificationId) pm.environment.set('notificationId', data.notificationId);
+      if (data.otpId) pm.environment.set('otpId', data.otpId);
+      if (data.trip?.tripId) pm.environment.set('tripId', data.trip.tripId);
+      if (data.mockCode) pm.environment.set('otpCode', data.mockCode);
+      if (data.accessToken) pm.environment.set('driverToken', data.accessToken);
+      if (Array.isArray(data.items) && 'setDriverAvailability' === 'listMyInvitations') { const offer = data.items.find(x => x.bookingId === pm.environment.get('bookingId') && x.status === 'PENDING'); if (offer) pm.environment.set('invitationId', offer.invitationId); }
+      }
+    language: text/javascript
+order: 7000

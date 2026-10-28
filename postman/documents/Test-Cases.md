@@ -18,7 +18,7 @@ Mỗi lần thử lưu runId, commit/version, môi trường, thời điểm, fi
 
 - **Liên kết:** FR01 / UC01.
 - **Loại / công cụ:** positive / POSTMAN.
-- **Tiền điều kiện và dữ liệu:** Số mới, password 8–64 ký tự; profile consumer khỏe.
+- **Tiền điều kiện và dữ liệu:** Số mới, password ít nhất 1 ký tự; profile consumer khỏe.
 - **Bước thực hiện:** POST /auth/register role CUSTOMER; login; poll GET /customers/me; đối chiếu một Account và một CustomerProfile, không DriverProfile..
 - **Kết quả mong đợi:** Tạo Account ACTIVE role CUSTOMER; profileStatus=PENDING khi chưa đồng bộ; trong 5 giây khi khỏe có một CustomerProfile liên kết và không có DriverProfile.
 - **Trạng thái:** BLOCKED — Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.
@@ -39,7 +39,7 @@ Mỗi lần thử lưu runId, commit/version, môi trường, thời điểm, fi
 - **Liên kết:** FR01 / UC01.
 - **Loại / công cụ:** negative/boundary / POSTMAN.
 - **Tiền điều kiện và dữ liệu:** Tách dữ liệu từng lần; không dùng phone đã tồn tại cho mọi biến thể.
-- **Bước thực hiện:** Thử thiếu phone; phone 9/11 số hoặc không bắt đầu 0; password 7/65 ký tự; phone trùng. Mỗi biến thể 400 hoặc 409 đúng lỗi, không có Account mới..
+- **Bước thực hiện:** Thử thiếu phone; phone rỗng/null/sai kiểu, phone chỉ có khoảng trắng; password rỗng/null/sai kiểu; phone trùng. Mỗi biến thể 400 hoặc 409 đúng lỗi, không có Account mới..
 - **Kết quả mong đợi:** Từ chối đăng ký; không báo thành công hoặc tạo thêm tài khoản.
 - **Trạng thái:** BLOCKED — Backend/hạ tầng hoặc repository kiểm chứng chưa sẵn sàng trong bộ nguồn hiện tại.
 - **Actual / evidence:** chưa có.

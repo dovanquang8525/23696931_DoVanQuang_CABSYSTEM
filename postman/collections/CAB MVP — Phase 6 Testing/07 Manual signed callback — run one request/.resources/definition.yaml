@@ -1,0 +1,3 @@
+$kind: collection
+description: "Cần Payment PENDING riêng, mock DELAYED; dùng tools/prepare_callback.py ký bằng secret local và import environment kết quả. Không chạy cả folder một lần: lần đầu duplicate=false, gửi lại nguyên request duplicate=true, chỉnh expected tương ứng."
+order: 8000

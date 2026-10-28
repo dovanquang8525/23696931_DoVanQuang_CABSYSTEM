@@ -1,0 +1,440 @@
+name: cab-system
+
+x-node: &node
+    image: cab-backend:local
+    build:
+        context: .
+        dockerfile: infra/node.Dockerfile
+    init: true
+    networks: [cab-internal]
+
+x-business-env: &business-env
+    JWT_SECRET: ${JWT_SECRET:?Missing JWT secret}
+    AUTH_GRPC_HOST: auth_service
+    AUTH_GRPC_PORT: "50051"
+    CUSTOMER_GRPC_HOST: customer_service
+    CUSTOMER_GRPC_PORT: "50052"
+    DRIVER_GRPC_HOST: driver_service
+    DRIVER_GRPC_PORT: "50053"
+    BOOKING_GRPC_HOST: booking_service
+    BOOKING_GRPC_PORT: "50054"
+    TRIP_GRPC_HOST: trip_service
+    TRIP_GRPC_PORT: "50055"
+    PAYMENT_GRPC_HOST: payment_service
+    PAYMENT_GRPC_PORT: "50056"
+    RABBITMQ_HOST: rabbitmq
+    RABBITMQ_PORT: "5672"
+    RABBITMQ_VHOST: ${RABBITMQ_VHOST:-cab}
+    RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?Missing RabbitMQ username}
+    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Missing RabbitMQ password}
+    RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-cab.events}
+
+services:
+    mongo:
+        image: mongo:8
+        ports:
+            - "127.0.0.1:27018:27017"
+        restart: unless-stopped
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ROOT_USERNAME:?Run npm run setup:local}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD:?Run npm run setup:local}
+            MONGODB_REPLICA_KEY: ${MONGODB_REPLICA_KEY:?Run npm run setup:local}
+        entrypoint: ["/bin/bash", "-ec"]
+        command:
+            - |
+                install -d -m 700 -o mongodb -g mongodb /run/cab-mongo
+                printf '%s' "$$MONGODB_REPLICA_KEY" > /run/cab-mongo/keyfile
+                chmod 400 /run/cab-mongo/keyfile
+                chown mongodb:mongodb /run/cab-mongo/keyfile
+                exec /usr/local/bin/docker-entrypoint.sh mongod --replSet rs0 --keyFile /run/cab-mongo/keyfile --bind_ip_all
+        volumes:
+            - mongo-data:/data/db
+            - mongo-config:/data/configdb
+        networks: [cab-internal]
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - >-
+                    mongosh --quiet --host 127.0.0.1
+                    --username "$$MONGO_INITDB_ROOT_USERNAME"
+                    --password "$$MONGO_INITDB_ROOT_PASSWORD"
+                    --authenticationDatabase admin
+                    --eval 'try { db.adminCommand({ping:1}); const s=db.adminCommand({replSetGetStatus:1}); if(s.ok === 1) { print("MongoDB reachable; replica set initialized"); quit(0); } print("MongoDB replica probe returned non-success"); quit(1); } catch(e) { if(e.code === 94) { print("MongoDB reachable; awaiting infra_init replica initialization"); quit(0); } print("MongoDB health probe failed; code=" + (e.code || "UNKNOWN")); quit(1); }'
+            interval: 5s
+            timeout: 5s
+            retries: 30
+            start_period: 20s
+
+    redis:
+        image: redis:7
+        restart: unless-stopped
+        environment:
+            REDIS_PASSWORD: ${REDIS_PASSWORD:?Run npm run setup:local}
+        command: ["/bin/sh", "-ec", 'exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"']
+        volumes: [redis-data:/data]
+        networks: [cab-internal]
+        healthcheck:
+            test: ["CMD-SHELL", 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+            interval: 5s
+            timeout: 3s
+            retries: 20
+
+    rabbitmq:
+        image: rabbitmq:4-management
+        ports:
+            - "127.0.0.1:15672:15672"
+        restart: unless-stopped
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:?Missing RABBITMQ_USERNAME}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Run npm run setup:local}
+            RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-cab}
+        volumes: [rabbitmq-data:/var/lib/rabbitmq]
+        networks: [cab-internal]
+        healthcheck:
+            test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 30
+            start_period: 20s
+
+    infra_init:
+        <<: *node
+        restart: "no"
+        command: ["node", "scripts/bootstrap-infra.cjs"]
+        depends_on:
+            mongo: { condition: service_healthy }
+            rabbitmq: { condition: service_healthy }
+        environment:
+            MONGODB_HOST: mongo
+            MONGODB_PORT: "27017"
+            MONGODB_AUTH_SOURCE: admin
+            MONGODB_REPLICA_SET: rs0
+            MONGODB_ROOT_USERNAME: ${MONGODB_ROOT_USERNAME:?Missing root username}
+            MONGODB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD:?Missing root password}
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: "5672"
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-cab}
+            RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?Missing RabbitMQ username}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Missing RabbitMQ password}
+            RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-cab.events}
+            AUTH_MONGODB_DATABASE: ${AUTH_MONGODB_DATABASE:?Missing AUTH database setting}
+            AUTH_MONGODB_USERNAME: ${AUTH_MONGODB_USERNAME:?Missing AUTH database setting}
+            AUTH_MONGODB_PASSWORD: ${AUTH_MONGODB_PASSWORD:?Missing AUTH database setting}
+            CUSTOMER_MONGODB_DATABASE: ${CUSTOMER_MONGODB_DATABASE:?Missing CUSTOMER database setting}
+            CUSTOMER_MONGODB_USERNAME: ${CUSTOMER_MONGODB_USERNAME:?Missing CUSTOMER database setting}
+            CUSTOMER_MONGODB_PASSWORD: ${CUSTOMER_MONGODB_PASSWORD:?Missing CUSTOMER database setting}
+            DRIVER_MONGODB_DATABASE: ${DRIVER_MONGODB_DATABASE:?Missing DRIVER database setting}
+            DRIVER_MONGODB_USERNAME: ${DRIVER_MONGODB_USERNAME:?Missing DRIVER database setting}
+            DRIVER_MONGODB_PASSWORD: ${DRIVER_MONGODB_PASSWORD:?Missing DRIVER database setting}
+            BOOKING_MONGODB_DATABASE: ${BOOKING_MONGODB_DATABASE:?Missing BOOKING database setting}
+            BOOKING_MONGODB_USERNAME: ${BOOKING_MONGODB_USERNAME:?Missing BOOKING database setting}
+            BOOKING_MONGODB_PASSWORD: ${BOOKING_MONGODB_PASSWORD:?Missing BOOKING database setting}
+            TRIP_MONGODB_DATABASE: ${TRIP_MONGODB_DATABASE:?Missing TRIP database setting}
+            TRIP_MONGODB_USERNAME: ${TRIP_MONGODB_USERNAME:?Missing TRIP database setting}
+            TRIP_MONGODB_PASSWORD: ${TRIP_MONGODB_PASSWORD:?Missing TRIP database setting}
+            PAYMENT_MONGODB_DATABASE: ${PAYMENT_MONGODB_DATABASE:?Missing PAYMENT database setting}
+            PAYMENT_MONGODB_USERNAME: ${PAYMENT_MONGODB_USERNAME:?Missing PAYMENT database setting}
+            PAYMENT_MONGODB_PASSWORD: ${PAYMENT_MONGODB_PASSWORD:?Missing PAYMENT database setting}
+            NOTIFICATION_MONGODB_DATABASE: ${NOTIFICATION_MONGODB_DATABASE:?Missing NOTIFICATION database setting}
+            NOTIFICATION_MONGODB_USERNAME: ${NOTIFICATION_MONGODB_USERNAME:?Missing NOTIFICATION database setting}
+            NOTIFICATION_MONGODB_PASSWORD: ${NOTIFICATION_MONGODB_PASSWORD:?Missing NOTIFICATION database setting}
+            RATING_MONGODB_DATABASE: ${RATING_MONGODB_DATABASE:?Missing RATING database setting}
+            RATING_MONGODB_USERNAME: ${RATING_MONGODB_USERNAME:?Missing RATING database setting}
+            RATING_MONGODB_PASSWORD: ${RATING_MONGODB_PASSWORD:?Missing RATING database setting}
+
+    auth_service:
+        <<: *node
+        restart: unless-stopped
+        command: ["node", "services/auth_service/index.cjs"]
+        depends_on:
+            infra_init: { condition: service_completed_successfully }
+        environment:
+            SEED_PASSWORD: ${SEED_PASSWORD:?Run npm run setup:local to prepare the local seed password}
+            NODE_ENV: ${NODE_ENV:-development}
+            MONGODB_HOST: mongo
+            MONGODB_PORT: "27017"
+            MONGODB_AUTH_SOURCE: admin
+            MONGODB_REPLICA_SET: rs0
+            AUTH_MONGODB_DATABASE: ${AUTH_MONGODB_DATABASE:?Missing AUTH database setting}
+            AUTH_MONGODB_USERNAME: ${AUTH_MONGODB_USERNAME:?Missing AUTH database setting}
+            AUTH_MONGODB_PASSWORD: ${AUTH_MONGODB_PASSWORD:?Missing AUTH database setting}
+            AUTH_GRPC_HOST: 0.0.0.0
+            AUTH_GRPC_PORT: "50051"
+            JWT_SECRET: ${JWT_SECRET:?Missing JWT secret}
+            JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+            JWT_ISSUER: ${JWT_ISSUER:-cab-auth}
+            JWT_AUDIENCE: ${JWT_AUDIENCE:-cab-api}
+            JWT_EXPIRES_IN_SECONDS: ${JWT_EXPIRES_IN_SECONDS:-3600}
+            OTP_MOCK_MODE: ${OTP_MOCK_MODE:-false}
+            OTP_HMAC_SECRET: ${OTP_HMAC_SECRET:?Missing OTP secret}
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: "5672"
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-cab}
+            RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?Missing RabbitMQ username}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Missing RabbitMQ password}
+            RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-cab.events}
+            GRPC_INTERNAL_SECRET: ${GRPC_INTERNAL_SECRET:?Missing internal credential}
+        healthcheck:
+            test: ["CMD", "node", "scripts/probe-grpc.cjs", "auth_service"]
+            interval: 10s
+            timeout: 4s
+            retries: 12
+            start_period: 10s
+
+    customer_service:
+        <<: *node
+        restart: unless-stopped
+        command: ["node", "services/customer_service/index.cjs"]
+        depends_on:
+            infra_init: { condition: service_completed_successfully }
+        environment:
+            NODE_ENV: ${NODE_ENV:-development}
+            MONGODB_HOST: mongo
+            MONGODB_PORT: "27017"
+            MONGODB_AUTH_SOURCE: admin
+            MONGODB_REPLICA_SET: rs0
+            CUSTOMER_MONGODB_DATABASE: ${CUSTOMER_MONGODB_DATABASE:?Missing CUSTOMER database setting}
+            CUSTOMER_MONGODB_USERNAME: ${CUSTOMER_MONGODB_USERNAME:?Missing CUSTOMER database setting}
+            CUSTOMER_MONGODB_PASSWORD: ${CUSTOMER_MONGODB_PASSWORD:?Missing CUSTOMER database setting}
+            CUSTOMER_GRPC_HOST: 0.0.0.0
+            CUSTOMER_GRPC_PORT: "50052"
+            JWT_SECRET: ${JWT_SECRET:?Missing JWT secret}
+            AUTH_GRPC_HOST: auth_service
+            AUTH_GRPC_PORT: "50051"
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_PORT: "5672"
+            RABBITMQ_VHOST: ${RABBITMQ_VHOST:-cab}
+            RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:?Missing RabbitMQ username}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?Missing RabbitMQ password}
+            RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-cab.events}
+            GRPC_INTERNAL_SECRET: ${GRPC_INTERNAL_SECRET:?Missing internal credential}
+        healthcheck:
+            test: ["CMD", "node", "scripts/probe-grpc.cjs", "customer_service"]
+            interval: 10s
+            timeout: 4s
+            retries: 12
+            start_period: 10s
+
+    driver_service:
+        <<: *node
+        restart: unless-stopped
+        command: ["node", "services/driver_service/index.cjs"]
+        depends_on:
+            infra_init: { condition: service_completed_successfully }
+        environment:
+            <<: *business-env
+            DRIVER_DATA_KEY_BASE64: ${DRIVER_DATA_KEY_BASE64:?Missing driver encryption key}
+            NODE_ENV: ${NODE_ENV:-development}
+            MONGODB_HOST: mongo
+            MONGODB_PORT: "27017"
+            MONGODB_AUTH_SOURCE: admin
+            MONGODB_REPLICA_SET: rs0
+            DRIVER_MONGODB_DATABASE: ${DRIVER_MONGODB_DATABASE:?Missing DRIVER database setting}
+            DRIVER_MONGODB_USERNAME: ${DRIVER_MONGODB_USERNAME:?Missing DRIVER database setting}
+            DRIVER_MONGODB_PASSWORD: ${DRIVER_MONGODB_PASSWORD:?Missing DRIVER database setting}
+            DRIVER_GRPC_HOST: 0.0.0.0
+            DRIVER_GRPC_PORT: "50053"
+            GRPC_INTERNAL_SECRET: ${GRPC_INTERNAL_SECRET:?Missing internal credential}
+        healthcheck:
+            test: ["CMD", "node", "scripts/probe-grpc.cjs", "driver_service"]
+            interval: 10s
+            timeout: 4s
+            retries: 12
+            start_period: 10s
+
+    booking_service:
+        <<: *node
+        restart: unless-stopped
+        command: ["node", "services/booking_service/index.cjs"]
+        depends_on:
+            infra_init: { condition: service_completed_successfully }
+        environment:
+            <<: *business-env
+            NODE_ENV: ${NODE_ENV:-development}
+            MONGODB_HOST: mongo
+            MONGODB_PORT: "27017"
+            MONGODB_AUTH_SOURCE: admin
+            MONGODB_REPLICA_SET: rs0
+            BOOKING_MONGODB_DATABASE: ${BOOKING_MONGODB_DATABASE:?Missing BOOKING database setting}
+            BOOKING_MONGODB_USERNAME: ${BOOKING_MONGODB_USERNAME:?Missing BOOKING database setting}
+            BOOKING_MONGODB_PASSWORD: ${BOOKING_MONGODB_PASSWORD:?Missing BOOKING database setting}
+            BOOKING_GRPC_HOST: 0.0.0.0
+            BOOKING_GRPC_PORT: "50054"
+            GRPC_INTERNAL_SECRET: ${GRPC_INTERNAL_SECRET:?Missing internal credential}
+        healthcheck:
+            test: ["CMD", "node", "scripts/probe-grpc.cjs", "booking_service"]
+            interval: 10s
+            timeout: 4s
+            retries: 12
+            start_period: 10s
+
+    trip_service:
+        <<: *node
+        restart: unless-stopped
+        command: ["node", "services/trip_service/index.cjs"]
+        depends_on:
+            infra_init: { condition: service_completed_successfully }
+        environment:
+            <<: *business-env
+            NODE_ENV: ${NODE_ENV:-development}
+            MONGODB_HOST: mongo
+            MONGODB_PORT: "27017"
+            MONGODB_AUTH_SOURCE: admin
+            MONGODB_REPLICA_SET: rs0
+            TRIP_MONGODB_DATABASE: ${TRIP_MONGODB_DATABASE:?Missing TRIP database setting}
+            TRIP_MONGODB_USERNAME: ${TRIP_MONGODB_USERNAME:?Missing TRIP database setting}
+            TRIP_MONGODB_PASSWORD: ${TRIP_MONGODB_PASSWORD:?Missing TRIP database setting}
+            TRIP_GRPC_HOST: 0.0.0.0
+            TRIP_GRPC_PORT: "50055"
+            GRPC_INTERNAL_SECRET: ${GRPC_INTERNAL_SECRET:?Missing internal credential}
+        healthcheck:
+            test: ["CMD", "node", "scripts/probe-grpc.cjs", "trip_service"]
+            interval: 10s
+            timeout: 4s
+            retries: 12
+            start_period: 10s
+
+    payment_service:
+        <<: *node
+        restart: unless-stopped
+        command: ["node", "services/payment_service/index.cjs"]
+        depends_on:
+            infra_init: { condition: service_completed_successfully }
+        environment:
+            <<: *business-env
+            MOCK_CALLBACK_SECRET: ${MOCK_CALLBACK_SECRET:?Missing mock callback secret}
+            NODE_ENV: ${NODE_ENV:-development}
+            MONGODB_HOST: mongo
+            MONGODB_PORT: "27017"
+            MONGODB_AUTH_SOURCE: admin
+            MONGODB_REPLICA_SET: rs0
+            PAYMENT_MONGODB_DATABASE: ${PAYMENT_MONGODB_DATABASE:?Missing PAYMENT database setting}
+            PAYMENT_MONGODB_USERNAME: ${PAYMENT_MONGODB_USERNAME:?Missing PAYMENT database setting}
+            PAYMENT_MONGODB_PASSWORD: ${PAYMENT_MONGODB_PASSWORD:?Missing PAYMENT database setting}
+            PAYMENT_GRPC_HOST: 0.0.0.0
+            PAYMENT_GRPC_PORT: "50056"
+            GRPC_INTERNAL_SECRET: ${GRPC_INTERNAL_SECRET:?Missing internal credential}
+        healthcheck:
+            test: ["CMD", "node", "scripts/probe-grpc.cjs", "payment_service"]
+            interval: 10s
+            timeout: 4s
+            retries: 12
+            start_period: 10s
+
+    notification_service:
+        <<: *node
+        restart: unless-stopped
+        command: ["node", "services/notification_service/index.cjs"]
+        depends_on:
+            infra_init: { condition: service_completed_successfully }
+        environment:
+            <<: *business-env
+            NODE_ENV: ${NODE_ENV:-development}
+            MONGODB_HOST: mongo
+            MONGODB_PORT: "27017"
+            MONGODB_AUTH_SOURCE: admin
+            MONGODB_REPLICA_SET: rs0
+            NOTIFICATION_MONGODB_DATABASE: ${NOTIFICATION_MONGODB_DATABASE:?Missing NOTIFICATION database setting}
+            NOTIFICATION_MONGODB_USERNAME: ${NOTIFICATION_MONGODB_USERNAME:?Missing NOTIFICATION database setting}
+            NOTIFICATION_MONGODB_PASSWORD: ${NOTIFICATION_MONGODB_PASSWORD:?Missing NOTIFICATION database setting}
+            NOTIFICATION_GRPC_HOST: 0.0.0.0
+            NOTIFICATION_GRPC_PORT: "50057"
+            GRPC_INTERNAL_SECRET: ${GRPC_INTERNAL_SECRET:?Missing internal credential}
+        healthcheck:
+            test: ["CMD", "node", "scripts/probe-grpc.cjs", "notification_service"]
+            interval: 10s
+            timeout: 4s
+            retries: 12
+            start_period: 10s
+
+    rating_service:
+        <<: *node
+        restart: unless-stopped
+        command: ["node", "services/rating_service/index.cjs"]
+        depends_on:
+            infra_init: { condition: service_completed_successfully }
+        environment:
+            <<: *business-env
+            NODE_ENV: ${NODE_ENV:-development}
+            MONGODB_HOST: mongo
+            MONGODB_PORT: "27017"
+            MONGODB_AUTH_SOURCE: admin
+            MONGODB_REPLICA_SET: rs0
+            RATING_MONGODB_DATABASE: ${RATING_MONGODB_DATABASE:?Missing RATING database setting}
+            RATING_MONGODB_USERNAME: ${RATING_MONGODB_USERNAME:?Missing RATING database setting}
+            RATING_MONGODB_PASSWORD: ${RATING_MONGODB_PASSWORD:?Missing RATING database setting}
+            RATING_GRPC_HOST: 0.0.0.0
+            RATING_GRPC_PORT: "50058"
+            GRPC_INTERNAL_SECRET: ${GRPC_INTERNAL_SECRET:?Missing internal credential}
+        healthcheck:
+            test: ["CMD", "node", "scripts/probe-grpc.cjs", "rating_service"]
+            interval: 10s
+            timeout: 4s
+            retries: 12
+            start_period: 10s
+
+    gateway:
+        <<: *node
+        restart: unless-stopped
+        command: ["node", "gateway/index.cjs"]
+        ports: ["127.0.0.1:${GATEWAY_PORT:-3000}:3000"]
+        depends_on:
+            infra_init: { condition: service_completed_successfully }
+            redis: { condition: service_healthy }
+            auth_service: { condition: service_healthy }
+            customer_service: { condition: service_healthy }
+            driver_service: { condition: service_healthy }
+            booking_service: { condition: service_healthy }
+            trip_service: { condition: service_healthy }
+            payment_service: { condition: service_healthy }
+            notification_service: { condition: service_healthy }
+            rating_service: { condition: service_healthy }
+        environment:
+            <<: *business-env
+            MONGODB_HOST: mongo
+            MONGODB_PORT: "27017"
+            NODE_ENV: ${NODE_ENV:-development}
+            GATEWAY_HOST: 0.0.0.0
+            GATEWAY_PORT: "3000"
+            JWT_SECRET: ${JWT_SECRET:?Missing JWT secret}
+            RATE_LIMIT_WINDOW_SECONDS: ${RATE_LIMIT_WINDOW_SECONDS:-60}
+            RATE_LIMIT_LOGIN_MAX_PER_IP: ${RATE_LIMIT_LOGIN_MAX_PER_IP:-10}
+            RATE_LIMIT_OTP_REQUEST_MAX_PER_IP: ${RATE_LIMIT_OTP_REQUEST_MAX_PER_IP:-5}
+            RATE_LIMIT_OTP_VERIFY_MAX_PER_IP: ${RATE_LIMIT_OTP_VERIFY_MAX_PER_IP:-10}
+            RATE_LIMIT_BOOKING_MAX_PER_ACCOUNT: ${RATE_LIMIT_BOOKING_MAX_PER_ACCOUNT:-10}
+            RATE_LIMIT_BOOKING_MAX_PER_IP: ${RATE_LIMIT_BOOKING_MAX_PER_IP:-120}
+            GRPC_INTERNAL_SECRET: ${GRPC_INTERNAL_SECRET:?Missing internal credential}
+            REDIS_HOST: redis
+            REDIS_PORT: "6379"
+            REDIS_PASSWORD: ${REDIS_PASSWORD:?Missing Redis password}
+            AUTH_GRPC_HOST: auth_service
+            AUTH_GRPC_PORT: "50051"
+            CUSTOMER_GRPC_HOST: customer_service
+            CUSTOMER_GRPC_PORT: "50052"
+            DRIVER_GRPC_HOST: driver_service
+            DRIVER_GRPC_PORT: "50053"
+            BOOKING_GRPC_HOST: booking_service
+            BOOKING_GRPC_PORT: "50054"
+            TRIP_GRPC_HOST: trip_service
+            TRIP_GRPC_PORT: "50055"
+            PAYMENT_GRPC_HOST: payment_service
+            PAYMENT_GRPC_PORT: "50056"
+            NOTIFICATION_GRPC_HOST: notification_service
+            NOTIFICATION_GRPC_PORT: "50057"
+            RATING_GRPC_HOST: rating_service
+            RATING_GRPC_PORT: "50058"
+        healthcheck:
+            test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/ready',{signal:AbortSignal.timeout(5000)}).then(r=>{if(!r.ok)process.exitCode=1}).catch(()=>{process.exitCode=1})"]
+            interval: 10s
+            timeout: 6s
+            retries: 10
+
+networks:
+    cab-internal:
+        driver: bridge
+
+volumes:
+    mongo-data:
+    mongo-config:
+    redis-data:
+    rabbitmq-data:

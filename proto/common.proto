@@ -42,6 +42,9 @@ message Account {
   string phone = 2;
   Role role = 3;
   Status status = 4;
+  string email = 5;
+  optional string cid = 6;
+  optional string did = 7;
 }
 
 message Customer {
@@ -51,6 +54,7 @@ message Customer {
   optional string email = 4;
   string created_at = 5;
   string updated_at = 6;
+  string cid = 7;
 }
 
 message Vehicle {
@@ -67,6 +71,7 @@ message DriverPublic {
   string driver_id = 1;
   string full_name = 2;
   Vehicle vehicle = 3;
+  string did = 4;
 }
 
 message Driver {
@@ -90,6 +95,8 @@ message Driver {
   optional string rejection_reason = 11;
   optional string submitted_at = 12;
   optional string reviewed_at = 13;
+  string did = 14;
+  optional string plate_number = 15;
 }
 
 message NearbyDriver {

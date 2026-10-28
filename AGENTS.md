@@ -88,3 +88,22 @@ Trước khi hoàn thành dự án, Codex phải rà soát:
 SRS ↔ Bounded Context ↔ API YAML ↔ Gateway ↔ Microservices ↔ Postman Tests ↔ 30 mục chấm.
 
 Báo cáo các endpoint chưa triển khai, request lỗi thời, test chưa chạy và những sai khác giữa tài liệu với hành vi thực tế.
+
+## Nguyên tắc tối giản — CAB System MVP
+
+CAB System là dự án Microservice cơ bản phục vụ học tập và bảo vệ môn MSA.
+
+Ưu tiên triển khai cách đơn giản nhất đáp ứng đúng 30 mục của PHIEU_CHAM_PROJECT.pdf và 8 Bounded Context đã thống nhất.
+
+Không tự bổ sung chức năng, service, công nghệ, tài liệu quản lý hoặc cơ chế phân tán phức tạp nếu không trực tiếp cần thiết.
+
+Chỉ triển khai một luồng nghiệp vụ chính:
+Customer đặt xe BIKE → Driver nhận chuyến → Trip hoàn thành → Payment mock thành công → Customer đánh giá.
+
+Các luồng phụ chỉ bổ sung khi phục vụ trực tiếp tiêu chí chấm, gồm đăng ký và duyệt Driver, online/offline, hủy chuyến, phân trang, thông báo và bảo mật.
+
+Giữ hệ thống chạy local bằng một Docker Compose, một MongoDB instance, một Redis và một RabbitMQ.
+
+Codex không được tự mở rộng phạm vi chỉ vì đó là cách triển khai phổ biến trong hệ thống doanh nghiệp.
+
+Nếu có nhiều giải pháp hợp lệ, ưu tiên giải pháp ít code, ít cấu hình, ít phụ thuộc và dễ giải thích nhất nhưng vẫn kiểm thử được.

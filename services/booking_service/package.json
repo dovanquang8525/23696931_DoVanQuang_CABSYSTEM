@@ -1,0 +1,8 @@
+{
+  "name": "@cab/booking-service",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node index.cjs"
+  }
+}

@@ -1,0 +1,9 @@
+$kind: collection
+name: CAB Registration and Login
+description: Register without token; login separately returns a compact session.
+  Driver registration requires OTP_MOCK_MODE=true for this smoke.
+variables:
+  baseUrl: http://localhost:3000
+  customerToken: ""
+  driverToken: ""
+  adminToken: ""

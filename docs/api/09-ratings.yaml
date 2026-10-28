@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
   title: CAB MVP — Ratings
-  version: 1.0.0
-  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa
-    triển khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
+  version: 3.0.0
+  description: REST interface duy nhất của API Gateway. Thiết kế theo SRS 2.0 và Bounded Context 3.0; chưa triển
+    khai backend. Chỉ BIKE/MOCK_ONLINE. Các RPC nội bộ không phải REST endpoint.
 servers:
 - url: http://localhost:3000/api/v1
   description: Địa chỉ local mục tiêu, không xác nhận đang chạy.
@@ -30,73 +30,72 @@ paths:
       - AC74
       - AC96
       responses:
-        '201':
+        "201":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Review'
-        '400':
-          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: "INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: "FORBIDDEN: sai role, ownership hoặc Account DISABLED."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
-            xử lý.'
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang xử lý."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '429':
-          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: "RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
           headers:
             Retry-After:
               description: Số giây còn lại trong cửa sổ rate limit.
               schema:
                 type: integer
                 minimum: 1
-        '500':
-          description: 'INTERNAL_ERROR: không trả stack trace.'
+        "500":
+          description: "INTERNAL_ERROR: không trả stack trace."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '503':
+                $ref: "#/components/schemas/Error"
+        "503":
           description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '504':
+                $ref: "#/components/schemas/Error"
+        "504":
           description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
       parameters:
       - name: tripId
         in: path
@@ -106,14 +105,14 @@ paths:
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        description: ''
+          example: "000000000000000000000001"
+        description: ""
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReviewInput'
+              $ref: "#/components/schemas/ReviewInput"
             examples:
               demo:
                 summary: Dữ liệu giả; thay ID/OTP/timestamp theo kết quả chạy thực tế.
@@ -131,80 +130,78 @@ paths:
       - CUSTOMER
       - DRIVER
       - ADMIN
-      x-ownership: Customer của Trip, Driver được phân công hoặc ADMIN; không liên quan 403; chưa có Review
-        404.
+      x-ownership: Customer của Trip, Driver được phân công hoặc ADMIN; không liên quan 403; chưa có Review 404.
       x-srs:
       - FR34
       - AC73
       - AC80
       responses:
-        '200':
+        "200":
           description: Thành công; dữ liệu thuộc phạm vi được phép.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Review'
-        '400':
-          description: 'INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu.'
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: "INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: 'UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai.'
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: 'FORBIDDEN: sai role, ownership hoặc Account DISABLED.'
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: "FORBIDDEN: sai role, ownership hoặc Account DISABLED."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: 'NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền.'
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: 'CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang
-            xử lý.'
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang xử lý."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '429':
-          description: 'RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ.'
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: "RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
           headers:
             Retry-After:
               description: Số giây còn lại trong cửa sổ rate limit.
               schema:
                 type: integer
                 minimum: 1
-        '500':
-          description: 'INTERNAL_ERROR: không trả stack trace.'
+        "500":
+          description: "INTERNAL_ERROR: không trả stack trace."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '503':
+                $ref: "#/components/schemas/Error"
+        "503":
           description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '504':
+                $ref: "#/components/schemas/Error"
+        "504":
           description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
       parameters:
       - name: tripId
         in: path
@@ -214,8 +211,8 @@ paths:
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        description: ''
+          example: "000000000000000000000001"
+        description: ""
 components:
   securitySchemes:
     BearerAuth:
@@ -248,15 +245,15 @@ components:
       type: object
       additionalProperties: false
       properties:
-        reviewId: &id001
+        reviewId: &a1
           type: string
           minLength: 24
           maxLength: 24
           pattern: ^[0-9a-f]{24}$
-          example: '000000000000000000000001'
-        tripId: *id001
-        customerId: *id001
-        driverId: *id001
+          example: "000000000000000000000001"
+        tripId: *a1
+        customerId: *a1
+        driverId: *a1
         rating:
           type: integer
           minimum: 1
@@ -269,7 +266,7 @@ components:
         createdAt:
           type: string
           format: date-time
-          example: '2026-10-27T00:00:00Z'
+          example: 2026-10-27T00:00:00Z
       required:
       - reviewId
       - tripId

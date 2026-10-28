@@ -13,13 +13,17 @@ import tempfile
 import jsonschema
 import yaml
 
+from postman_io import load_collection, load_environment, artifact_hash
+
 ROOT = Path(__file__).resolve().parents[1]
 manifest = json.loads((ROOT / 'postman/documents/api-source-manifest.json').read_text(encoding='utf-8'))
+if manifest.get('identityV2Migration', {}).get('status') == 'OUTDATED_COLLECTIONS':
+    raise SystemExit('OUTDATED: preserved collections target identity v1. Current manual acceptance: docs/MANUAL_POSTMAN_30.md; do not rebaseline old requests as v2 tests.')
 # Preserve the earlier catalog checks below, but resolve its role explicitly.
-collection = json.loads((ROOT / manifest['compatibility']['collection']['path']).read_text(encoding='utf-8'))
-environment = json.loads((ROOT / manifest['compatibility']['environment']['path']).read_text(encoding='utf-8'))
-phase6 = json.loads((ROOT / manifest['primary']['collection']['path']).read_text(encoding='utf-8'))
-phase6_env = json.loads((ROOT / manifest['primary']['environment']['path']).read_text(encoding='utf-8'))
+collection = load_collection(manifest['compatibility']['collection']['path'])
+environment = load_environment(manifest['compatibility']['environment']['path'])
+phase6 = load_collection(manifest['primary']['collection']['path'])
+phase6_env = load_environment(manifest['primary']['environment']['path'])
 
 
 def walk(items):
@@ -122,10 +126,11 @@ artifacts = [manifest[group][kind] for group in ['primary', 'compatibility'] for
 artifacts += manifest['contracts'] + manifest['phase6Documents']
 for artifact in artifacts:
     assert 'legacy' not in Path(artifact['path']).parts, 'Archive used as active source'
-    assert hashlib.sha256((ROOT / artifact['path']).read_bytes()).hexdigest() == artifact['sha256'], 'Artifact changed; review manifest: ' + artifact['path']
+    assert artifact.get('sha256') and artifact_hash(artifact['path']) == artifact['sha256'], 'Artifact changed or not reviewed; run v3 check --record-manifest: ' + artifact['path']
 primary_values = {entry['key']: entry['value'] for entry in phase6_env['values']}
 assert len(primary_values) == len(phase6_env['values'])
-assert primary_values['base_url'] == 'http://localhost:3000'
+primary_base = 'baseUrl' if 'baseUrl' in primary_values else 'base_url'
+assert primary_values[primary_base] == 'http://localhost:3000'
 assert all(not value for key, value in primary_values.items() if re.search(r'password|token|secret|signature', key, re.I))
 primary_items = list(walk(phase6['item']))
 assert len(primary_items) == manifest['primary']['requestCount'] == 142
@@ -155,8 +160,9 @@ def primary_replace(raw):
 for item in primary_items:
     req = item['request']
     url = req['url'] if isinstance(req['url'], str) else req['url']['raw']
-    assert url.startswith('{{base_url}}/'), item['name']
-    actual_path = url[len('{{base_url}}'):].split('?')[0]
+    primary_prefix = '{{' + primary_base + '}}'
+    assert url.startswith(primary_prefix + '/'), item['name']
+    actual_path = url[len(primary_prefix):].split('?')[0]
     api_path = actual_path[len('/api/v1'):] if actual_path.startswith('/api/v1/') else actual_path
     matches = [(doc, op) for doc, path, method, op in operations.values()
                if method == req['method'] and re.fullmatch(re.sub(r'\{\w+\}', r'[^/]+', path), api_path)]
@@ -183,9 +189,9 @@ for item in walk(catalog_folder['item']):
     doc, path, method, op = operations[oid]
     req = item['request']
     assert req['method'] == method
-    expected_url = '{{base_url}}' + ('' if path in ['/health','/ready','/health/services'] else '/api/v1') + path
+    expected_url = '{{' + primary_base + '}}' + ('' if path in ['/health','/ready','/health/services'] else '/api/v1') + path
     # Object IDs use different variable names; compare literal path segments too.
-    url = req['url'].split('?')[0]
+    url = (req['url'] if isinstance(req['url'], str) else req['url']['raw']).split('?')[0]
     assert re.sub(r'\{\{\w+\}\}', '{}', url) == re.sub(r'\{\{\w+\}\}|\{\w+\}', '{}', expected_url), oid
     content = op.get('requestBody', {}).get('content', {}).get('application/json')
     if content and oid != 'handleMockCallback':

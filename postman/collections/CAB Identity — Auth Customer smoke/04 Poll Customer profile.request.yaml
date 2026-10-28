@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/customers/me"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{customer_token}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      const r=pm.response.json();
+      if (pm.response.code === 503 && r.code === 'PROFILE_NOT_READY') {
+        const n=Number(pm.variables.get('profile_polls')||0)+1; pm.variables.set('profile_polls',String(n));
+        pm.test('Bounded profile wait',()=>pm.expect(n).to.be.below(20));
+        pm.execution.setNextRequest(n<20 ? pm.info.requestName : null);
+      } else {
+        pm.test('HTTP 200',()=>pm.response.to.have.status(200));
+        pm.test('Profile belongs to account',()=>pm.expect(r.accountId).to.eql(pm.variables.get('customer_account_id')));
+        if (pm.response.code===200) pm.variables.set('customerId',r.customerId);
+      }
+    language: text/javascript
+order: 4000

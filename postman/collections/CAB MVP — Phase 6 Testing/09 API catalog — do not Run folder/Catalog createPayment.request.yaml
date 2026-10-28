@@ -1,0 +1,48 @@
+$kind: http-request
+description: |-
+  AC: AC59, AC60, AC105
+  Trip COMPLETED/cước hợp lệ/đúng chủ. Không nhận amount/method/status. PENDING/COMPLETED với key khác 409. Chỉ CreatePayment attempt 1; sau FAILED dùng endpoint retry. Replay key cũ trả resource cũ trước kiểm điều kiện lượt.
+url: "{{base_url}}/api/v1/trips/{{trip_id}}/payments"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: "{{catalog_key}}"
+body:
+  type: json
+  content: "{}"
+auth:
+  type: bearer
+  credentials:
+    token: "{{customer_token}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      (function () {
+      const prereq = [];
+      const absent=prereq.filter(k=>!String(pm.environment.get(k)||'').trim());
+      if(absent.length){pm.execution.skipRequest();throw new Error('BLOCKED: thiếu tiên quyết '+absent.join(', '));}
+      pm.environment.set('catalog_key',pm.variables.replaceIn('{{$guid}}'));
+      const required = ["base_url", "catalog_key", "customer_token", "trip_id"];
+      const missing = required.filter(k => !String(pm.environment.get(k) || '').trim());
+      if (missing.length) { pm.execution.skipRequest(); throw new Error('BLOCKED: thiếu environment: ' + missing.join(', ')); }
+      })();
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      (function () {
+      const expected = 201;
+      pm.test('HTTP đúng kỳ vọng: '+expected, function () { pm.expect(pm.response.code).to.eql(expected); });
+      pm.test('Phản hồi JSON', function () { pm.expect((pm.response.headers.get('Content-Type') || '').toLowerCase()).to.include('application/json'); });
+      let j;
+      try { j=pm.response.json(); } catch (e) { throw new Error('Response không phải JSON hợp lệ'); }
+      function noSecrets(v) {
+        if (!v || typeof v !== 'object') return;
+        Object.keys(v).forEach(k => { if (['passwordHash','codeHash','secret','signingKey','licenseNumberEncrypted','stack','stackTrace'].includes(k)) throw new Error('Lộ field nhạy cảm: '+k); noSecrets(v[k]); });
+      }
+      pm.test('Không lộ hash/key/stack trong JSON', function () { noSecrets(j); });
+      if (pm.response.code !== expected) {  return; }
+      if (expected>=400) pm.test('Error envelope',function(){ ['code','message','requestId'].forEach(k=>pm.expect(j[k]).to.be.a('string').and.not.empty); });
+      })();
+    language: text/javascript
+order: 36000

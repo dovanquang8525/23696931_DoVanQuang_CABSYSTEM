@@ -1,0 +1,50 @@
+$kind: http-request
+description: |-
+  AC: AC62, AC105
+  Không dùng JWT Customer. HMAC-SHA256 trên ASCII(timestamp)+LF+raw UTF-8 body; X-Mock-Timestamp bằng body.timestamp. Gateway giữ raw bytes và chuyển gRPC. Sai chữ ký 401; mismatch/timestamp mới quá ±300 giây 400; trái kết quả cuối 409. Duplicate hợp lệ trả 200/duplicate=true trước kiểm tuổi event đã xử lý; luôn verify signature. Script mock giữ secret ngoài Git/Postman.
+url: "{{base_url}}/api/v1/payments/mock/callback"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+  X-Mock-Signature: sha256=0000000000000000000000000000000000000000000000000000000000000000
+  X-Mock-Timestamp: "{{invalid_callback_timestamp}}"
+body:
+  type: json
+  content: "{{invalid_callback_payload}}"
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    code: |-
+      (function () {
+      const prereq = ["payment_id", "payment_reference", "payment_amount"];
+      const absent=prereq.filter(k=>!String(pm.environment.get(k)||'').trim());
+      if(absent.length){pm.execution.skipRequest();throw new Error('BLOCKED: thiếu tiên quyết '+absent.join(', '));}
+
+      const timestamp=Math.floor(Date.now()/1000);pm.environment.set('invalid_callback_timestamp',String(timestamp));
+      pm.environment.set('invalid_callback_payload',JSON.stringify({eventId:'invalid-'+Date.now(),paymentId:pm.environment.get('payment_id'),referenceCode:pm.environment.get('payment_reference'),amount:Number(pm.environment.get('payment_amount')),currency:'VND',result:'COMPLETED',timestamp}));
+
+      const required = ["base_url", "invalid_callback_payload", "invalid_callback_timestamp"];
+      const missing = required.filter(k => !String(pm.environment.get(k) || '').trim());
+      if (missing.length) { pm.execution.skipRequest(); throw new Error('BLOCKED: thiếu environment: ' + missing.join(', ')); }
+      })();
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      (function () {
+      const expected = 401;
+      pm.test('HTTP đúng kỳ vọng: '+expected, function () { pm.expect(pm.response.code).to.eql(expected); });
+      pm.test('Phản hồi JSON', function () { pm.expect((pm.response.headers.get('Content-Type') || '').toLowerCase()).to.include('application/json'); });
+      let j;
+      try { j=pm.response.json(); } catch (e) { throw new Error('Response không phải JSON hợp lệ'); }
+      function noSecrets(v) {
+        if (!v || typeof v !== 'object') return;
+        Object.keys(v).forEach(k => { if (['passwordHash','codeHash','secret','signingKey','licenseNumberEncrypted','stack','stackTrace'].includes(k)) throw new Error('Lộ field nhạy cảm: '+k); noSecrets(v[k]); });
+      }
+      pm.test('Không lộ hash/key/stack trong JSON', function () { noSecrets(j); });
+      if (pm.response.code !== expected) { pm.execution.setNextRequest(null); return; }
+      if (expected>=400) pm.test('Error envelope',function(){ ['code','message','requestId'].forEach(k=>pm.expect(j[k]).to.be.a('string').and.not.empty); });
+      })();
+    language: text/javascript
+order: 18000

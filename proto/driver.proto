@@ -35,6 +35,12 @@ message Availability {
 message NearbyRequest {
   cab.common.v1.Coordinates location = 1;
   cab.common.v1.PageRequest paging = 2;
+  optional string location_code = 3;
+}
+message DriverLocationInput {
+  optional double latitude = 1;
+  optional double longitude = 2;
+  optional string location_code = 3;
 }
 
 message ListDriversRequest {
@@ -124,7 +130,7 @@ service DriverService {
   // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
   rpc SetAvailability (AvailabilityInput) returns (Availability);
   // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
-  rpc UpdateDriverLocation (cab.common.v1.Coordinates) returns (cab.common.v1.Location);
+  rpc UpdateDriverLocation (DriverLocationInput) returns (cab.common.v1.Location);
   // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.
   rpc ListNearbyDrivers (NearbyRequest) returns (cab.common.v1.NearbyPage);
   // Allowed peer: gateway. Errors use gRPC status + cab-error-code trailing metadata.

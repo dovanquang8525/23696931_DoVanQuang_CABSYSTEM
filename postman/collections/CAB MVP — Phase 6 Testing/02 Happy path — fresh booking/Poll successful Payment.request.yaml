@@ -1,0 +1,57 @@
+$kind: http-request
+description: |-
+  AC: AC61, AC66
+  Tra cứu attempt đã ghi nhận
+url: "{{base_url}}/api/v1/payments/{{payment_id}}"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{customer_token}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      (function () {
+      const prereq = [];
+      const absent=prereq.filter(k=>!String(pm.environment.get(k)||'').trim());
+      if(absent.length){pm.execution.skipRequest();throw new Error('BLOCKED: thiếu tiên quyết '+absent.join(', '));}
+
+      const required = ["base_url", "customer_token", "payment_id"];
+      const missing = required.filter(k => !String(pm.environment.get(k) || '').trim());
+      if (missing.length) { pm.execution.skipRequest(); throw new Error('BLOCKED: thiếu environment: ' + missing.join(', ')); }
+      })();
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      (function () {
+      const expected = 200;
+      pm.test('HTTP đúng kỳ vọng: '+expected, function () { pm.expect(pm.response.code).to.eql(expected); });
+      pm.test('Phản hồi JSON', function () { pm.expect((pm.response.headers.get('Content-Type') || '').toLowerCase()).to.include('application/json'); });
+      let j;
+      try { j=pm.response.json(); } catch (e) { throw new Error('Response không phải JSON hợp lệ'); }
+      function noSecrets(v) {
+        if (!v || typeof v !== 'object') return;
+        Object.keys(v).forEach(k => { if (['passwordHash','codeHash','secret','signingKey','licenseNumberEncrypted','stack','stackTrace'].includes(k)) throw new Error('Lộ field nhạy cảm: '+k); noSecrets(v[k]); });
+      }
+      pm.test('Không lộ hash/key/stack trong JSON', function () { noSecrets(j); });
+      if (pm.response.code !== expected) { pm.execution.setNextRequest(null); return; }
+      if (expected>=400) pm.test('Error envelope',function(){ ['code','message','requestId'].forEach(k=>pm.expect(j[k]).to.be.a('string').and.not.empty); });
+
+
+      function pollOrFail(done,label,key) {
+        if(done){pm.environment.unset(key);pm.test(label,()=>pm.expect(done).to.eql(true));return true;}
+        const n=Number(pm.environment.get(key)||0)+1, max=Number(pm.environment.get('poll_limit')||20);
+        pm.environment.set(key,String(n));
+        if(n<Math.min(Math.max(max,1),40)){pm.execution.setNextRequest(pm.info.requestId);return false;}
+        pm.test(label,()=>{throw new Error('Không đạt sau '+n+' lần polling; kiểm tra fixture/dependency');});
+        pm.environment.unset(key);pm.execution.setNextRequest(null);return false;
+      }
+
+      if (j.status==='FAILED') {pm.test('Mock SUCCESS không FAILED',()=>{throw new Error('Kiểm tra fixture mock SUCCESS');});pm.execution.setNextRequest(null);return;}
+      if(!pollOrFail(j.status==='COMPLETED','Payment COMPLETED sau callback','poll_payment')) return;
+      pm.test('Đúng Payment/amount',()=>{pm.expect(j.paymentId).to.eql(pm.environment.get('payment_id'));pm.expect(j.amount).to.eql(Number(pm.environment.get('payment_amount')));});
+      })();
+    language: text/javascript
+order: 12000

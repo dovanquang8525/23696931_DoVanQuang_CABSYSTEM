@@ -1,0 +1,25 @@
+$kind: http-request
+description: Chọn từng request theo postman/README.md. Không Run toàn bộ collection. Mọi request qua Gateway; cần fixture đúng trạng thái.
+url: "{{baseUrl}}/api/v1/bookings"
+method: POST
+headers:
+  Content-Type: application/json
+  Idempotency-Key: "{{bookingKey}}"
+body:
+  type: json
+  content: |-
+    {
+      "pickupCode": "A",
+      "destinationCode": "B"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{customerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Replay HTTP 200', () => pm.response.to.have.status(200));
+      pm.test('Snapshot không đổi', () => pm.expect(pm.response.json()).to.deep.equal(JSON.parse(pm.environment.get('bookingSnapshot'))));
+    language: text/javascript
+order: 7000

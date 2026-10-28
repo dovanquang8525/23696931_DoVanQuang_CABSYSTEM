@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 
 from prepare_callback import prepare, write_private_environment
+from postman_io import load_environment
 
 
 def main():
@@ -21,7 +22,7 @@ def main():
     parser.add_argument('--event-id')
     parser.add_argument('--timestamp', type=int)
     parser.add_argument('--environment', type=Path)
-    parser.add_argument('--output', type=Path, default=Path('.env.postman-callback.json'))
+    parser.add_argument('--output', type=Path, default=Path('.local/compatibility-callback.environment.yaml'))
     args = parser.parse_args()
     try:
         current = os.environ.get('MOCK_CALLBACK_SECRET', '')
@@ -31,8 +32,8 @@ def main():
         secret = current or historical
         if not secret:
             raise ValueError('set MOCK_CALLBACK_SECRET in the process environment; no interactive fallback')
-        template = args.environment or Path(__file__).resolve().parents[1] / 'postman/environments/CAB-Local.postman_environment.json'
-        environment = json.loads(template.read_text(encoding='utf-8-sig'))
+        template = args.environment or Path(__file__).resolve().parents[1] / 'postman/environments/CAB - Local Gateway (template).environment.yaml'
+        environment = load_environment(template)
         prepared = prepare(environment, args.payment_id, args.reference_code, args.amount,
                            args.result, secret, args.timestamp, args.event_id)
         values = {entry['key']: entry for entry in prepared['values']}

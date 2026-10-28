@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/auth/me"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{tampered_token}}"
+scripts:
+  - type: beforeRequest
+    code: const p=pm.variables.get('customer_token').split('.'); p[2]=(p[2][0]==='A'?'B':'A')+p[2].slice(1); pm.variables.set('tampered_token',p.join('.'));
+    language: text/javascript
+  - type: afterResponse
+    code: pm.test('HTTP 401', function () { pm.response.to.have.status(401); });
+    language: text/javascript
+order: 9000

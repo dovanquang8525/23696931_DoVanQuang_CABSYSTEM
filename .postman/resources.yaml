@@ -1,4 +1,6 @@
 # Use this workspace to collaborate
+# Identity v2: cloud collections below are preserved v1 references (OUTDATED).
+# Current manual acceptance: ../docs/MANUAL_POSTMAN_30.md; API source remains ../docs/api/.
 workspace:
   id: a11bf7a4-50c9-4d39-8280-118e4c3e420f
 
@@ -14,3 +16,10 @@ localResources:
     - ../docs/api/08-notifications.yaml
     - ../docs/api/09-ratings.yaml
     - ../docs/api/10-health.yaml
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/CAB Identity — Auth Customer smoke: cb5fa602-93c6-4a0e-b824-fc19f0f10a91
+    ../postman/collections/CAB MVP — Phase 6 Testing: b0333a70-8d8d-595a-8cb8-5f0a99fc1db4

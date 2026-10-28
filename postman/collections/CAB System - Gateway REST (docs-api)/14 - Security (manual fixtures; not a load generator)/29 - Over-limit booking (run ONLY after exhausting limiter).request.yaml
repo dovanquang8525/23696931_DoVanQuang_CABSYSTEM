@@ -1,0 +1,63 @@
+$kind: http-request
+description: |-
+  Source: docs/api/04-bookings.yaml | operationId: createBooking
+
+  Rate limit 10/account/phút và 120/IP/phút; hai tọa độ khác nhau, server gán BIKE và snapshot giá. Trả SEARCHING, không chờ 150 giây hoặc tạo Trip sớm. Cùng key không tạo vòng tìm mới.
+url: "{{baseUrl}}{{apiPrefix}}/bookings"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: "{{$guid}}"
+body:
+  type: json
+  content: |-
+    {
+      "pickup": {
+        "latitude": 10.8,
+        "longitude": 106.7
+      },
+      "destination": {
+        "latitude": 10.81,
+        "longitude": 106.71
+      }
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{customerToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.environment.set("bookingKey", pm.variables.replaceIn("{{$guid}}"));
+
+      const authReference = "{{customerToken}}";
+      const needed = [pm.request.url.toString(), pm.request.body ? pm.request.body.raw : '', authReference];
+      const keys = new Set(needed.join(' ').match(/\{\{[A-Za-z][A-Za-z0-9_]*\}\}/g) || []);
+      for (const token of keys) {
+        const key = token.slice(2,-2);
+        if (!pm.variables.get(key)) throw new Error('Set local environment variable: ' + key);
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      const expected = [429];
+      pm.test('HTTP status matches scenario', () => pm.expect(pm.response.code).to.be.oneOf(expected));
+      pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/application\/json/i));
+      const body = pm.response.json();
+      const schemas = {"429": {"type": "object", "additionalProperties": false, "properties": {"code": {"type": "string", "minLength": 1, "maxLength": 64}, "message": {"type": "string", "minLength": 1, "maxLength": 500}, "requestId": {"type": "string", "minLength": 1, "maxLength": 128}}, "required": ["code", "message", "requestId"]}};
+      if (schemas[pm.response.code]) pm.test('Response matches API schema', () => pm.response.to.have.jsonSchema(schemas[pm.response.code]));
+      if (expected.includes(pm.response.code) && pm.response.code < 300) {
+        for (const key of ['customerId','driverId','bookingId','tripId','paymentId','invitationId','notificationId','reviewId','otpId']) {
+          if (body[key]) pm.environment.set(key, body[key]);
+        }
+        if (body.booking) {
+          pm.environment.set('bookingId', body.booking.bookingId);
+          if (body.booking.tripId) pm.environment.set('tripId', body.booking.tripId);
+        }
+        pm.environment.set('bookingReplayId', body.bookingId);
+        pm.environment.set('bookingReplayBody', pm.variables.replaceIn(pm.request.body.raw));
+      }
+      pm.test('Retry-After present', () => pm.expect(Number(pm.response.headers.get('Retry-After'))).to.be.above(0));
+    language: text/javascript
+order: 7000

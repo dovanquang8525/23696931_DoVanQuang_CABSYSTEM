@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/customers/{{customerId}}"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{customer_token}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('Customer ID',()=>pm.expect(pm.response.json().customerId).to.eql(pm.variables.get('customerId')));
+    language: text/javascript
+order: 5000

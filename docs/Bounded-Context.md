@@ -1,5 +1,10 @@
 # THIẾT KẾ MICRO-SERVICE — CAB SYSTEM
 
+**Validation demo cập nhật 28/10/2026:** Password là String không rỗng (ít nhất 1 ký tự, ví dụ "123" hoặc "a"), không trim và không yêu cầu độ phức tạp; Phone là String không rỗng sau trim (ví dụ "0123", "123", "abc123"), giữ số 0 đầu và vẫn unique. Email giữ định dạng cơ bản. Chỉ áp dụng cho học tập/demo local; không phải chính sách production. Argon2id, JWT, role/ownership và OTP Driver giữ nguyên.
+
+**Quyết định tiếp theo Identity v3:** Auth cấp cid/did bằng counter DB; không nhập mã khi Register. Driver Register plateNumber bước 1 tạo challenge, bước 2 thêm code mới tạo Account; account.registered mang plateNumber để Driver context giữ thông tin xe dự kiến. Driver vẫn sở hữu Vehicle và license encryption; Submit tạo xe BIKE từ plate, kiểm unique và chuyển PENDING. Booking/Driver/Trip sở hữu bản demo_locations A/B riêng; không đọc chéo DB. Các body v1/v2 bên dưới được thay bởi hợp đồng docs/api hiện hành; không thêm service/event mới.
+
+
 Giai đoạn 4 • 8 bounded context • Phiên bản cơ bản
 
 Căn cứ: SRS mới gửi trong cuộc trò chuyện. Trình tự mục và tiêu đề cột theo Thiết Kế Micro-Service.docx. Mã UC sử dụng theo SRS mới. API và cơ chế kỹ thuật là đề xuất thiết kế để đồng bộ ở giai đoạn triển khai.
@@ -185,7 +190,7 @@ Các mục dưới đây bổ sung đủ nội dung thiết kế cho từng serv
 
 **Event phát/nhận: **Phát: account.registered chứa accountId, role và trường hồ sơ khởi tạo tối thiểu. Nhận: không có domain event bắt buộc.
 
-**Quy tắc nghiệp vụ chính: **RULE01–RULE04, RULE33: phone Việt Nam 10 chữ số bắt đầu 0, một role/account, cấm tự đăng ký ADMIN. OTP 6 chữ số, hiệu lực 5 phút, tối đa 5 lần nhập sai, yêu cầu mã cách nhau ít nhất 60 giây. Mã mới vô hiệu mã cũ; bằng chứng đã dùng không đăng ký lần nữa. Kiểm soát yêu cầu OTP đồng thời theo phone/purpose bằng cập nhật/transaction cục bộ; không chỉ kiểm tra thời gian trong bộ nhớ. Không trả hash/secret; tối đa 10 yêu cầu đăng nhập/phút/IP theo NFR04. OTP mock dùng cơ chế kiểm thử local, không ghi mã rõ vào log.
+**Quy tắc nghiệp vụ chính: **RULE01–RULE04, RULE33: phone dạng String không rỗng sau trim, không giới hạn độ dài/định dạng số, một role/account, cấm tự đăng ký ADMIN. OTP 6 chữ số, hiệu lực 5 phút, tối đa 5 lần nhập sai, yêu cầu mã cách nhau ít nhất 60 giây. Mã mới vô hiệu mã cũ; bằng chứng đã dùng không đăng ký lần nữa. Kiểm soát yêu cầu OTP đồng thời theo phone/purpose bằng cập nhật/transaction cục bộ; không chỉ kiểm tra thời gian trong bộ nhớ. Không trả hash/secret; tối đa 10 yêu cầu đăng nhập/phút/IP theo NFR04. OTP mock dùng cơ chế kiểm thử local, không ghi mã rõ vào log.
 
 ### Dữ liệu sở hữu
 
@@ -365,7 +370,7 @@ Tên collection triển khai tương ứng entity trong mục 9 SRS. \_id là đ
 
 **Database: **auth_db
 
-**accounts: **Entity/aggregate: Account — root. Trường chính: \_id/accountId, phone, passwordHash, role, status, createdAt, updatedAt. Index: Unique phone sau chuẩn hóa.
+**accounts: **Account là aggregate root. Email đăng nhập, phone, passwordHash, role, status và ID nội bộ ObjectId; cid/did được Auth tự cấp từ profile_code_counters trong transaction. Index unique email/phone, partial unique cid/did. Register không nhận mã/role; Driver có plateNumber, lần đầu challenge OTP, lần sau code hợp lệ mới tạo Account. Xem docs/api/contracts.md; giấy phép/Vehicle vẫn do Driver context sở hữu.
 
 **otp_challenges: **Entity/aggregate: OtpChallenge — root. Trường chính: phone, purpose, codeHash, failedAttempts, expiresAt, verifiedAt, consumedAt, invalidatedAt, createdAt. Index: (phone, purpose, createdAt desc) để lấy mã gần nhất.
 

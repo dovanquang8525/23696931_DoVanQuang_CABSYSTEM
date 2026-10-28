@@ -1,0 +1,42 @@
+$kind: http-request
+description: |-
+  Source: docs/api/10-health.yaml | operationId: gatewayServiceHealth
+
+  Gateway tổng hợp; không sở hữu DB nghiệp vụ. /health kiểm tiến trình; /ready kiểm 8 service và MongoDB/Redis/RabbitMQ; /health/services có đúng 12 thành phần và không lộ endpoint/secret.
+url: "{{baseUrl}}/health/services"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    code: |-
+      const authReference = "";
+      const needed = [pm.request.url.toString(), pm.request.body ? pm.request.body.raw : '', authReference];
+      const keys = new Set(needed.join(' ').match(/\{\{[A-Za-z][A-Za-z0-9_]*\}\}/g) || []);
+      for (const token of keys) {
+        const key = token.slice(2,-2);
+        if (!pm.variables.get(key)) throw new Error('Set local environment variable: ' + key);
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      const expected = [503];
+      pm.test('HTTP status matches scenario', () => pm.expect(pm.response.code).to.be.oneOf(expected));
+      pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/application\/json/i));
+      const body = pm.response.json();
+      const schemas = {"503": {"allOf": [{"type": "object", "additionalProperties": false, "properties": {"status": {"type": "string", "enum": ["healthy", "degraded"]}, "components": {"type": "array", "items": {"type": "object", "additionalProperties": false, "properties": {"name": {"type": "string", "enum": ["gateway", "auth_service", "customer_service", "driver_service", "booking_service", "trip_service", "payment_service", "notification_service", "rating_service", "mongodb", "redis", "rabbitmq"]}, "status": {"type": "string", "enum": ["healthy", "unhealthy", "unknown"]}, "checkedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}}, "required": ["name", "status", "checkedAt"]}, "minItems": 12, "maxItems": 12}, "checkedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}}, "required": ["status", "components", "checkedAt"]}, {"type": "object", "properties": {"status": {"type": "string", "enum": ["degraded"]}}}]}};
+      if (schemas[pm.response.code]) pm.test('Response matches API schema', () => pm.response.to.have.jsonSchema(schemas[pm.response.code]));
+      if (expected.includes(pm.response.code) && pm.response.code < 300) {
+        for (const key of ['customerId','driverId','bookingId','tripId','paymentId','invitationId','notificationId','reviewId','otpId']) {
+          if (body[key]) pm.environment.set(key, body[key]);
+        }
+        if (body.booking) {
+          pm.environment.set('bookingId', body.booking.bookingId);
+          if (body.booking.tripId) pm.environment.set('tripId', body.booking.tripId);
+        }
+        pm.test('12 unique component names', () => pm.expect(new Set(body.components.map(x => x.name)).size).to.eql(12));
+      }
+    language: text/javascript
+order: 6000

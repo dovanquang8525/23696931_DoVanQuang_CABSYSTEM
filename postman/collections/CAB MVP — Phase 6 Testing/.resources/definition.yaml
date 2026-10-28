@@ -1,0 +1,2 @@
+$kind: collection
+description: Import cùng CAB-Local environment. Chạy từng folder theo README, không Run All. Backend/hạ tầng chưa triển khai; mọi test hiện BLOCKED/NOT_RUN. Không có secret thật trong gói.

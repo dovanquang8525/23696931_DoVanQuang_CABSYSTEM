@@ -1,0 +1,60 @@
+name: CAB - Local Gateway (template)
+values:
+  - key: baseUrl
+    value: 'http://localhost:3000'
+  - key: apiPrefix
+    value: /api/v1
+  - key: customerPhone
+    value: 0900000001
+  - key: driverPhone
+    value: 0900000002
+  - key: adminPhone
+    value: ''
+  - key: customerPassword
+    value: ''
+  - key: driverPassword
+    value: ''
+  - key: adminPassword
+    value: ''
+  - key: customerToken
+    value: ''
+  - key: driverToken
+    value: ''
+  - key: adminToken
+    value: ''
+  - key: customerId
+    value: ''
+  - key: driverId
+    value: ''
+  - key: bookingId
+    value: ''
+  - key: tripId
+    value: ''
+  - key: paymentId
+    value: ''
+  - key: invitationId
+    value: ''
+  - key: notificationId
+    value: ''
+  - key: reviewId
+    value: ''
+  - key: otpId
+    value: ''
+  - key: otpCode
+    value: ''
+  - key: callbackRawBody
+    value: ''
+  - key: callbackTimestamp
+    value: ''
+  - key: callbackSignature
+    value: ''
+  - key: tamperedToken
+    value: ''
+  - key: page
+    value: '1'
+  - key: limit
+    value: '10'
+  - key: latitude
+    value: '10.8'
+  - key: longitude
+    value: '106.7'

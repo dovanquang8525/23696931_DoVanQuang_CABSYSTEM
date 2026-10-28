@@ -14,6 +14,7 @@ message BookingIdRequest {
 message UpdateTripLocationRequest {
   string trip_id = 1;
   cab.common.v1.Coordinates location = 2;
+  optional string location_code = 3;
 }
 
 message ListTripsRequest {

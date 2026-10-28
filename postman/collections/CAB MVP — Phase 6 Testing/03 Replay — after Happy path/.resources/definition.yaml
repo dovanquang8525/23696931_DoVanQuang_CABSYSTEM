@@ -1,0 +1,3 @@
+$kind: collection
+description: Dùng nguyên key/snapshot lưu từ folder 02; không chạy lại 02 giữa các request replay. Chỉ đánh giá request replay; race đồng thời/callback vẫn có test riêng.
+order: 4000

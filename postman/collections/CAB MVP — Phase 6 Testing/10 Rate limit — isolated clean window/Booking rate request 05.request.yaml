@@ -1,0 +1,50 @@
+$kind: http-request
+description: |-
+  AC: AC97
+  Rate limit 10/account/phút và 120/IP/phút; hai tọa độ khác nhau, server gán BIKE và snapshot giá. Trả SEARCHING, không chờ 150 giây hoặc tạo Trip sớm. Cùng key không tạo vòng tìm mới.
+url: "{{base_url}}/api/v1/bookings"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: "{{rate_key}}"
+body:
+  type: json
+  content: '{"pickup":{"latitude":{{pickup_lat}},"longitude":{{pickup_lon}}},"destination":{"latitude":{{destination_lat}},"longitude":{{destination_lon}}}'
+auth:
+  type: bearer
+  credentials:
+    token: "{{customer_token}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      (function () {
+      const prereq = [];
+      const absent=prereq.filter(k=>!String(pm.environment.get(k)||'').trim());
+      if(absent.length){pm.execution.skipRequest();throw new Error('BLOCKED: thiếu tiên quyết '+absent.join(', '));}
+
+      const required = ["base_url", "customer_token", "destination_lat", "destination_lon", "pickup_lat", "pickup_lon", "rate_key"];
+      const missing = required.filter(k => !String(pm.environment.get(k) || '').trim());
+      if (missing.length) { pm.execution.skipRequest(); throw new Error('BLOCKED: thiếu environment: ' + missing.join(', ')); }
+      })();
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      (function () {
+      const expected = 200;
+      pm.test('HTTP đúng kỳ vọng: '+expected, function () { pm.expect(pm.response.code).to.eql(expected); });
+      pm.test('Phản hồi JSON', function () { pm.expect((pm.response.headers.get('Content-Type') || '').toLowerCase()).to.include('application/json'); });
+      let j;
+      try { j=pm.response.json(); } catch (e) { throw new Error('Response không phải JSON hợp lệ'); }
+      function noSecrets(v) {
+        if (!v || typeof v !== 'object') return;
+        Object.keys(v).forEach(k => { if (['passwordHash','codeHash','secret','signingKey','licenseNumberEncrypted','stack','stackTrace'].includes(k)) throw new Error('Lộ field nhạy cảm: '+k); noSecrets(v[k]); });
+      }
+      pm.test('Không lộ hash/key/stack trong JSON', function () { noSecrets(j); });
+      if (pm.response.code !== expected) { pm.execution.setNextRequest(null); return; }
+      if (expected>=400) pm.test('Error envelope',function(){ ['code','message','requestId'].forEach(k=>pm.expect(j[k]).to.be.a('string').and.not.empty); });
+
+      pm.test('Replay không tạo Booking mới',()=>pm.expect(j.bookingId).to.eql(pm.environment.get('rate_booking_id')));
+      })();
+    language: text/javascript
+order: 7000

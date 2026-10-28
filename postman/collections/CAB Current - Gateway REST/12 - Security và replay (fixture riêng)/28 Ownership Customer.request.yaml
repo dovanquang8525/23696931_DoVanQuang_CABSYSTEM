@@ -1,0 +1,16 @@
+$kind: http-request
+description: Chọn từng request theo postman/README.md. Không Run toàn bộ collection. Mọi request qua Gateway; cần fixture đúng trạng thái.
+url: "{{baseUrl}}/api/v1/customers/{{customerId}}"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{customer2Token}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP status', () => pm.expect(pm.response.code).to.be.oneOf([403]));
+      const data = pm.response.json();
+      pm.test('JSON response', () => pm.expect(data).to.be.an('object'));
+    language: text/javascript
+order: 6000

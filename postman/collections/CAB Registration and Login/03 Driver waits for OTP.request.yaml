@@ -1,0 +1,32 @@
+$kind: http-request
+order: 3000
+url: "{{baseUrl}}/api/v1/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+auth:
+  type: noauth
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{driverRegistrationEmail}}",
+      "phone": "{{driverRegistrationPhone}}",
+      "password": "{{registrationPassword}}",
+      "plateNumber": "{{driverRegistrationPlate}}"
+    }
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      const phone='0'+String(Math.floor(100000000+Math.random()*900000000));
+      pm.collectionVariables.set('driverRegistrationPhone',phone);
+      pm.collectionVariables.set('driverRegistrationEmail',phone+'@example.test');
+      pm.collectionVariables.set('driverRegistrationPlate','DEMO-'+phone);
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.response.to.have.status(202);
+      const r=pm.response.json();
+      pm.test('Only OTP challenge; no account or token',()=>{pm.expect(r.status).to.eql('OTP_REQUIRED');pm.expect(r).not.to.have.property('accessToken');pm.expect(r).not.to.have.property('accountId');pm.expect(r.mockCode).to.match(/^[0-9]{6}$/);});
+      pm.collectionVariables.set('registrationOtp',r.mockCode);

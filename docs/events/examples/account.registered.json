@@ -9,6 +9,8 @@
   "payload": {
     "accountId": "000000000000000000000001",
     "role": "CUSTOMER",
-    "fullName": "Demo Customer"
+    "fullName": "Demo Customer",
+    "email": "cus01@gmail.com",
+    "cid": "c01"
   }
 }

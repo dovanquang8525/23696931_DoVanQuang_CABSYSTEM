@@ -1,0 +1,30 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "phone": "{{customer_phone}}",
+      "password": "{{fixture_password}}",
+      "fullName": "Postman Customer",
+      "role": "CUSTOMER"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.variables.set('customer_phone', '0' + String(Math.floor(100000000 + Math.random() * 900000000)));
+      pm.variables.set('driver_phone', '0' + String(Math.floor(100000000 + Math.random() * 900000000)));
+      pm.variables.set('fixture_password', pm.variables.replaceIn('{{$randomUUID}}') + '-Cab1');
+      pm.variables.set('profile_polls', '0');
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', function () { pm.response.to.have.status(201); });
+      if (pm.response.code === 201) { const r=pm.response.json(); pm.variables.set('customer_account_id', r.accountId); pm.test('Profile pending',()=>pm.expect(r.profileStatus).to.eql('PENDING')); }
+    language: text/javascript
+order: 1000

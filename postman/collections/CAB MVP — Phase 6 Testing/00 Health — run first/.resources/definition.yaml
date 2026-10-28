@@ -1,0 +1,3 @@
+$kind: collection
+description: Chạy trước nghiệp vụ. /ready=503 hoặc lỗi kết nối => các test phụ thuộc BLOCKED; không kết luận nghiệp vụ FAIL chỉ từ thiếu hạ tầng.
+order: 1000

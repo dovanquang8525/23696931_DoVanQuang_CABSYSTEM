@@ -7,6 +7,8 @@ message CreateBookingRequest {
   cab.common.v1.Coordinates pickup = 1;
   cab.common.v1.Coordinates destination = 2;
   string idempotency_key = 3;
+  optional string pickup_code = 4;
+  optional string destination_code = 5;
 }
 
 message BookingIdRequest {

@@ -1,0 +1,55 @@
+$kind: http-request
+description: |-
+  Source: docs/api/07-payments.yaml | operationId: createPayment
+
+  Trip COMPLETED/cước hợp lệ/đúng chủ. Không nhận amount/method/status. PENDING/COMPLETED với key khác 409. Chỉ CreatePayment attempt 1; sau FAILED dùng endpoint retry. Replay key cũ trả resource cũ trước kiểm điều kiện lượt.
+url: "{{baseUrl}}{{apiPrefix}}/trips/{{tripId}}/payments"
+method: POST
+headers:
+  Accept: application/json
+  Idempotency-Key: "{{paymentKey}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: "{}"
+auth:
+  type: bearer
+  credentials:
+    token: "{{customerToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      pm.environment.set("paymentKey", pm.variables.replaceIn("{{$guid}}"));
+      if (pm.variables.get('tripStatus') !== 'COMPLETED' || pm.variables.get('tripStatusTripId') !== pm.variables.get('tripId')) throw new Error('GET current Trip and verify COMPLETED before payment');
+
+      const authReference = "{{customerToken}}";
+      const needed = [pm.request.url.toString(), pm.request.body ? pm.request.body.raw : '', authReference];
+      const keys = new Set(needed.join(' ').match(/\{\{[A-Za-z][A-Za-z0-9_]*\}\}/g) || []);
+      for (const token of keys) {
+        const key = token.slice(2,-2);
+        if (!pm.variables.get(key)) throw new Error('Set local environment variable: ' + key);
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      const expected = [201, 200];
+      pm.test('HTTP status matches scenario', () => pm.expect(pm.response.code).to.be.oneOf(expected));
+      pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type') || '').to.match(/application\/json/i));
+      const body = pm.response.json();
+      const schemas = {"201": {"type": "object", "additionalProperties": false, "properties": {"paymentId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "tripId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "method": {"type": "string", "enum": ["MOCK_ONLINE"]}, "status": {"type": "string", "enum": ["PENDING", "COMPLETED", "FAILED"]}, "amount": {"type": "integer", "minimum": 0, "maximum": 1000000000000}, "currency": {"type": "string", "enum": ["VND"]}, "referenceCode": {"type": "string", "minLength": 1, "maxLength": 128}, "attemptNumber": {"type": "integer", "minimum": 1, "maximum": 3}, "createdAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "confirmedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "failureCode": {"type": "string", "minLength": 1, "maxLength": 64}}, "required": ["paymentId", "tripId", "method", "status", "amount", "currency", "referenceCode", "attemptNumber", "createdAt"]}, "200": {"type": "object", "additionalProperties": false, "properties": {"paymentId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "tripId": {"type": "string", "minLength": 24, "maxLength": 24, "pattern": "^[0-9a-f]{24}$", "example": "000000000000000000000001"}, "method": {"type": "string", "enum": ["MOCK_ONLINE"]}, "status": {"type": "string", "enum": ["PENDING", "COMPLETED", "FAILED"]}, "amount": {"type": "integer", "minimum": 0, "maximum": 1000000000000}, "currency": {"type": "string", "enum": ["VND"]}, "referenceCode": {"type": "string", "minLength": 1, "maxLength": 128}, "attemptNumber": {"type": "integer", "minimum": 1, "maximum": 3}, "createdAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "confirmedAt": {"type": "string", "format": "date-time", "example": "2026-10-27T00:00:00Z"}, "failureCode": {"type": "string", "minLength": 1, "maxLength": 64}}, "required": ["paymentId", "tripId", "method", "status", "amount", "currency", "referenceCode", "attemptNumber", "createdAt"]}};
+      if (schemas[pm.response.code]) pm.test('Response matches API schema', () => pm.response.to.have.jsonSchema(schemas[pm.response.code]));
+      if (expected.includes(pm.response.code) && pm.response.code < 300) {
+        for (const key of ['customerId','driverId','bookingId','tripId','paymentId','invitationId','notificationId','reviewId','otpId']) {
+          if (body[key]) pm.environment.set(key, body[key]);
+        }
+        if (body.booking) {
+          pm.environment.set('bookingId', body.booking.bookingId);
+          if (body.booking.tripId) pm.environment.set('tripId', body.booking.tripId);
+        }
+        pm.environment.set('paymentStatus', body.status);
+        pm.environment.set('paymentAmount', String(body.amount));
+        pm.environment.set('paymentReferenceCode', body.referenceCode);
+        pm.environment.set('paymentReplayId', body.paymentId);
+      }
+    language: text/javascript
+order: 2000

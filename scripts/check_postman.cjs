@@ -6,9 +6,65 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'postman/documents/api-source-manifest.json'), 'utf8'));
-const primary = JSON.parse(fs.readFileSync(path.join(root, manifest.primary.collection.path), 'utf8'));
+if (manifest.current) {
+  const routing = require('../gateway/identity-routes.cjs');
+  const io = require('./postman-format.cjs');
+  const collection = io.loadCollection(manifest.current.collection);
+  const environment = io.loadEnvironment(manifest.current.environment);
+  const values = new Map(environment.values.map(entry => [entry.key, entry.value]));
+  assert.equal(values.size, environment.values.length, 'Duplicate environment variables');
+  assert.equal(values.get('baseUrl'), 'http://localhost:3000');
+  const flattenCurrent = items => items.flatMap(item => item.item ? flattenCurrent(item.item) : [item]);
+  const catalog = collection.item.slice(0, 10).flatMap(folder => folder.item);
+  assert.equal(catalog.length, routing.routes.length);
+  const operations = new Set();
+  const id = '000000000000000000000001';
+  function replacement(key) {
+    assert.ok(values.has(key) || key.startsWith('$'), 'Undefined variable: ' + key);
+    if (key === 'baseUrl') return values.get(key);
+    if (/Id$/.test(key)) return id;
+    if (/Email$/.test(key)) return 'audit@example.test';
+    if (/Phone$/.test(key)) return '0123';
+    if (/Password$/.test(key)) return '123';
+    if (key === 'otpCode') return '123456';
+    if (key === 'callbackSignature') return 'sha256=' + '0'.repeat(64);
+    if (key === 'callbackTimestamp') return String(Math.floor(Date.now() / 1000));
+    return 'demo-value';
+  }
+  const expand = value => value.replace(/\{\{([^}]+)\}\}/g, (_, key) => replacement(key));
+  for (const item of flattenCurrent(collection.item)) {
+    const request = item.request;
+    const rawUrl = typeof request.url === 'string' ? request.url : request.url.raw;
+    assert.ok(rawUrl.startsWith('{{baseUrl}}/'), 'Request bypasses Gateway');
+    const url = new URL(expand(rawUrl));
+    const route = routing.match(request.method, url.pathname);
+    assert.ok(route, 'Unknown route: ' + item.name);
+    for (const event of item.event || []) new vm.Script(event.script.exec.join('\n'), {filename: item.name});
+    assert.ok(item.event.some(event => event.listen === 'test' && event.script.exec.join('\n').includes('pm.test')));
+    if (request.auth.type === 'bearer') expand(request.auth.bearer[0].value);
+    for (const header of request.header) expand(header.value);
+    if (catalog.includes(item)) {
+      operations.add(route.operation);
+      assert.equal(item.name, route.operation);
+      if (route.operation !== 'handleMockCallback') {
+        const body = request.body ? JSON.parse(expand(request.body.raw)) : undefined;
+        const headers = Object.fromEntries(request.header.map(header => [header.key.toLowerCase(), expand(header.value)]));
+        routing.validate(route, url, body, headers);
+      }
+    }
+  }
+  assert.equal(operations.size, routing.routes.length, 'Missing or duplicate API operation');
+  console.log('STATIC_OK: current Postman catalog covers 47 Gateway operations; request schemas, variables and scripts checked. No HTTP was sent.');
+  return;
+}
+if(manifest.identityV2Migration?.status==='OUTDATED_COLLECTIONS'){
+  console.error('OUTDATED: v1 collections are preserved references; use identity v2 manual requests in docs/MANUAL_POSTMAN_30.md.');
+  process.exit(1);
+}
+const {loadCollection} = require('./postman-format.cjs');
+const primary = loadCollection(manifest.primary.collection.path);
 // Retain older catalog regressions explicitly as compatibility checks.
-const collection = JSON.parse(fs.readFileSync(path.join(root, manifest.compatibility.collection.path), 'utf8'));
+const collection = loadCollection(manifest.compatibility.collection.path);
 const flatten = items => items.flatMap(x => x.item ? flatten(x.item) : [x]);
 const items = flatten(collection.item);
 const code = (item, kind) => item.event.find(e => e.listen === kind).script.exec.join('\n');
@@ -41,7 +97,10 @@ function expect(value, negate = false) {
 }
 
 const find = name => {
-  const result = items.find(x => x.name === name || x.name.startsWith(name + ' |'));
+  const normalize = value => value.normalize('NFC').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  const result = items.find(x => x.name === name || x.name.startsWith(name + ' |') ||
+    normalize(x.name) === normalize(name) || normalize(x.name).startsWith(normalize(name) + 'customer') ||
+    normalize(x.name).startsWith(normalize(name) + 'driver') || normalize(x.name).startsWith(normalize(name) + 'admin'));
   assert.ok(result, name);
   return result;
 };

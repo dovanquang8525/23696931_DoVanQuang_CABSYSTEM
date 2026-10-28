@@ -96,12 +96,71 @@
               "type": "string",
               "format": "email",
               "maxLength": 254
+            },
+            "cid": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 16,
+              "pattern": "^c[a-z0-9]{1,15}$"
+            },
+            "did": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 16,
+              "pattern": "^d[a-z0-9]{1,15}$"
+            },
+            "plateNumber": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 20,
+              "pattern": "^[^<>]*$"
             }
           },
           "required": [
             "accountId",
             "role",
-            "fullName"
+            "fullName",
+            "email"
+          ],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "role": {
+                    "const": "CUSTOMER"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "cid"
+                ],
+                "not": {
+                  "required": [
+                    "did"
+                  ]
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "role": {
+                    "const": "DRIVER"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "did"
+                ],
+                "not": {
+                  "required": [
+                    "cid"
+                  ]
+                }
+              }
+            }
           ]
         }
       },
@@ -458,12 +517,19 @@
                     "color",
                     "isActive"
                   ]
+                },
+                "did": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 16,
+                  "pattern": "^d[a-z0-9]{1,15}$"
                 }
               },
               "required": [
                 "driverId",
                 "fullName",
-                "vehicle"
+                "vehicle",
+                "did"
               ]
             }
           },

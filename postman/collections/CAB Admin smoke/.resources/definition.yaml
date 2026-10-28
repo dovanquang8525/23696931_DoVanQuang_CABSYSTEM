@@ -1,0 +1,9 @@
+$kind: collection
+name: CAB Admin smoke
+description: Admin login and paginated Customer list through Gateway. Set
+  adminPassword locally. Postman Runner NOT_RUN.
+variables:
+  baseUrl: http://localhost:3000
+  adminEmail: admin@cab.local
+  adminPassword: ""
+  adminToken: ""

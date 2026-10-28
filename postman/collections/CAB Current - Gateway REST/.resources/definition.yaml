@@ -1,0 +1,2 @@
+$kind: collection
+description: API hiện hành Identity v3. 47 operation từ docs/api; kịch bản chọn tay cho 30 mục. Không Run toàn bộ. Callback phải ký bằng công cụ local, không đưa secret vào Postman.

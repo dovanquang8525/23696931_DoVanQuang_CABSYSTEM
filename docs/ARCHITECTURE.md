@@ -1,42 +1,53 @@
-# CAB System MVP — Architecture
+# Kiến trúc CAB System MVP
 
-Trạng thái: tài liệu khung các quyết định đã chốt; chưa xác nhận triển khai. Phạm vi chỉ BIKE. Thiết kế chi tiết hiện có tại [Bounded Context](Bounded-Context.md), cần đối chiếu [SRS 2.0](SRS.md) trước khi triển khai; tài liệu cũ được bảo toàn.
+Dùng để giải thích các mục 1, 3, 4, 7, 8. Chuẩn bị source, compose.yaml, proto/ và hệ thống đang chạy theo [runbook](BACKEND_RUNBOOK.md).
 
-## System Overview
+## Request và dữ liệu
 
-Đúng 8 service: auth_service, customer_service, driver_service, booking_service, trip_service, payment_service, notification_service, rating_service. Không tách thêm service theo số nhóm YAML. Payment mock chỉ sau Trip COMPLETED; OTP mock phục vụ đăng ký tài xế theo phiếu chấm.
+Postman → Gateway REST/JSON → service gRPC → database do service sở hữu. Gateway đọc 47 operation từ 10 OpenAPI YAML, kiểm JWT, role, input, rate limit, ánh xạ lỗi và schema response. Health nằm ở root; nghiệp vụ dùng /api/v1.
 
-## API Gateway
+Đúng 8 service: Auth, Customer, Driver, Booking, Trip, Payment, Notification, Rating. Driver sở hữu Vehicle; không thêm Vehicle/OTP/Report Service. Mỗi service dùng user chỉ có readWrite trên một DB: auth_db, customer_db, driver_db, booking_db, trip_db, payment_db, notification_db, rating_db. Gateway không có MongoDB credentials. gRPC không publish ra host; peer nội bộ cần internal credential và quyền theo docs/api/rpc-access.json. Service vẫn kiểm JWT/ownership của người dùng.
 
-Client → Gateway sử dụng REST. Mọi request từ Postman đi qua Gateway. Gateway → Service sử dụng gRPC. Chưa định nghĩa thêm endpoint trong bước này.
+## Luồng chính
 
-## gRPC Communication
+1. Auth tạo Account và account.registered cùng transaction/outbox. Customer/Driver consumer tạo profile; client có thể gặp PROFILE_NOT_READY ngắn hạn.
+2. Driver xác thực OTP mock khi đăng ký, bổ sung license, submit PENDING; ADMIN duyệt. Driver cập nhật vị trí rồi ONLINE.
+3. Customer tạo Booking BIKE. Booking gọi Driver qua gRPC tìm tối đa 5 ứng viên trong 1 km và gửi invitation tuần tự.
+4. ACCEPT: Booking giữ reservation ở Driver, tạo Trip, xác nhận assignment. Operation lưu DB để tiếp tục khi lỗi giữa RPC; phần này ngăn gán trùng chuyến, không phải framework/service mới.
+5. Trip ASSIGNED → ARRIVED → IN_PROGRESS → COMPLETED. Cước dùng distance/pricing snapshot. Event giúp Booking đổi trạng thái, Driver được giải phóng và Notification ghi thông báo.
+6. Payment mock chỉ sau COMPLETED. Callback HMAC xác nhận kết quả; FAILED có tối đa 3 attempt tổng cộng. Idempotency-Key và snapshot ngăn xử lý lại. Booking view tổng hợp payment bằng gRPC.
+7. Customer lưu một Review/trip COMPLETED, rating 1–5.
 
-Giao tiếp đồng bộ nội bộ sử dụng gRPC. Hợp đồng protobuf hiện có tại `proto/`; xem [REST–gRPC mapping](api/rest-grpc-mapping.md). Chưa có mã backend hoặc bằng chứng giao tiếp runtime.
+## RabbitMQ thực sự dùng ở đâu?
 
-## RabbitMQ Events
+| Service | Publish | Consume |
+| --- | --- | --- |
+| Auth | account.registered | Không |
+| Customer | Không | account.registered |
+| Driver | driver.approval_changed | account.registered, trip.completed, trip.canceled |
+| Booking | booking.created/invitation_created/assigned/canceled/no_driver | trip.completed, trip.canceled |
+| Trip | trip.arrived/completed/canceled | Không |
+| Payment | payment.completed/failed | Không |
+| Notification | Không | 11 binding trong docs/events/topology.json |
+| Rating | Không | Không |
 
-RabbitMQ dùng cho event bất đồng bộ. Chưa bổ sung hoặc thay đổi danh mục event, payload, exchange, queue hay cơ chế retry trong nhiệm vụ này.
+cab.events là topic exchange: 4 queue chính, 12 retry, 4 DLQ; delay 1/5/15 giây. Publisher dùng outbox/confirm; consumer commit inbox cùng dữ liệu rồi ACK, chống event trùng. Khai báo topology ở mỗi connect/reconnect. Rating không kết nối RabbitMQ vì không có luồng event cần thiết. Customer/Notification không tạo outbox index vì không publish.
 
-## Redis
+Redis giữ counters rate limit tại Gateway, cửa sổ 60 giây, phục vụ mục 29. Không dùng Redis thay DB hoặc kho JWT.
 
-Redis phục vụ rate limiting tại Gateway. Chính sách và cấu hình triển khai chưa được bổ sung ở bước này.
+## Kiểm chứng
 
-## MongoDB Ownership
+```powershell
+docker compose ps -a
+Invoke-RestMethod http://localhost:3000/health/services
+docker compose logs --tail 30 infra_init
+docker compose exec -T rabbitmq rabbitmqctl list_queues -p cab name consumers messages
+```
 
-8 database logic; mỗi service sở hữu một database. Không truy cập trực tiếp database của service khác. Chưa tạo database hoặc cấu hình kết nối.
+Kỳ vọng 12 thành phần healthy, 8 log xác nhận DB isolation, 4 queue chính có consumer. Health/topology chưa chứng minh retry/DLQ hoặc toàn bộ nghiệp vụ. Xem [bảng chấm](GRADING_MATRIX.md), [SRS](SRS.md), [Bounded Context](Bounded-Context.md), [contracts](api/contracts.md).
 
-| Service              | Database logic trong thiết kế hiện có |
-| -------------------- | ------------------------------------- |
-| auth_service         | auth_db                               |
-| customer_service     | customer_db                           |
-| driver_service       | driver_db                             |
-| booking_service      | booking_db                            |
-| trip_service         | trip_db                               |
-| payment_service      | payment_db                            |
-| notification_service | notification_db                       |
-| rating_service       | rating_db                             |
+## Sai khác còn giữ ở mô hình gốc
 
-## Docker Deployment
+Ảnh Microservice-Architecture-Design.png ghi Notification consume account.registered, nhưng topology/code hiện tại không có binding đó. ERD chưa vẽ email đăng nhập/cid/did; Vehicle là object nhúng trong Driver. REST dùng camelCase/name, một số document nội bộ dùng snake_case/full_name; mapper chuyển đổi có chủ đích. Giữ nguyên ảnh gốc để đối chiếu, không xem ảnh là schema triển khai chi tiết. Checkout hiện tại không có các DOCX nguồn mà SRS dẫn chiếu.
 
-Chưa triển khai. `infra/` được chuẩn bị cho giai đoạn tiếp theo; chưa có Docker Compose, chưa build hoặc chạy container. Topology, image, port và cấu hình vận hành sẽ được xác định trong nhiệm vụ triển khai riêng.
+Read model chấp nhận hồ sơ/snapshot legacy chưa có cid/did; khi có mã vẫn phải đúng pattern. Register mới vẫn bắt buộc cid hoặc did trong response. Không tự sinh lại mã hoặc sửa dữ liệu cũ. Các hash hợp đồng chỉ cập nhật cho 4 YAML sau khi đã kiểm diff và regression.

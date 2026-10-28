@@ -11,6 +11,8 @@ import subprocess
 import time
 import uuid
 
+from postman_io import load_environment, environment_text
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -82,10 +84,10 @@ def write_private_environment(output, environment):
             raise ValueError('output is not ignored by Git; refusing to export local credentials')
     if output.exists():
         raise ValueError('output exists; choose a new path, never overwrite a local environment')
+    serialized = environment_text(environment, output)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open('x', encoding='utf-8', newline='\n') as handle:
-        json.dump(environment, handle, ensure_ascii=False, indent=2)
-        handle.write('\n')
+        handle.write(serialized)
     try:
         output.chmod(0o600)
     except OSError:
@@ -95,7 +97,7 @@ def write_private_environment(output, environment):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--env-in', type=Path, required=True, help='Locally exported Phase 6 environment; existing variables are preserved')
-    parser.add_argument('--out', type=Path, default=Path('.local/callback.postman_environment.json'))
+    parser.add_argument('--out', type=Path, default=Path('.local/callback.environment.yaml'))
     parser.add_argument('--payment-id', required=True)
     parser.add_argument('--reference', required=True)
     parser.add_argument('--amount', type=int, required=True)
@@ -105,7 +107,7 @@ def main():
     args = parser.parse_args()
     try:
         secret = signing_secret()
-        environment = json.loads(args.env_in.read_text(encoding='utf-8-sig'))
+        environment = load_environment(args.env_in)
         result = prepare(environment, args.payment_id, args.reference, args.amount, args.result,
                          secret, args.timestamp, args.event_id)
         write_private_environment(args.out, result)

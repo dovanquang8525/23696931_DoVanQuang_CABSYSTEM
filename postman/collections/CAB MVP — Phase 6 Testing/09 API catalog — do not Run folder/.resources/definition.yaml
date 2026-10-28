@@ -1,0 +1,3 @@
+$kind: collection
+description: Thư viện đủ 47 operation từ YAML. Gửi từng request sau chuẩn bị fixture/trạng thái; không Run All hoặc dùng thành công ở đây thay thế test case nghiệp vụ. Các example ID/OTP/time phải thay theo dữ liệu thực.
+order: 10000

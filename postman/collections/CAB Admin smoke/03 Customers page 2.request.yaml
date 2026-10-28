@@ -1,0 +1,14 @@
+$kind: http-request
+order: 3000
+url: "{{baseUrl}}/api/v1/admin/customers?page=2&limit=10"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: pm.response.to.have.status(200);const
+      r=pm.response.json();pm.test('Paginated Customer
+      list',()=>{pm.expect(r.page).to.eql(2);pm.expect(r.items).to.be.an('array');r.items.forEach(i=>{pm.expect(i.accountId).to.match(/^[0-9a-f]{24}$/);pm.expect(i.customerId).to.match(/^[0-9a-f]{24}$/);pm.expect(i).not.to.have.property('passwordHash');});});

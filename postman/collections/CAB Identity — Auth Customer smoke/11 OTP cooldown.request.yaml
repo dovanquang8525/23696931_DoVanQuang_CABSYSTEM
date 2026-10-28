@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/auth/otp-challenges"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "phone": "{{driver_phone}}",
+      "purpose": "DRIVER_REGISTRATION"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 429', function () { pm.response.to.have.status(429); });
+      pm.test('Retry-After',()=>pm.expect(Number(pm.response.headers.get('Retry-After'))).to.be.at.least(1));
+    language: text/javascript
+order: 11000

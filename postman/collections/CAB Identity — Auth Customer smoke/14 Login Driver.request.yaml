@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "phone": "{{driver_phone}}",
+      "password": "{{fixture_password}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      if (pm.response.code===200) { pm.variables.set('driver_token',pm.response.json().accessToken); pm.test('Driver role',()=>pm.expect(pm.response.json().account.role).to.eql('DRIVER')); }
+    language: text/javascript
+order: 14000

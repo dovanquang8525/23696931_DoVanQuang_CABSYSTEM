@@ -5,7 +5,7 @@
     "requirements": "FR01 / UC01",
     "category": "positive",
     "executionMode": "POSTMAN",
-    "preconditionsAndData": "Số mới, password 8–64 ký tự; profile consumer khỏe",
+    "preconditionsAndData": "Số mới, password ít nhất 1 ký tự; profile consumer khỏe",
     "steps": [
       "POST /auth/register role CUSTOMER",
       "login",
@@ -48,8 +48,8 @@
     "preconditionsAndData": "Tách dữ liệu từng lần; không dùng phone đã tồn tại cho mọi biến thể",
     "steps": [
       "Thử thiếu phone",
-      "phone 9/11 số hoặc không bắt đầu 0",
-      "password 7/65 ký tự",
+      "phone rỗng/null/sai kiểu, phone chỉ có khoảng trắng",
+      "password rỗng/null/sai kiểu",
       "phone trùng. Mỗi biến thể 400 hoặc 409 đúng lỗi, không có Account mới."
     ],
     "expectedResult": "Từ chối đăng ký; không báo thành công hoặc tạo thêm tài khoản.",

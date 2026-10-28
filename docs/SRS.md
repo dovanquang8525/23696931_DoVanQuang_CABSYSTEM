@@ -1,5 +1,10 @@
 # CAB System — Đặc tả yêu cầu hệ thống MVP
 
+**Validation demo cập nhật 28/10/2026:** Password là String không rỗng (ít nhất 1 ký tự, ví dụ "123" hoặc "a"), không trim và không yêu cầu độ phức tạp; Phone là String không rỗng sau trim (ví dụ "0123", "123", "abc123"), giữ số 0 đầu và vẫn unique. Email giữ định dạng cơ bản. Chỉ áp dụng cho học tập/demo local; không phải chính sách production. Argon2id, JWT, role/ownership và OTP Driver giữ nguyên.
+
+**Quyết định mới nhất — Identity v3:** cid/did do Auth tự sinh bằng counter transaction, không phải dữ liệu người dùng nhập. Customer Register email/password/phone; Driver thêm plateNumber, gửi lần đầu nhận OTP 202, gửi lại thông tin + code để tạo account 201 (không nhập otpId). Name dùng mã tự sinh ban đầu. Driver DRAFT hoàn thiện licenseNumber rồi Submit để PENDING; không bỏ bước duyệt hồ sơ. Booking dùng pickupCode/destinationCode A/B, vị trí/nearby dùng locationCode từ fixture DB của owner; vẫn hỗ trợ coordinates khi cần, không trộn hai dạng. Password ít nhất 1, quy tắc bảo mật/trip/payment giữ nguyên. Các đoạn v2 nói phải tự nhập cid/did được thay bởi quyết định này. Xem docs/api/contracts.md.
+
+
 | Thuộc tính      | Giá trị                                                                                                            |
 | --------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Phiên bản       | 2.0 — Chuẩn hóa Giai đoạn 2                                                                                        |
@@ -737,12 +742,12 @@ Trạng thái hồ sơ, online/offline, tình trạng bận và trạng thái t�
 
 ### 8.2. Tài khoản và quyền truy cập
 
-| Mã     | Quy tắc                                                                                                                                                                                              | Nguồn     | FR liên quan                          |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------- |
-| RULE01 | Chức năng được bảo vệ yêu cầu JWT hợp lệ, chưa hết hạn và tài khoản `ACTIVE`.                                                                                                                        | KH + Demo | FR02, FR40                            |
-| RULE02 | Demo có ba vai trò `CUSTOMER`, `DRIVER`, `ADMIN`. Chỉ `ADMIN` được duyệt hồ sơ; đăng ký công khai không được tạo `ADMIN`.                                                                            | KH + Demo | FR01, FR40, FR45                      |
-| RULE03 | Khách hàng chỉ thao tác booking, trip, payment và review thuộc mình; tài xế chỉ phản hồi lời mời gửi cho mình và cập nhật trip được phân công. `ADMIN` truy cập theo chức năng quản trị đã xác định. | Demo      | FR13, FR17–FR18, FR23–FR29, FR33–FR40 |
-| RULE04 | Số điện thoại là định danh đăng nhập, được chuẩn hóa và duy nhất toàn hệ thống. Demo nhận số Việt Nam gồm 10 chữ số, bắt đầu bằng `0`; mỗi tài khoản có một vai trò.                                 | Demo      | FR01–FR03                             |
+| Mã     | Quy tắc                                                                                                                                                                                                                                                            | Nguồn                   | FR liên quan                          |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------- | ------------------------------------- |
+| RULE01 | Chức năng được bảo vệ yêu cầu JWT hợp lệ, chưa hết hạn và tài khoản `ACTIVE`.                                                                                                                                                                                      | KH + Demo               | FR02, FR40                            |
+| RULE02 | Demo có ba vai trò `CUSTOMER`, `DRIVER`, `ADMIN`. Chỉ `ADMIN` được duyệt hồ sơ; đăng ký công khai không được tạo `ADMIN`.                                                                                                                                          | KH + Demo               | FR01, FR40, FR45                      |
+| RULE03 | Khách hàng chỉ thao tác booking, trip, payment và review thuộc mình; tài xế chỉ phản hồi lời mời gửi cho mình và cập nhật trip được phân công. `ADMIN` truy cập theo chức năng quản trị đã xác định.                                                               | Demo                    | FR13, FR17–FR18, FR23–FR29, FR33–FR40 |
+| RULE04 | Email trim/lowercase là định danh đăng nhập và duy nhất. Phone String không rỗng sau trim, có thể ngắn/chứa chữ và vẫn unique. Auth tự cấp cid/did bằng counter transaction, không nhận mã/role từ client. Register có plateNumber là luồng DRIVER hai bước OTP; không có plateNumber là CUSTOMER. | Quyết định hiện hành v3 | FR01–FR03                             |
 
 ### 8.3. Đặt xe và phân công tài xế
 
@@ -1122,7 +1127,9 @@ erDiagram
 
 | Trường                                 | Ý nghĩa và cách sử dụng                                                         |
 | -------------------------------------- | ------------------------------------------------------------------------------- |
-| `Account.phone`                        | Số điện thoại đã chuẩn hóa; dùng đăng nhập và kiểm tra trùng                    |
+| `Account.phone`                        | Số điện thoại chuẩn hóa, duy nhất; liên hệ và OTP Driver, không dùng đăng nhập  |
+| `Account.email`                        | Email đăng nhập trim/lowercase, duy nhất tại Auth                               |
+| `Account.cid/did`                      | Mã hồ sơ ngắn, duy nhất theo loại; không thay ID nội bộ                         |
 | `OtpChallenge.codeHash`                | Giá trị băm của OTP; không lưu mã rõ                                            |
 | `verifiedAt`, `consumedAt`             | Phân biệt OTP đã xác minh với bằng chứng xác minh đã được dùng để đăng ký       |
 | `DriverProfile.approvalStatus`         | Trạng thái hồ sơ; độc lập với trạng thái tài khoản và online                    |
@@ -1161,13 +1168,13 @@ Các snapshot là **document nhúng trong Trip**, không phải collection hay b
 | `Review.comment`               | Tùy chọn, tối đa 500 ký tự                                    |
 | Lý do hủy / từ chối hồ sơ      | 1–300 ký tự sau khi bỏ khoảng trắng đầu/cuối                  |
 
-Các trường văn bản dùng trim trước kiểm tra (trừ password): fullName 1–100 ký tự; email tùy chọn tối đa 254 ký tự, nếu gửi phải đúng định dạng email; licenseNumber 1–50 ký tự (dữ liệu demo, không xác nhận giấy phép thật); plateNumber sau chuẩn hóa tối đa 20 ký tự, không rỗng và duy nhất; model 1–100, color 1–30 ký tự. Mỗi Vehicle thuộc đúng Driver suy ra từ token, không tự chọn chủ sở hữu. Idempotency-Key là chuỗi ASCII hiển thị 1–128 ký tự; không được chứa secret. unknown fields trong input bị từ chối 400. Các giới hạn này là thông số demo bổ sung, không phải quy định pháp lý về giấy tờ.
+Các trường văn bản dùng trim trước kiểm tra (trừ password): REST name 1–100 ký tự (tên fullName/full_name có thể giữ nội bộ); email đăng ký bắt buộc, tối đa 254 ký tự, đúng định dạng, trim/lowercase ở Auth; licenseNumber 1–50 ký tự (dữ liệu demo, không xác nhận giấy phép thật); plateNumber tối đa 20 ký tự, không rỗng và duy nhất; model 1–100, color 1–30 ký tự. cid/did dài 2–16 ký tự, lowercase chữ/số và bắt đầu c/d tương ứng. Mỗi Vehicle thuộc Driver suy ra từ token. Idempotency-Key ASCII hiển thị 1–128 ký tự; không chứa secret. Unknown fields bị từ chối 400.
 
 ### 9.7. Ràng buộc duy nhất và index cần thiết
 
 | Collection      | Index / ràng buộc                                                 | Mục đích                                                          |
 | --------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Account         | Unique `phone`                                                    | Không trùng định danh đăng nhập                                   |
+| Account         | Unique phone, email; partial unique cid và did                    | Không trùng email đăng nhập, phone hoặc mã hồ sơ                  |
 | CustomerProfile | Unique `accountId`                                                | Một hồ sơ khách hàng cho mỗi tài khoản                            |
 | DriverProfile   | Unique `accountId`                                                | Một hồ sơ tài xế cho mỗi tài khoản                                |
 | Vehicle         | Unique `plateNumber` đã chuẩn hóa                                 | Không trùng biển số                                               |
@@ -1203,7 +1210,7 @@ Các trường văn bản dùng trim trước kiểm tra (trừ password): fullN
 | Dữ liệu                              | Yêu cầu                                                                                                                                                                                                                                                     |
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | DriverProfile.licenseNumberEncrypted | Thay licenseNumber plaintext bằng object {ciphertext, iv, authTag, keyVersion}, dùng AES-256-GCM, IV mới cho mỗi lần mã hóa. API chỉ cho chủ hồ sơ và ADMIN đọc dữ liệu cần thiết; danh sách nearby/Trip dùng dữ liệu đã lọc. Không lưu key trong document. |
-| Account.passwordHash                 | Băm bằng Argon2id có salt riêng; cấu hình demo memoryCost=19456 KiB, timeCost=2, parallelism=1; không mã hóa mật khẩu để giải mã. Password 8–64 ký tự Unicode; không trim password.                                                                         |
+| Account.passwordHash                 | Băm bằng Argon2id có salt riêng; cấu hình demo memoryCost=19456 KiB, timeCost=2, parallelism=1; không mã hóa mật khẩu để giải mã. Password ít nhất 1 ký tự Unicode; không trim password.                                                                         |
 | OtpChallenge.codeHash                | Giá trị xác minh có khóa (HMAC) với secret OTP ngoài DB; gắn otpId, phone, purpose và mã. Không lưu mockCode plaintext.                                                                                                                                     |
 | Trip ownership/cancellation          | Lưu customerId và customerAccountId, driverAccountId từ nguồn hợp lệ; dữ liệu hủy có reason, canceledByAccountId, canceledAt, fee=0; không lấy ownership từ client.                                                                                         |
 | Phân công                            | Booking lưu operationId/version và kết quả để phục hồi; Driver giữ chỗ có điều kiện; Trip unique bookingId và assignmentConfirmed. Các trường là chi tiết kỹ thuật, không thêm trạng thái Trip công khai.                                                   |
@@ -1286,8 +1293,8 @@ NFR12 yêu cầu **kết quả đồng bộ và khả năng phục hồi**, khô
 | Mã    | Yêu cầu                                        | Tiêu chí nghiệm thu                                                                                                                                                                                                                                                                                                                                                                     | Nguồn / AC                 |
 | ----- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
 | NFR21 | Bảo vệ dữ liệu lưu trữ                         | Password/OTP theo NFR02; licenseNumberEncrypted theo 9.9; key ngoài Git và DB, thiếu key không ready; MongoDB kiểm tra không thấy licenseNumber plaintext.                                                                                                                                                                                                                              | PC24; AC93                 |
-| NFR22 | Chống injection                                | Validate type và whitelist field; không ghép query từ input; từ chối object toán tử $ne/$gt trong phone/password. Payload SQL trên trường đăng nhập thực tế và payload NoSQL không đăng nhập được, không lộ DB, 400/401.                                                                                                                                                                | PC25; AC94                 |
-| NFR23 | Xử lý XSS                                      | Các trường văn bản người dùng (fullName, comment, reason, model, color) không hỗ trợ HTML. Reject markup chứa thẻ/script/event handler với 400, không ghi; JSON Content-Type application/json; test harness khi hiển thị phải dùng textContent/escape theo ngữ cảnh. Postman không chứng minh browser execution.                                                                        | PC26; AC96                 |
+| NFR22 | Chống injection                                | Validate type và whitelist field; không ghép query từ input; từ chối object toán tử $ne/$gt trong email/password. Payload SQL trên trường đăng nhập thực tế và payload NoSQL không đăng nhập được, không lộ DB, 400/401.                                                                                                                                                                | PC25; AC94                 |
+| NFR23 | Xử lý XSS                                      | Các trường văn bản người dùng (name, comment, reason, model, color) không hỗ trợ HTML. Reject markup chứa thẻ/script/event handler với 400, không ghi; JSON Content-Type application/json; test harness khi hiển thị phải dùng textContent/escape theo ngữ cảnh. Postman không chứng minh browser execution.                                                                            | PC26; AC96                 |
 | NFR24 | JWT chống giả mạo                              | RULE47/RULE48; thử token sửa sub/role, sai signature, alg=none, hết hạn, sai iss/aud → 401 và không đọc/ghi dữ liệu. Sai role hợp lệ → 403.                                                                                                                                                                                                                                             | PC27–28; AC95, AC80        |
 | NFR25 | Rate limit Booking bằng Redis                  | RULE45; kiểm tra 11 request tạo Booking/phút/account thì request vượt ngưỡng 429, không tạo Booking. Redis lỗi: write tạo Booking/login/OTP trả 503, không bypass limiter; health vẫn trả được. Đo tải >1000 request/giây cho mục 29 bằng công cụ tải riêng, ghi tải thực đạt, 429, lỗi và tài nguyên; chưa đo thì BLOCKED phần tải.                                                    | PC29; AC97                 |
 | NFR26 | Gateway và hợp đồng gRPC                       | Client chỉ REST qua Gateway; tất cả 8 service cung cấp gRPC. Không publish cổng gRPC ra host. Service metadata chứa JWT caller khi có, service identity và correlationId; chỉ tin peer có shared internal secret cấu hình riêng (demo local network), không tin x-role/x-user-id do client đặt. Health nội bộ dùng gRPC Health; không đòi JWT người dùng nhưng cần internal credential. | PC3–4,8; AC98              |
@@ -1542,12 +1549,12 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 
 **Luồng chính**
 
-1. Người dùng gửi phone, password, fullName và role; DRIVER gửi thêm otpId/bằng chứng xác minh.
-2. Auth kiểm tra dữ liệu, phone chuẩn hóa duy nhất, role chỉ CUSTOMER/DRIVER và password 8–64 ký tự.
-3. Trong Auth, tạo Account ACTIVE, tiêu thụ OTP nếu có và lưu event account.registered một cách có thể phục hồi; không ghi database service khác.
-4. Gateway trả kết quả đã tạo Account kèm profileStatus=PENDING; không khẳng định profile đã có nếu consumer chưa xử lý.
+1. Customer gửi email/password/phone. Driver gửi thêm plateNumber: lần đầu chỉ tạo challenge và trả 202 OTP_REQUIRED; sau đó gửi cùng thông tin + code 6 số, không nhập otpId. Không nhận cid/did/role/name.
+2. Auth kiểm email/phone duy nhất, password ít nhất 1 ký tự. Driver phải có OTP đúng, chưa hết hạn/chưa dùng và gắn đúng dữ liệu đã gửi; chưa đúng thì không tạo Account.
+3. Transaction Auth tự cấp cid/did, tạo Account ACTIVE, consume OTP Driver nếu có và lưu outbox account.registered; không ghi DB service khác. Tên ban đầu dùng mã tự sinh.
+4. Gateway trả 201 chỉ gồm accountId/role/cid hoặc did; không trả token hoặc profileStatus. Customer không cần OTP; Driver hoàn tất OTP rồi mới được tạo Account. Không khẳng định profile đã có nếu consumer chưa xử lý.
 5. Customer/Driver nhận event và upsert profile theo accountId; Driver khởi tạo DRAFT/offline, chưa được nhận chuyến.
-6. Người dùng đăng nhập và tra cứu hồ sơ. Khi hệ thống khỏe, profile được tạo trong 5 giây kể từ khi Account được lưu.
+6. Người dùng đăng nhập riêng để nhận accessToken và account tối giản (accountId, role, cid/did nếu có), không tokenType/expiresAt/status trong JSON đăng nhập, rồi tra cứu hồ sơ. Khi hệ thống khỏe, profile được tạo trong 5 giây kể từ khi Account được lưu.
 
 **Thay thế / ngoại lệ**
 
@@ -1571,8 +1578,8 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 
 **Luồng chính**
 
-1. Người dùng nhập số điện thoại và mật khẩu.
-2. Hệ thống chuẩn hóa số điện thoại và kiểm tra dữ liệu.
+1. Người dùng nhập email và mật khẩu.
+2. Hệ thống trim/lowercase email và kiểm tra dữ liệu.
 3. Hệ thống xác thực mật khẩu và kiểm tra Account `ACTIVE`.
 4. Hệ thống cấp JWT và trả thông tin tài khoản được phép hiển thị.
 
@@ -2308,20 +2315,20 @@ Trong các bảng dưới đây:
 - Một AC có thể được kiểm tra bằng nhiều Test Case, đặc biệt với các giá trị biên.
 - Các AC dưới đây là điều kiện cần kiểm thử, **chưa được xem là đã đạt**.
 
-Để FR01 có thể kiểm thử đầy đủ, bổ sung **quy tắc demo đề xuất: mật khẩu dài từ 8–64 ký tự**. Quy tắc này cần được đồng bộ vào bước 8 và API specification.
+Để FR01 có thể kiểm thử đầy đủ, bổ sung **quy tắc demo đề xuất: mật khẩu có ít nhất 1 ký tự**. Quy tắc này cần được đồng bộ vào bước 8 và API specification.
 
 ### 13.2. Tài khoản và thông tin cá nhân
 
-| Mã AC | FR / UC           | Điều kiện / hành động                                                                                                                 | Kết quả chấp nhận                                                                                                                                                     |
-| ----- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AC01  | FR01 / UC01       | Người dùng đăng ký CUSTOMER với dữ liệu hợp lệ và số điện thoại chưa tồn tại                                                          | Tạo Account ACTIVE role CUSTOMER; profileStatus=PENDING khi chưa đồng bộ; trong 5 giây khi khỏe có một CustomerProfile liên kết và không có DriverProfile.            |
-| AC02  | FR01, FR43 / UC01 | Người dùng đăng ký DRIVER với bằng chứng OTP hợp lệ, đúng số điện thoại, đúng mục đích và chưa dùng                                   | Tạo Account ACTIVE role DRIVER, tiêu thụ OTP cục bộ; trong 5 giây khi khỏe có một DriverProfile DRAFT/offline. Trả trạng thái profile chờ nếu consumer chưa hoàn tất. |
-| AC03  | FR01 / UC01       | Đăng ký thiếu trường bắt buộc, số điện thoại không gồm 10 chữ số bắt đầu bằng `0`, mật khẩu ngoài 8–64 ký tự hoặc số điện thoại trùng | Từ chối đăng ký; không báo thành công hoặc tạo thêm tài khoản.                                                                                                        |
-| AC04  | FR01 / UC01       | Yêu cầu đăng ký công khai role `ADMIN` hoặc vai trò không được hỗ trợ                                                                 | Từ chối; không tạo tài khoản với vai trò yêu cầu.                                                                                                                     |
-| AC05  | FR02 / UC02       | Đăng nhập đúng số điện thoại, mật khẩu và tài khoản `ACTIVE`                                                                          | Trả JWT có thời hạn hiệu lực và thông tin tài khoản được phép hiển thị.                                                                                               |
-| AC06  | FR02 / UC02       | Đăng nhập sai thông tin hoặc tài khoản `DISABLED`                                                                                     | Không cấp JWT; lỗi đăng nhập không tiết lộ tài khoản có tồn tại hay không.                                                                                            |
-| AC07  | FR03 / UC03       | Người dùng cập nhật họ tên hoặc email của mình bằng dữ liệu hợp lệ                                                                    | Lưu thay đổi và trả thông tin mới; vai trò, số điện thoại đăng nhập và trạng thái duyệt không đổi.                                                                    |
-| AC08  | FR03 / UC03       | Người dùng yêu cầu tự sửa role, quyền, trạng thái duyệt hoặc số điện thoại đăng nhập                                                  | Từ chối cập nhật các trường này; không áp dụng thay đổi trái quyền.                                                                                                   |
+| Mã AC | FR / UC           | Điều kiện / hành động                                                                                                                 | Kết quả chấp nhận                                                                                                                                                                                           |
+| ----- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC01  | FR01 / UC01       | Người dùng đăng ký CUSTOMER với dữ liệu hợp lệ và số điện thoại chưa tồn tại                                                          | Tạo Account ACTIVE role CUSTOMER; Register 201: accountId/role/cid, no token or profileStatus; Login: accessToken/account; trong 5 giây khi khỏe có một CustomerProfile liên kết và không có DriverProfile. |
+| AC02  | FR01, FR43 / UC01 | Người dùng đăng ký DRIVER với bằng chứng OTP hợp lệ, đúng số điện thoại, đúng mục đích và chưa dùng                                   | Tạo Account ACTIVE role DRIVER, tiêu thụ OTP cục bộ; trong 5 giây khi khỏe có một DriverProfile DRAFT/offline. Trả trạng thái profile chờ nếu consumer chưa hoàn tất.                                       |
+| AC03  | FR01 / UC01       | Đăng ký thiếu trường bắt buộc, phone thiếu/null/sai kiểu hoặc rỗng sau trim, password thiếu/null/sai kiểu hoặc rỗng hoặc số điện thoại trùng | Từ chối đăng ký; không báo thành công hoặc tạo thêm tài khoản.                                                                                                                                              |
+| AC04  | FR01 / UC01       | Yêu cầu đăng ký công khai role `ADMIN` hoặc vai trò không được hỗ trợ                                                                 | Từ chối; không tạo tài khoản với vai trò yêu cầu.                                                                                                                                                           |
+| AC05  | FR02 / UC02       | Đăng nhập đúng email, mật khẩu và tài khoản `ACTIVE`                                                                                  | Trả JWT có thời hạn hiệu lực và thông tin tài khoản được phép hiển thị.                                                                                                                                     |
+| AC06  | FR02 / UC02       | Đăng nhập sai thông tin hoặc tài khoản `DISABLED`                                                                                     | Không cấp JWT; lỗi đăng nhập không tiết lộ tài khoản có tồn tại hay không.                                                                                                                                  |
+| AC07  | FR03 / UC03       | Người dùng cập nhật họ tên hoặc email của mình bằng dữ liệu hợp lệ                                                                    | Lưu thay đổi và trả thông tin mới; vai trò, email dang nhap (Auth) và trạng thái duyệt không đổi.                                                                                                           |
+| AC08  | FR03 / UC03       | Người dùng yêu cầu tự sửa role, quyền, trạng thái duyệt hoặc email dang nhap (Auth)                                                   | Từ chối cập nhật các trường này; không áp dụng thay đổi trái quyền.                                                                                                                                         |
 
 ### 13.3. OTP, hồ sơ tài xế và phương tiện
 
@@ -2461,7 +2468,7 @@ AC57–AC58 chỉ giữ lịch sử và không thuộc tập nghiệm thu. Các 
 | AC91  | Đúng 10 file API YAML khớp endpoint, dữ liệu, quyền và mã phản hồi của bản triển khai.                                                                                                                                                                                                                                                       |
 | AC92  | Vượt 10 yêu cầu đăng nhập/phút/IP bị giới hạn theo NFR04; yêu cầu bị chặn không tiếp tục xác thực.                                                                                                                                                                                                                                           |
 | AC93  | Kiểm tra DB thấy passwordHash, codeHash và licenseNumberEncrypted; không có password/OTP/license plaintext. Decrypt licenseNumber thành công chỉ khi có đúng key; sai/thiếu key bị từ chối hoặc service không ready. Key ngoài DB/Git, không lộ API/log. Postman kết hợp MongoDB và kiểm tra cấu hình.                                       |
-| AC94  | Payload SQL trong phone và payload NoSQL dạng object/toán tử trong phone/password trả 400/401, không cấp token, không lộ query/DB; dữ liệu trước và sau không bị thay đổi trái phép.                                                                                                                                                         |
+| AC94  | Payload SQL trong email và payload NoSQL dạng object/toán tử trong email/password trả 400/401, không cấp token, không lộ query/DB; dữ liệu trước và sau không bị thay đổi trái phép.                                                                                                                                                         |
 | AC95  | Token sửa sub/role, sai signature, alg=none, hết hạn, sai issuer/audience trả 401; token đúng role không đủ quyền trả 403. Service kiểm tra caller và ownership, không nhận role tự khai từ client.                                                                                                                                          |
 | AC96  | Gửi `<script>alert(1)</script>` hoặc markup event handler vào các trường text không hỗ trợ HTML → 400, không lưu. Phản hồi JSON đúng Content-Type; harness hiển thị dùng escape/textContent và không execute script. Chỉ có Postman thì chưa PASS phần browser execution.                                                                    |
 | AC97  | Với Redis đang chạy và cửa sổ sạch, vượt 10 request tạo Booking/60 giây/account hoặc 120/IP trả 429/Retry-After và không tạo dữ liệu; restart Gateway không reset counter. Redis lỗi thì write được bảo vệ trả 503. Lưu kết quả kiểm thử tải riêng cho mục 29, không suy đoán đạt >1000 request/giây.                                        |

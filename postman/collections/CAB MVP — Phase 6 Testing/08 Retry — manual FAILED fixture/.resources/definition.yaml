@@ -1,0 +1,3 @@
+$kind: collection
+description: Set failed_payment_id là attempt FAILED mới nhất, không còn PENDING/COMPLETED; fixture mock DELAYED để quan sát retry PENDING. Không dùng Payment COMPLETED từ Happy path.
+order: 9000

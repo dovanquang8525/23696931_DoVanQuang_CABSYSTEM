@@ -1,45 +1,66 @@
-# Ma trận 30 tiêu chí chấm CAB System
+# Ma trận 30 tiêu chí CAB System
 
-Cập nhật ngày **27/10/2026**. Nguồn trực tiếp: [PHIEU_CHAM_PROJECT.pdf](../PHIEU_CHAM_PROJECT.pdf), trang PDF 2–6; trang 1 là thông tin sinh viên. Đã đối chiếu đủ **30 tiêu chí**, mỗi mục tối đa **1 điểm**, tổng **30 điểm**.
+Cập nhật **28/10/2026**. Đã trích lại trực tiếp [PHIEU_CHAM_PROJECT.pdf](../PHIEU_CHAM_PROJECT.pdf), trang 2–6, đủ 30 mục. Mỗi mục tối đa 1 điểm; chưa có điểm do giảng viên chấm.
 
-Tên tiêu chí giữ theo phiếu, kể cả tiền tố POSTMAN. Cột yêu cầu và bằng chứng cần thu lấy từ [SRS hiện tại](SRS.md), mục **14.16**; đây là ánh xạ và kế hoạch kiểm chứng của dự án, không phải nội dung bổ sung vào phiếu chấm. Chưa có điểm thực đạt hoặc bằng chứng nghiệm thu.
+**Trạng thái dưới đây là kết quả kiểm tra kỹ thuật trong lượt audit**, không phải xác nhận đã thao tác Postman UI hoặc trình bày trước giảng viên. Mục 1–10 được kiểm regression, không kế thừa PASS từ lời báo đã làm trước đây. PASS chỉ trong phạm vi bằng chứng ghi ở từng hàng. Phần trình bày và browser cần người dùng thực hiện vẫn NOT TESTED.
 
-`NOT_RUN` nghĩa là chưa kiểm thử đầy đủ theo tiêu chí. Việc có tài liệu hoặc cấu hình không đồng nghĩa tiêu chí đã PASS. Các mục cần backend/hạ tầng chưa thể kiểm thử khi thành phần đó chưa triển khai.
+Kết quả: **25 PASS kỹ thuật, 1 FAIL (mức tải mục 29), 4 NOT TESTED**. Không tuyên bố 30/30. Gốc SRS/AC và toàn bộ thay đổi trước audit được giữ trong điểm khôi phục; phần văn bản phiếu gốc ở cuối file.
 
-## Ma trận tiêu chí và truy xuất yêu cầu
+## Regression Password/Phone demo mới
 
-| STT | Tiêu chí theo phiếu | Điểm tối đa | Trang PDF | Yêu cầu / AC trong SRS | Bằng chứng cần thu theo SRS | Bằng chứng thực tế | Trạng thái |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 01 | Mô tả kiến trúc tổ chức source code | 1 | 2 | NFR15, NFR28; AC89, AC101 | Cây source, giải thích trách nhiệm; TC101 | — | NOT_RUN |
-| 02 | Kiểm tra .gitignore và .env trên github | 1 | 2 | NFR02, NFR28; AC93, AC101 | Git tracked files/lịch sử, .env.example; không in secret | — | NOT_RUN |
-| 03 | Mô tả nhiệm vụ gateway trong hệ thống | 1 | 2 | NFR26; mục 4.6; AC98 | REST→gRPC, JWT, Redis, error/health; source và trace | — | NOT_RUN |
-| 04 | Mô tả IPC của các microservice | 1 | 2 | NFR08, NFR26–NFR27; AC98–AC100 | Proto, RPC, event routing; không REST nội bộ | — | NOT_RUN |
-| 05 | Compose hệ thống và liệt kê các container | 1 | 2 | NFR14, NFR16, NFR29; AC90, AC102 | Compose config/ps, network, volumes, DB init | — | NOT_RUN |
-| 06 | POSTMAN: API health check | 1 | 2 | FR49, NFR17; AC84–AC86 | /health, /ready, /health/services; healthy/dependency down | — | NOT_RUN |
-| 07 | Kiểm tra hệ thống Kafka / Rabbit MQ | 1 | 2 | NFR27; chỉ RabbitMQ; AC99–AC100 | Exchange/queue/binding, publish/consume/redelivery/DLQ | — | NOT_RUN |
-| 08 | Kiểm tra mọi request đều phải đi qua Gateway | 1 | 2 | NFR26; AC98 | Client qua Gateway; port gRPC không publish; internal RPC vẫn trực tiếp | — | NOT_RUN |
-| 09 | POSTMAN: Đăng ký tài khoản khách hàng | 1 | 2 | FR01; UC01; AC01, AC03–AC04 | Postman đăng ký→profile→login; DB account/profile | — | NOT_RUN |
-| 10 | POSTMAN: Đăng nhập khách hàng | 1 | 2 | FR02; UC02; AC05–AC06 | Postman đúng/sai; JWT hợp lệ, không lộ secret | — | NOT_RUN |
-| 11 | POSTMAN: Lấy thông tin khách hàng với mã số | 1 | 2 | FR03, FR35; UC03, UC23; AC07–AC08, AC75, AC80 | GET theo customerId với token và kiểm tra ownership | — | NOT_RUN |
-| 12 | POSTMAN: Lấy thông tin tài xế với mã số | 1 | 2 | FR05, FR18, FR45; UC13, UC22; AC13–AC14, AC42, AC80 | GET theo driverId đúng phạm vi; không lộ licenseNumber trong nearby | — | NOT_RUN |
-| 13 | POSTMAN: Liệt kê danh sách tài xế tại khu vực | 1 | 2 | FR46; UC05; NFR29; AC28–AC30, AC103 | Ít nhất 5 Driver khác trạng thái; 1 km, limit/paging, vị trí mới | — | NOT_RUN |
-| 14 | POSTMAN: Liệt kê danh sách các booking của Customer | 1 | 2 | FR33; UC10; NFR29; AC30, AC72, AC103 | Ít nhất 5 Booking, đúng Customer, thứ tự, limit/paging | — | NOT_RUN |
-| 15 | POSTMAN: Đặt xe | 1 | 2 | FR09–FR12, FR15–FR16; UC06; AC31–AC34, AC39–AC41 | Booking SEARCHING→offer, BIKE server, chưa tạo Trip sớm | — | NOT_RUN |
-| 16 | POSTMAN: Tài xế nhận chuyến | 1 | 3 | FR13–FR14; UC18; AC35–AC38 | Nhận lời mời→Trip ASSIGNED; khách thấy Driver; cạnh tranh không trùng | — | NOT_RUN |
-| 17 | POSTMAN: Cập nhật trạng thái chuyến | 1 | 3 | FR17, FR22, FR47; UC19–UC20; AC45–AC48, AC52–AC55 | ARRIVED→IN_PROGRESS→location→COMPLETED, cước đúng | — | NOT_RUN |
-| 18 | POSTMAN: Hủy chuyến | 1 | 3 | FR20–FR21; UC08; AC49–AC52 | Trip đã phân công→CANCELED; lý do, notification và release; thêm hủy SEARCHING | — | NOT_RUN |
-| 19 | POSTMAN: Thanh toán online | 1 | 3 | FR23, FR25–FR28; UC09, UC27; AC56, AC59–AC66, AC105 | Sau COMPLETED; callback→Payment COMPLETED; view chuyến ghi đã thanh toán | — | NOT_RUN |
-| 20 | POSTMAN: Đánh giá chuyến đi | 1 | 3 | FR34; UC11; AC73–AC74 | Review đúng Trip, sao 1–5, một review/trip | — | NOT_RUN |
-| 21 | POSTMAN: Đăng ký tài xế | 1 | 3 | FR01, FR43–FR44; UC01, UC12–UC15; AC02, AC09–AC19 | Phone→OTP mock→hồ sơ/BIKE→gửi PENDING, không dừng ở DRAFT | — | NOT_RUN |
-| 22 | POSTMAN: Duyệt hồ sơ tài xế | 1 | 3 | FR45, FR48; UC22, UC04; AC20–AC22, AC70–AC71 | ADMIN list/detail/approve/reject; Driver đọc kết quả | — | NOT_RUN |
-| 23 | POSTMAN: Bật/tắt trạng thái nhận chuyến | 1 | 3 | FR07; UC16; AC23–AC25 | Online đủ điều kiện, offline lưu, không tự hủy Trip | — | NOT_RUN |
-| 24 | POSTMAN: Data encryption at rest | 1 | 4 | NFR02, NFR21; AC93 | Postman + MongoDB + key config; phân biệt hash và encryption | — | NOT_RUN |
-| 25 | POSTMAN: SQL injection attempt | 1 | 4 | NFR22; FR02; AC94 | SQL string và NoSQL object không bypass, 400/401 | — | NOT_RUN |
-| 26 | POSTMAN: XSS input test | 1 | 4 | NFR23; AC96 | Payload script→400, JSON/escape; harness kiểm tra không execute | — | NOT_RUN |
-| 27 | POSTMAN: JWT tampering | 1 | 5 | NFR24; FR40; AC79, AC95 | Token sửa sub/role, sai chữ ký →401; không nhầm decode với verify | — | NOT_RUN |
-| 28 | POSTMAN: Unauthorized API access | 1 | 5 | NFR01, NFR24; FR40; AC80–AC81 | Customer gọi thao tác Driver→403; thêm ownership theo ID | — | NOT_RUN |
-| 29 | POSTMAN: Rate limit attack | 1 | 5 | NFR04, NFR25; AC92, AC97 | Redis TTL/429/Retry-After; công cụ tải riêng >1000 req/s có actual | — | NOT_RUN |
-| 30 | POSTMAN: Replay attack (idempotency) | 1 | 6 | FR25–FR27; NFR10–NFR11; AC60, AC63–AC65, AC105 | Request/callback lặp và đồng thời; trả cũ; không double charge | — | NOT_RUN |
+Ngày 28/10/2026: 35/35 unit tests và 35 HTTP checks validation đạt; hash DB thực vẫn Argon2id. Mục9/10/21/24/25/27/28 có thêm evidence trong [PROJECT_STATUS.md](PROJECT_STATUS.md). Tài khoản mẫu quang123@gmail.com/password 123/phone String 0123 đã Register201/Login200. Các trạng thái tổng thể giữ nguyên 25 PASS kỹ thuật, 1 FAIL tải cao, 4 NOT TESTED phần trình bày/browser; không cộng thêm điểm hoặc đổi PASS chỉ do sửa policy.
+
+## Tiến độ và thao tác tiếp theo
+
+| STT | Nội dung phiếu gốc | Thành phần | Trạng thái | Bằng chứng/kết quả thực | Cần thao tác thêm |
+| --- | --- | --- | --- | --- | --- |
+| 01 | Mô tả kiến trúc tổ chức source code | Source/8 service | NOT TESTED | Đã kiểm cấu trúc/source; chưa quan sát phần trình bày | Giải thích source theo ARCHITECTURE.md |
+| 02 | Kiểm tra .gitignore và .env trên github | Git/GitHub | PASS | main: .gitignore có .env/.local; .env 404; .env.example không có secret; local không track .env | Mở GitHub main; chưa audit toàn bộ lịch sử remote |
+| 03 | Mô tả nhiệm vụ gateway trong hệ thống | Gateway | NOT TESTED | REST→gRPC/JWT/Redis có code và HTTP evidence; chưa quan sát trình bày | Mô tả gateway/index.cjs và health |
+| 04 | Mô tả IPC của các microservice | Proto/RabbitMQ | NOT TESTED | 62 RPC có handler/policy; 47 REST operation map đúng target | Giải thích một RPC và một event |
+| 05 | Compose hệ thống và liệt kê các container | Compose/12 container | PASS | Build exit 0; infra_init exit 0; 12 container healthy; Mongo restart thành công | docker compose ps -a |
+| 06 | POSTMAN: API health check | Gateway/health | PASS | 3 health endpoint 200; /ready 503 khi broker dừng rồi 200 sau phục hồi | Send 3 health request trong Postman |
+| 07 | Kiểm tra hệ thống Kafka / Rabbit MQ | RabbitMQ/outbox/inbox | PASS | 20 queue/4 consumer; register→profile; outage/recovery đạt | Mở management; retry/DLQ chưa fault-inject runtime |
+| 08 | Kiểm tra mọi request đều phải đi qua Gateway | Gateway/gRPC | PASS | Toàn bộ HTTP test qua Gateway; Compose không publish port gRPC | Xem ports trong Compose và request URL |
+| 09 | POSTMAN: Đăng ký tài khoản khách hàng | Auth/Customer | PASS | HTTP register 201; profile đồng bộ; duplicate 409; không public ADMIN | Register Customer mới trong Postman |
+| 10 | POSTMAN: Đăng nhập khách hàng | Auth/JWT | PASS | Login 200/token; password sai 401; chữ ký JWT được kiểm | Login đúng/sai trong Postman |
+| 11 | POSTMAN: Lấy thông tin khách hàng với mã số | Customer | PASS | GET theo customerId 200; Customer khác 403 | Send getCustomerById với 2 token |
+| 12 | POSTMAN: Lấy thông tin tài xế với mã số | Driver | PASS | GET Driver test theo driverId 200; chi tiết legacy ADMIN 200 | Send getDriverById bằng DRIVER/ADMIN |
+| 13 | POSTMAN: Liệt kê danh sách tài xế tại khu vực | Driver/nearby | PASS | 5 Driver fixture khác trạng thái; 2 APPROVED gần A; page1/2 limit1 khác ID, <=1 km | Refresh vị trí, kiểm nearby page/limit |
+| 14 | POSTMAN: Liệt kê danh sách các booking của Customer | Booking/paging | PASS | 5 Booking fixture; page1/2 limit2 không trùng ID, đúng Customer | GET bookings?page=1&limit=2 rồi page=2 |
+| 15 | POSTMAN: Đặt xe | Booking/Driver/events | PASS | 201 SEARCHING/BIKE; invitation đúng booking; chưa tạo Trip sớm | Create Booking mới rồi GET invitations |
+| 16 | POSTMAN: Tài xế nhận chuyến | Booking/Driver/Trip | PASS | ACCEPT→ASSIGNED; Customer thấy Driver; test cạnh tranh đạt | Accept invitation và GET Booking |
+| 17 | POSTMAN: Cập nhật trạng thái chuyến | Trip/Driver | PASS | ARRIVED→IN_PROGRESS→location B→COMPLETED; cước đúng; chặn bỏ bước | Send lần lượt arrival/start/location/completion |
+| 18 | POSTMAN: Hủy chuyến | Booking/Trip/Notification | PASS | Cancel ASSIGNED→CANCELED; replay không lặp; cả 2 bên có trip.canceled | Fixture riêng: preview/cancel; xem notifications |
+| 19 | POSTMAN: Thanh toán online | Payment/Trip/Booking | PASS | Chặn trước COMPLETED; callback FAILED/retry/COMPLETED; view hasCompleted | Ký callback đúng Payment và GET kết quả |
+| 20 | POSTMAN: Đánh giá chuyến đi | Rating/Trip | PASS | Review 201, gắn Trip; rating6 400; khác chủ403; review trùng409 | Review một Trip COMPLETED riêng |
+| 21 | POSTMAN: Đăng ký tài xế | Auth/Driver/Vehicle | PASS | OTP202→Register201→license→Submit PENDING; wrong OTP/cooldown đạt | Không dừng ở DRAFT; cần submit |
+| 22 | POSTMAN: Duyệt hồ sơ tài xế | ADMIN/Driver/Notification | PASS | List/detail200; reject/resubmit/approve; Driver nhận approval_changed | List/detail và duyệt/từ chối hồ sơ mới |
+| 23 | POSTMAN: Bật/tắt trạng thái nhận chuyến | Driver | PASS | DRAFT không online; APPROVED online; offline được lưu và GET xác nhận | PUT availability false rồi GET lại |
+| 24 | POSTMAN: Data encryption at rest | Auth/Driver/key config | PASS | Mẫu DB thực: Argon2id, không password rõ; license AES-GCM giải mã đúng; key ngoài source | Minh họa DB/key config không lộ key; không phải full-disk encryption |
+| 25 | POSTMAN: SQL injection attempt | Gateway/Auth | PASS | SQL payload từ PDF và NoSQL object trả400, không bypass login | Folder12: SQL/NoSQL request |
+| 26 | POSTMAN: XSS input test | Gateway/browser harness | NOT TESTED | XSS input400 đã kiểm; chưa có browser evidence script không thực thi | Chạy xss-harness và thao tác trình duyệt |
+| 27 | POSTMAN: JWT tampering | JWT/Gateway | PASS | Sửa chữ ký401; sửa sub/role giữ signature cũ cũng401 | Folder12 JWT tampering |
+| 28 | POSTMAN: Unauthorized API access | Role/ownership | PASS | CUSTOMER gọi DRIVER403; khác chủ Booking/Trip/Payment403 | Folder12 role/ownership |
+| 29 | POSTMAN: Rate limit attack | Gateway/Redis/load | FAIL | 1200 req:336.7/s,1192x429; Docker5000 req:670.4/s,5000x429; health200 | Limiter đạt; chưa chứng minh >1000 request/s như PDF |
+| 30 | POSTMAN: Replay attack (idempotency) | Booking/Payment/callback | PASS | Concurrent create 200/201 cùng snapshot; replay200; invalid/conflict bị chặn; không double charge | Giữ nguyên key/body/snapshot; gửi callback lặp |
+
+## Tệp bằng chứng local
+
+Không đưa token/password vào báo cáo. Các tệp JSON dưới đây chỉ ghi status/case/ID kiểm thử; môi trường có credentials giữ riêng trong .local và bị Git ignore.
+
+- Auth/Customer regression: `.local/identity-run.f402bda7-f9c0-4086-8848-e64538254c2e.json`.
+- Backend bản cuối: `.local/evidence/backend-smoke-2026-10-28T03-26-15-332Z.json`.
+- Driver onboarding: `.local/evidence/onboarding-2026-10-28T03-14-52-277Z.json`.
+- Dispatch reject/timeout/concurrency: `.local/evidence/dispatch-2026-10-28T03-16-12-737Z.json`.
+- Nearby paging, legacy detail, cancel notification, JWT payload: `.local/evidence/audit-criteria-supplement-2026-10-28T03-26-17-716Z.json`.
+- RabbitMQ outage: `.local/evidence/rabbit-outage-2026-10-28T03-19-35-444Z.json`.
+- RabbitMQ recovery: `.local/evidence/rabbit-recovery-2026-10-28T03-19-50-068Z.json`.
+- Unit tests: `.local/evidence/unit-tests-final.txt`.
+- Static checks: `.local/evidence/static-check-final.txt`.
+- Docker state: `.local/evidence/docker-state-final.json`.
+
+[Báo cáo chi tiết và giới hạn](PROJECT_STATUS.md), [hướng dẫn nhập tay](MANUAL_POSTMAN_30.md), [Postman hiện hành](../postman/README.md).
 
 ## Smoke và kết quả mong đợi nguyên bản
 

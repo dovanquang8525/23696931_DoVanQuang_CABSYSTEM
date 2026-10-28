@@ -1,0 +1,51 @@
+$kind: http-request
+description: |-
+  AC: AC09
+  5 request/phút/IP; cách nhau 60 giây/phone. 6 số, 5 phút. mockCode chỉ ở OTP_MOCK_MODE=true; không SMS thật.
+url: "{{base_url}}/api/v1/auth/otp-challenges"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "phone": "{{onboarding_phone}}",
+      "purpose": "DRIVER_REGISTRATION"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    code: |-
+      (function () {
+      const prereq = [];
+      const absent=prereq.filter(k=>!String(pm.environment.get(k)||'').trim());
+      if(absent.length){pm.execution.skipRequest();throw new Error('BLOCKED: thiếu tiên quyết '+absent.join(', '));}
+
+      const required = ["base_url", "onboarding_phone"];
+      const missing = required.filter(k => !String(pm.environment.get(k) || '').trim());
+      if (missing.length) { pm.execution.skipRequest(); throw new Error('BLOCKED: thiếu environment: ' + missing.join(', ')); }
+      })();
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      (function () {
+      const expected = 201;
+      pm.test('HTTP đúng kỳ vọng: '+expected, function () { pm.expect(pm.response.code).to.eql(expected); });
+      pm.test('Phản hồi JSON', function () { pm.expect((pm.response.headers.get('Content-Type') || '').toLowerCase()).to.include('application/json'); });
+      let j;
+      try { j=pm.response.json(); } catch (e) { throw new Error('Response không phải JSON hợp lệ'); }
+      function noSecrets(v) {
+        if (!v || typeof v !== 'object') return;
+        Object.keys(v).forEach(k => { if (['passwordHash','codeHash','secret','signingKey','licenseNumberEncrypted','stack','stackTrace'].includes(k)) throw new Error('Lộ field nhạy cảm: '+k); noSecrets(v[k]); });
+      }
+      pm.test('Không lộ hash/key/stack trong JSON', function () { noSecrets(j); });
+      if (pm.response.code !== expected) { pm.execution.setNextRequest(null); return; }
+      if (expected>=400) pm.test('Error envelope',function(){ ['code','message','requestId'].forEach(k=>pm.expect(j[k]).to.be.a('string').and.not.empty); });
+
+      pm.test('OTP mock 6 digits',()=>pm.expect(j.mockCode).to.match(/^[0-9]{6}$/));pm.environment.set('otp_id',j.otpId);pm.environment.set('otp_code',j.mockCode);
+      })();
+    language: text/javascript
+order: 2000

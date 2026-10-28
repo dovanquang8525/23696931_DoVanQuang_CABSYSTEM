@@ -1,0 +1,3 @@
+$kind: collection
+description: Chạy sau khi Driver đã release. Tạo Booking khác, nhận chuyến rồi hủy ASSIGNED để đáp ứng mục chấm Trip CANCELED; không chỉ hủy SEARCHING.
+order: 5000
