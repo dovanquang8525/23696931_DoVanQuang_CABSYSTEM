@@ -1,5 +1,9 @@
 # CAB System — nhập tay, đủ 30 mục và câu trả lời bảo vệ
 
+**Vị trí mẫu mới:** d01=(10.8,106.7), d02=(10.802,106.702), d03=(10.805,106.7) nằm trong 1 km quanh (10.8,106.7). d04=(10.82,106.7), d05=(10.78,106.68) ở ngoài bán kính nên không xuất hiện tại điểm tìm này. ADMIN nearby trả hồ sơ Driver đầy đủ; CUSTOMER chỉ nhận snapshot công khai. Dùng limit=3 để thấy cả 3 người trong một trang; xem bảng tọa độ tại URL_POSTMAN_30.md. Không cập nhật cả 5 về A khi muốn giữ bộ mẫu kiểm bán kính.
+
+**Cập nhật yêu cầu ADMIN câu 11–14 (28/10/2026):** ADMIN tra Customer qua `/admin/customers` và `/customers/{cid}`, Driver qua `/admin/drivers` và `/drivers/{did}`, Booking qua `/admin/bookings` và `/bookings/{bid}`. `GET /admin/drivers/nearby` (ADMIN-only) và `/drivers/nearby` với ADMIN tìm trong 1 km theo tọa độ cuối cùng đã lưu, gồm offline/chờ duyệt/vị trí cũ; có approvalStatus/isOnline/locationIsFresh. CUSTOMER tại `/drivers/nearby` và dispatch giữ điều kiện ACTIVE/APPROVED/online/BIKE/không bận/vị trí mới <=120 giây. ADMIN nearby không chứng minh khả năng nhận chuyến. Phân trang giữ đúng limit; muốn thấy 2 người mỗi trang dùng limit=2. Hướng dẫn thao tác hiện hành: [URL_POSTMAN_30.md](URL_POSTMAN_30.md).
+
 **Bộ mẫu hiện tại 28/10/2026:** đã làm sạch dữ liệu demo theo yêu cầu; dùng Customer c01–c05, Driver d01–d05, Booking b01–b05 thuộc c01. Thông tin đăng nhập ở `.local/demo-reset-20261028/ACCOUNTS.local.md`. d01/d02 APPROVED/online gần A, d03 APPROVED/offline, d04 PENDING, d05 REJECTED. Cập nhật location của d01/d02 trước nearby vì hạn vị trí 120 giây. Đã có dữ liệu, bỏ qua bước seed bên dưới; không chạy lại `--fixtures` cũ nếu muốn giữ đúng 5/5/5. Ví dụ c29/d09 và session export cũ không còn trỏ tới tài khoản hiện có.
 
 **ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
@@ -148,9 +152,9 @@ Server đọc tọa độ từ DB và ghi updatedAt lúc nhận cập nhật. D_
 { "isOnline": true }
 ```
 
-Nearby: C_TOKEN GET `/api/v1/drivers/nearby?locationCode=A&page=1&limit=2`.
+Câu 13: A_TOKEN GET `/api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=2` để tra vị trí cuối cùng của Driver. ADMIN không phải refresh vị trí; offline/chờ duyệt/vị trí cũ vẫn có thể xuất hiện. C_TOKEN tại `/drivers/nearby` dành cho tìm người đủ điều kiện nhận chuyến.
 
-Vị trí tài xế vẫn phải mới <=120 giây, APPROVED/ACTIVE/online/có xe/không bận và <=1 km. Điểm mẫu A tồn tại lâu không đồng nghĩa Driver.location luôn mới: phải Send lại cập nhật vị trí khi quá hạn. Đổi availability false để minh họa OFFLINE rồi GET profile; offline không hủy Trip đang có.
+Đối với CUSTOMER/dispatch, vị trí tài xế vẫn phải mới <=120 giây, APPROVED/ACTIVE/online/có xe/không bận và <=1 km. Điểm mẫu A tồn tại lâu không đồng nghĩa Driver.location luôn mới: phải Send lại cập nhật vị trí khi quá hạn. Đổi availability false để minh họa OFFLINE rồi GET profile; offline không hủy Trip đang có.
 
 Muốn chứng minh tọa độ nằm trong DB, mở mongosh với owner cab_booking hoặc cab_driver và chạy `db.demo_locations.find()` trong đúng DB của owner, không dùng code mặc định ẩn ở Postman.
 

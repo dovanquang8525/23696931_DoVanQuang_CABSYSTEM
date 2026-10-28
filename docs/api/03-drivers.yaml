@@ -768,12 +768,138 @@ paths:
       tags:
         - Drivers
       operationId: listNearbyDrivers
-      summary: Tìm Driver đủ điều kiện trong 1 km
-      description: Chỉ ACTIVE/APPROVED/online/BIKE/không bận/giữ chỗ/vị trí <=120 giây. Sort distanceKm rồi did tăng; lỗi Auth không giả
-        danh sách không có Driver.
+      summary: Tra cứu Driver trong 1 km theo quyền người gọi
+      description: CUSTOMER chỉ thấy ACTIVE/APPROVED/online/BIKE/không bận, vị trí mới <=120 giây. ADMIN tra cứu theo vị trí cuối cùng, gồm offline/chờ duyệt/vị trí cũ; locationIsFresh cho biết độ mới, không đảm bảo nhận chuyến. Sort distanceKm rồi did; vẫn phân trang theo limit.
       x-grpc: cab.driver.v1.DriverService/ListNearbyDrivers
       x-allowed-roles:
         - CUSTOMER
+        - ADMIN
+      x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
+      x-srs:
+        - FR46
+        - AC28
+        - AC29
+        - AC30
+      responses:
+        "200":
+          description: Thành công; dữ liệu thuộc phạm vi được phép.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NearbyPage"
+        "400":
+          description: "INVALID_INPUT: sai kiểu, unknown field, miền giá trị hoặc thiếu dữ liệu."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "UNAUTHENTICATED: JWT thiếu/sai/hết hạn hoặc chữ ký callback sai."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: "FORBIDDEN: sai role, ownership hoặc Account DISABLED."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "NOT_FOUND: đối tượng không tồn tại sau khi kiểm quyền."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "CONFLICT: trạng thái, dữ liệu trùng, khóa idempotency khác payload hoặc operation đang xử lý."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: "RATE_LIMITED: không thực hiện thêm thao tác nghiệp vụ."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          headers:
+            Retry-After:
+              description: Số giây còn lại trong cửa sổ rate limit.
+              schema:
+                type: integer
+                minimum: 1
+        "500":
+          description: "INTERNAL_ERROR: không trả stack trace."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: DEPENDENCY_UNAVAILABLE hoặc PROFILE_NOT_READY; không giả kết quả nghiệp vụ.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "504":
+          description: DEADLINE_EXCEEDED; write có thể đã xảy ra, cần tra cứu cùng operation/key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: latitude
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: -90
+            maximum: 90
+          description: ""
+        - name: longitude
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: -180
+            maximum: 180
+          description: ""
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: ""
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: ""
+        - name: locationCode
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 16
+            pattern: ^[A-Z][A-Z0-9]{0,15}$
+            example: A
+          description: Use code A or B instead of latitude/longitude. Supply exactly one form.
+  /admin/drivers/nearby:
+    get:
+      tags:
+        - Drivers
+      operationId: listAdminNearbyDrivers
+      summary: Tra cứu Driver trong 1 km theo quyền người gọi
+      description: CUSTOMER chỉ thấy ACTIVE/APPROVED/online/BIKE/không bận, vị trí mới <=120 giây. ADMIN tra cứu theo vị trí cuối cùng, gồm offline/chờ duyệt/vị trí cũ; locationIsFresh cho biết độ mới, không đảm bảo nhận chuyến. Sort distanceKm rồi did; vẫn phân trang theo limit.
+      x-grpc: cab.driver.v1.DriverService/ListNearbyDrivers
+      x-allowed-roles:
         - ADMIN
       x-ownership: Theo metadata caller và quy tắc nghiệp vụ; không tin ID/role tự khai.
       x-srs:
@@ -1385,13 +1511,26 @@ components:
       additionalProperties: false
       properties:
         driver:
-          $ref: "#/components/schemas/DriverPublic"
+          description: ADMIN receives the full Driver profile; CUSTOMER receives DriverPublic only.
+          oneOf:
+            - $ref: "#/components/schemas/DriverPublic"
+            - $ref: "#/components/schemas/Driver"
         distanceKm:
           type: number
           minimum: 0
           maximum: 1
         location:
           $ref: "#/components/schemas/Location"
+        approvalStatus:
+          type: string
+          enum: [DRAFT, PENDING, APPROVED, REJECTED]
+          description: ADMIN only.
+        isOnline:
+          type: boolean
+          description: ADMIN only.
+        locationIsFresh:
+          type: boolean
+          description: ADMIN only; true if last position is within 120 seconds.
       required:
         - driver
         - distanceKm

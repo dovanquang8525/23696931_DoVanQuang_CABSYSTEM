@@ -164,10 +164,12 @@
     "status": "STATIC_ONLY",
     "legacy": "Older primary/compatibility and v3 collections remain preserved references; their checker must still report OUTDATED.",
     "sha256": {
-      "postman/collections/CAB Current - Gateway REST": "05c02d8bdf9f2e66a69399fbea63922a653175d225957395d2eaecf3510cd34f",
+      "postman/collections/CAB Current - Gateway REST": "975816cb9a36b3b635fadc46f94a166bc0bd99c502956d95b33b1930c141ea6c",
       "postman/environments/CAB Current - local template.environment.yaml": "10712c905e72224aa20e9a2d4464b159f3cb3376e4578c7ea039763a9bd9dae1"
     },
     "validationPolicy": "Local demo: nonempty String password and trimmed nonempty String phone; Argon2id and email validation retained.",
-    "idPolicy": "Short public fields and URL IDs: cid,did,aid,bid,tid,pid,nid,rid,vid,iid,oid. Internal Mongo _id/JWT sub remain private technical identifiers."
+    "idPolicy": "Short public fields and URL IDs: cid,did,aid,bid,tid,pid,nid,rid,vid,iid,oid. Internal Mongo _id/JWT sub remain private technical identifiers.",
+    "operationCount": 48,
+    "adminLookupPolicy": "Criteria 11-14 use ADMIN. Nearby ADMIN reads last known locations within 1km; CUSTOMER and dispatch retain freshness/availability filters."
   }
 }

@@ -1,5 +1,9 @@
 # Quy ước hợp đồng CAB MVP
 
+ADMIN nearby hiện trả `items[].driver` theo schema Driver đầy đủ (như GET /drivers/{did}), có email/aid/licenseNumber nếu hồ sơ có; CUSTOMER vẫn theo DriverPublic. Proto dùng admin_profile optional nội bộ, Gateway ánh xạ về driver, không đưa adminProfile ra REST. Bán kính vẫn <=1 km, paging/limit giữ nguyên.
+
+**Cập nhật yêu cầu ADMIN câu 11–14 (28/10/2026):** ADMIN tra Customer qua `/admin/customers` và `/customers/{cid}`, Driver qua `/admin/drivers` và `/drivers/{did}`, Booking qua `/admin/bookings` và `/bookings/{bid}`. `GET /admin/drivers/nearby` (ADMIN-only) và `/drivers/nearby` với ADMIN tìm trong 1 km theo tọa độ cuối cùng đã lưu, gồm offline/chờ duyệt/vị trí cũ; có approvalStatus/isOnline/locationIsFresh. CUSTOMER tại `/drivers/nearby` và dispatch giữ điều kiện ACTIVE/APPROVED/online/BIKE/không bận/vị trí mới <=120 giây. ADMIN nearby không chứng minh khả năng nhận chuyến. Phân trang giữ đúng limit; muốn thấy 2 người mỗi trang dùng limit=2. Hướng dẫn thao tác hiện hành: [URL_POSTMAN_30.md](../URL_POSTMAN_30.md).
+
 **ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
 
 **Validation demo cập nhật 28/10/2026:** Password là String không rỗng (ít nhất 1 ký tự, ví dụ "123" hoặc "a"), không trim và không yêu cầu độ phức tạp; Phone là String không rỗng sau trim (ví dụ "0123", "123", "abc123"), giữ số 0 đầu và vẫn unique. Email giữ định dạng cơ bản. Chỉ áp dụng cho học tập/demo local; không phải chính sách production. Argon2id, JWT, role/ownership và OTP Driver giữ nguyên.

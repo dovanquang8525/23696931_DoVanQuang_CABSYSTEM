@@ -23,7 +23,7 @@ Theo yêu cầu mới, API/URL dùng cid/did/aid/bid/tid/pid/nid/rid/vid/iid/oid
 | 01 | Mô tả kiến trúc tổ chức source code | Source/8 service | NOT TESTED | Đã kiểm cấu trúc/source; chưa quan sát phần trình bày | Giải thích source theo ARCHITECTURE.md |
 | 02 | Kiểm tra .gitignore và .env trên github | Git/GitHub | PASS | main: .gitignore có .env/.local; .env 404; .env.example không có secret; local không track .env | Mở GitHub main; chưa audit toàn bộ lịch sử remote |
 | 03 | Mô tả nhiệm vụ gateway trong hệ thống | Gateway | NOT TESTED | REST→gRPC/JWT/Redis có code và HTTP evidence; chưa quan sát trình bày | Mô tả gateway/index.cjs và health |
-| 04 | Mô tả IPC của các microservice | Proto/RabbitMQ | NOT TESTED | 62 RPC có handler/policy; 47 REST operation map đúng target | Giải thích một RPC và một event |
+| 04 | Mô tả IPC của các microservice | Proto/RabbitMQ | NOT TESTED | 62 RPC có handler/policy; 48 REST operation map đúng target | Giải thích một RPC và một event |
 | 05 | Compose hệ thống và liệt kê các container | Compose/12 container | PASS | Build exit 0; infra_init exit 0; 12 container healthy; Mongo restart thành công | docker compose ps -a |
 | 06 | POSTMAN: API health check | Gateway/health | PASS | 3 health endpoint 200; /ready 503 khi broker dừng rồi 200 sau phục hồi | Send 3 health request trong Postman |
 | 07 | Kiểm tra hệ thống Kafka / Rabbit MQ | RabbitMQ/outbox/inbox | PASS | 20 queue/4 consumer; register→profile; outage/recovery đạt | Mở management; retry/DLQ chưa fault-inject runtime |
@@ -32,7 +32,7 @@ Theo yêu cầu mới, API/URL dùng cid/did/aid/bid/tid/pid/nid/rid/vid/iid/oid
 | 10 | POSTMAN: Đăng nhập khách hàng | Auth/JWT | PASS | Login 200/token; password sai 401; chữ ký JWT được kiểm | Login đúng/sai trong Postman |
 | 11 | POSTMAN: Lấy thông tin khách hàng với mã số | Customer | PASS | GET theo customerId 200; Customer khác 403 | Send getCustomerById với 2 token |
 | 12 | POSTMAN: Lấy thông tin tài xế với mã số | Driver | PASS | GET Driver test theo driverId 200; chi tiết legacy ADMIN 200 | Send getDriverById bằng DRIVER/ADMIN |
-| 13 | POSTMAN: Liệt kê danh sách tài xế tại khu vực | Driver/nearby | PASS | 5 Driver fixture khác trạng thái; 2 APPROVED gần A; page1/2 limit1 khác ID, <=1 km | Refresh vị trí, kiểm nearby page/limit |
+| 13 | POSTMAN: Liệt kê danh sách tài xế tại khu vực | Driver/nearby | PASS | ADMIN: 3 Driver trong 1 km, 2 Driver ngoài bán kính bị loại; 5 vị trí khác nhau, hồ sơ đầy đủ; CUSTOMER vẫn lọc vị trí mới | A_TOKEN GET /admin/drivers/nearby bằng latitude/longitude; limit2 |
 | 14 | POSTMAN: Liệt kê danh sách các booking của Customer | Booking/paging | PASS | 5 Booking fixture; page1/2 limit2 không trùng ID, đúng Customer | GET bookings?page=1&limit=2 rồi page=2 |
 | 15 | POSTMAN: Đặt xe | Booking/Driver/events | PASS | 201 SEARCHING/BIKE; invitation đúng booking; chưa tạo Trip sớm | Create Booking mới rồi GET invitations |
 | 16 | POSTMAN: Tài xế nhận chuyến | Booking/Driver/Trip | PASS | ACCEPT→ASSIGNED; Customer thấy Driver; test cạnh tranh đạt | Accept invitation và GET Booking |

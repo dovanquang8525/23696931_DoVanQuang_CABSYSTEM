@@ -151,12 +151,12 @@ function input(route, body, query, headers, raw) {
         value.failed_payment_id = value.payment_id;
         delete value.payment_id;
     }
-    if (route.operation === "listNearbyDrivers" && (Object.hasOwn(value, "latitude") || Object.hasOwn(value, "longitude"))) {
+    if (["listNearbyDrivers", "listAdminNearbyDrivers"].includes(route.operation) && (Object.hasOwn(value, "latitude") || Object.hasOwn(value, "longitude"))) {
         value.location = { latitude: value.latitude, longitude: value.longitude };
         delete value.latitude;
         delete value.longitude;
     }
-    if (["listDrivers", "listNearbyDrivers", "listBookings", "listMyInvitations", "listTrips", "listPayments"].includes(route.operation)) {
+    if (["listDrivers", "listNearbyDrivers", "listAdminNearbyDrivers", "listBookings", "listMyInvitations", "listTrips", "listPayments"].includes(route.operation)) {
         value.paging = { page: value.page, limit: value.limit };
         delete value.page;
         delete value.limit;
@@ -171,6 +171,10 @@ function input(route, body, query, headers, raw) {
 function output(value) {
     const result = camel(value);
     function complete(node) {
+        if (node?.adminProfile) {
+            node.driver = node.adminProfile;
+            delete node.adminProfile;
+        }
         if (!node || typeof node !== "object") return;
         if (Object.hasOwn(node, "fullName")) {
             node.name = node.fullName;

@@ -5,7 +5,7 @@ method: GET
 auth:
   type: bearer
   credentials:
-    token: "{{customerToken}}"
+    token: "{{adminToken}}"
 scripts:
   - type: afterResponse
     code: |-

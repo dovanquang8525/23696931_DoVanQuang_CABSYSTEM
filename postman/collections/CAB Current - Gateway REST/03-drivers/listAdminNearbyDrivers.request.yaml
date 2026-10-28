@@ -1,0 +1,39 @@
+$kind: http-request
+description: Chọn từng request theo postman/README.md. Không Run toàn bộ collection. Mọi request qua Gateway; cần fixture đúng trạng thái.
+url: "{{baseUrl}}/api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=2"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP status', () => pm.expect(pm.response.code).to.be.oneOf([200]));
+      const data = pm.response.json();
+      pm.test('ADMIN full profiles and radius', () => {
+        if (pm.response.code !== 200) return;
+        pm.expect(data.items.length).to.be.at.most(data.limit);
+        for (const item of data.items) {
+          pm.expect(item.distanceKm).to.be.at.most(1);
+          pm.expect(item.driver).to.have.property('aid');
+          pm.expect(item.driver).to.have.property('approvalStatus');
+          pm.expect(item.driver).to.have.property('isOnline');
+        }
+      });
+      pm.test('JSON response', () => pm.expect(data).to.be.an('object'));
+      if (pm.response.code < 300) {
+      if (data.cid) pm.environment.set('cid', data.cid);
+      if (data.did) pm.environment.set('did', data.did);
+      if (data.bid) pm.environment.set('bid', data.bid);
+      if (data.tid) pm.environment.set('tid', data.tid);
+      if (data.pid) pm.environment.set('pid', data.pid);
+      if (data.nid) pm.environment.set('nid', data.nid);
+      if (data.oid) pm.environment.set('oid', data.oid);
+      if (data.trip?.tid) pm.environment.set('tid', data.trip.tid);
+      if (data.mockCode) pm.environment.set('otpCode', data.mockCode);
+      if (data.accessToken) pm.environment.set('customerToken', data.accessToken);
+      if (Array.isArray(data.items) && 'listAdminNearbyDrivers' === 'listMyInvitations') { const offer = data.items.find(x => x.bid === pm.environment.get('bid') && x.status === 'PENDING'); if (offer) pm.environment.set('iid', offer.iid); }
+      }
+    language: text/javascript
+order: 9500

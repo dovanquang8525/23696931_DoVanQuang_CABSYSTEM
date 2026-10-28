@@ -103,6 +103,11 @@ message NearbyDriver {
   DriverPublic driver = 1;
   double distance_km = 2;
   Location location = 3;
+  // ADMIN reads last known positions; these fields are absent in CUSTOMER results.
+  optional Driver.ApprovalStatus approval_status = 4;
+  optional bool is_online = 5;
+  optional bool location_is_fresh = 6;
+  optional Driver admin_profile = 7;
 }
 
 message PricingSnapshot {

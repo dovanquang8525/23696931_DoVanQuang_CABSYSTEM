@@ -1,6 +1,6 @@
 # URL Postman theo 30 câu — CAB System
 
-**Bộ mẫu hiện tại sau làm sạch 28/10:** Customer c01–c05, Driver d01–d05, Booking b01–b05 thuộc c01; tài khoản cũ như c29 đã xóa theo yêu cầu. Danh sách đăng nhập nằm trong `.local/demo-reset-20261028/ACCOUNTS.local.md` (chỉ local). d01/d02 online gần A, d03 offline, d04 PENDING, d05 REJECTED. Trước nearby hãy cập nhật location d01/d02 trong 120 giây. Đăng ký mới sẽ nhận c06/d06, Booking mới b06 nếu chưa tạo thêm dữ liệu. Các mã trong ví dụ bên dưới cần thay bằng mã đang tồn tại.
+**Bộ mẫu hiện tại sau làm sạch 28/10:** Customer c01–c05, Driver d01–d05, Booking b01–b05 thuộc c01; tài khoản cũ như c29 đã xóa theo yêu cầu. Danh sách đăng nhập nằm trong `.local/demo-reset-20261028/ACCOUNTS.local.md` (chỉ local). d01/d02 online gần A, d03 offline, d04 PENDING, d05 REJECTED. Trước khi CUSTOMER tìm tài xế nhận chuyến, cập nhật location d01/d02 trong 120 giây; ADMIN tra vị trí cuối cùng không cần bước này. Đăng ký mới sẽ nhận c06/d06, Booking mới b06 nếu chưa tạo thêm dữ liệu. Các mã trong ví dụ bên dưới cần thay bằng mã đang tồn tại.
 
 **ID công khai hiện hành:** `cid`, `did`, `aid`, `bid`, `tid`, `pid`, `nid`, `rid`; thêm `vid` cho Vehicle, `iid` cho Invitation và `oid` cho OTP challenge. Dùng `c01`, `d01`, `b01` để tra bộ mẫu hiện có. Trip/Payment/Review ban đầu rỗng; phải tạo qua luồng nghiệp vụ rồi lấy ID từ response. MongoDB `_id` và JWT `sub` là định danh nội bộ, không nhập vào URL. Không tự nhập ID khi Register.
 
@@ -22,22 +22,22 @@
 
 Đã có bộ mẫu, **không chạy lại seed hoặc reset**. Mật khẩu demo xem trong [ACCOUNTS.local.md](../.local/demo-reset-20261028/ACCOUNTS.local.md); ADMIN dùng mật khẩu hiện tại. File local này không có trên GitHub. Nếu chỉ clone source mới, đọc [BACKEND_RUNBOOK.md](BACKEND_RUNBOOK.md) để chuẩn bị môi trường, không mặc định database đã có bộ mẫu này.
 
-| Token tự ghi trong Postman | Email đăng nhập | ID / vai trò sử dụng |
-| --- | --- | --- |
-| C1_TOKEN | customer1@cab.local | c01 — chủ 5 Booking mẫu; dùng cho câu 11, 13–20, 30 |
-| C2_TOKEN | customer2@cab.local | c02 — thử truy cập dữ liệu của c01 phải bị 403 |
-| D1_TOKEN | driver1@cab.local | d01 — APPROVED, online, có xe BIKE |
-| D2_TOKEN | driver2@cab.local | d02 — APPROVED, online, có xe BIKE |
-| A_TOKEN | admin@cab.local | ADMIN hiện có; không đăng ký lại ADMIN |
-| D4_TOKEN (khi cần) | driver4@cab.local | d04 — PENDING, có thể dùng thử duyệt câu 22 |
-| D5_TOKEN (khi cần) | driver5@cab.local | d05 — REJECTED, có thể bổ sung hồ sơ rồi Submit lại |
+| Token tự ghi trong Postman | Email đăng nhập     | ID / vai trò sử dụng                                |
+| -------------------------- | ------------------- | --------------------------------------------------- |
+| C1_TOKEN                   | customer1@cab.local | c01 — chủ 5 Booking mẫu; dùng cho câu 11, 13–20, 30 |
+| C2_TOKEN                   | customer2@cab.local | c02 — thử truy cập dữ liệu của c01 phải bị 403      |
+| D1_TOKEN                   | driver1@cab.local   | d01 — APPROVED, online, có xe BIKE                  |
+| D2_TOKEN                   | driver2@cab.local   | d02 — APPROVED, online, có xe BIKE                  |
+| A_TOKEN                    | admin@cab.local     | ADMIN hiện có; không đăng ký lại ADMIN              |
+| D4_TOKEN (khi cần)         | driver4@cab.local   | d04 — PENDING, có thể dùng thử duyệt câu 22         |
+| D5_TOKEN (khi cần)         | driver5@cab.local   | d05 — REJECTED, có thể bổ sung hồ sơ rồi Submit lại |
 
 c03–c05 đăng nhập bằng customer3@cab.local đến customer5@cab.local. d03 là driver3@cab.local, APPROVED nhưng offline. Cả 10 hồ sơ có tên IN HOA không dấu; đọc lại bằng API để xác nhận dữ liệu hiện tại.
 
 Đăng nhập từng tài khoản bằng `POST http://localhost:3000/api/v1/auth/login`, **No Auth**, Body → raw → JSON:
 
 ```json
-{"email":"customer1@cab.local","password":"MAT_KHAU_DEMO_TRONG_FILE_LOCAL"}
+{ "email": "customer1@cab.local", "password": "MAT_KHAU_DEMO_TRONG_FILE_LOCAL" }
 ```
 
 Thay giá trị password bằng mật khẩu local trước khi Send. Đổi email để lấy các token còn lại. Kết quả đúng **200**, sao chép `accessToken`; trong Authorization chọn **Bearer Token**, chỉ dán token, không thêm chữ `Bearer` vào ô Token. Nếu 401: kiểm password/email; nếu 429: chờ số giây trong `Retry-After`. Không gửi liên tục để vượt giới hạn. Không đưa token/mật khẩu vào file hướng dẫn hoặc commit environment chứa session.
@@ -45,7 +45,7 @@ Thay giá trị password bằng mật khẩu local trước khi Send. Đổi ema
 ### 1.2. Thứ tự làm bài với bộ mẫu này
 
 1. Kiểm health câu 6, Login lấy C1_TOKEN, C2_TOKEN, D1_TOKEN, D2_TOKEN và A_TOKEN.
-2. Câu 11 dùng **c01**, câu 12 dùng **d01** có sẵn; không cần đăng ký Driver mới trước. Câu 13 cập nhật vị trí d01/d02 rồi tìm nearby. Câu 14 dùng C1_TOKEN để thấy 5 Booking mẫu.
+2. Câu 11–14 dùng **A_TOKEN**: tra c01, d01, tìm nearby theo tọa độ và liệt kê Booking qua /admin/bookings. Không cần cập nhật vị trí Driver để ADMIN tra vị trí cuối cùng.
 3. Câu 15–17 → 19–20: dùng c01 và d01 tạo **Booking mới**, nhận chuyến, hoàn thành, thanh toán, đánh giá. Không dùng b01–b05 để bắt đầu chuyến vì đây là lịch sử NO_DRIVER/CANCELED.
 4. Câu 18 tạo Booking mới riêng, Driver nhận rồi Customer hủy trước khi bắt đầu Trip. Xem thông báo bằng cả hai token.
 5. Câu 9 và 21 dùng email/phone mới để chứng minh đăng ký. Customer/Driver mới dự kiến c06/d06 nếu chưa tạo thêm; luôn lấy ID thực trong response. Token của các tài khoản này để riêng, không thay C1_TOKEN đang dùng kiểm phân trang.
@@ -70,95 +70,98 @@ Ghi riêng `bid`, `iid`, `tid`, `pid`, `nid`, Driver thực sự nhận chuyến
 
 URL `:15672` là giao diện quản trị RabbitMQ để minh họa câu 7, không phải API nghiệp vụ để Postman gọi trực tiếp service.
 
-## 3. Câu 9–14: tài khoản và tra cứu
+## 3. Câu 9–14: đăng ký, đăng nhập và ADMIN tra cứu
 
-**Câu 13:** CUSTOMER hoặc ADMIN đều được gọi nearby. `locationCode=A` là mã điểm demo, server đọc thành latitude=10.8/longitude=106.7; response lưu tọa độ số là đúng. Có thể dùng `?latitude=10.8&longitude=106.7&page=1&limit=2` thay cho `locationCode=A`, không trộn hai dạng. Driver chỉ xuất hiện khi APPROVED, account ACTIVE, online, xe BIKE active, không bận/giữ chỗ và vị trí mới trong 120 giây, cách điểm tìm không quá 1 km. Dùng token chính DRIVER gọi PUT `/api/v1/drivers/me/location` với `{"locationCode":"A"}`, rồi PUT `/api/v1/drivers/me/availability` với `{"isOnline":true}` trước khi tìm. ADMIN xem cả Driver offline qua GET `/api/v1/admin/drivers?page=1&limit=10`.
+**Câu 11–14 dùng A_TOKEN.** ADMIN xem danh sách và tìm theo ID Customer/Driver/Booking; nearby tìm theo latitude/longitude số. Không cần đổi sang locationCode=A và không cần đăng nhập Driver để làm mới vị trí khi ADMIN chỉ tra cứu vị trí cuối cùng.
 
-**Cùng URL Register, phân biệt bằng body:** không có `plateNumber` → CUSTOMER (câu 9); có `plateNumber` → DRIVER, đăng ký hai bước OTP (câu 21). Không gửi `role`. Câu 12 chỉ tra cứu Driver đã có bằng `did`: dùng **d01** của bộ mẫu; câu 21 dành riêng cho minh họa đăng ký tài xế mới.
+| Câu | Ai / token | Thao tác                         | Method | URL đầy đủ                                                                                       | Body / kết quả cần kiểm                                                  |
+| --- | ---------- | -------------------------------- | ------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| 9   | No Auth    | Đăng ký Customer mới             | POST   | `http://localhost:3000/api/v1/auth/register`                                                     | Email/password/phone mới, không plateNumber; 201, lưu cid; chưa có token |
+| 10  | No Auth    | Login Customer hoặc ADMIN        | POST   | `http://localhost:3000/api/v1/auth/login`                                                        | Email/password; 200 và accessToken                                       |
+| 10  | A_TOKEN    | Kiểm tài khoản đang dùng         | GET    | `http://localhost:3000/api/v1/auth/me`                                                           | 200, role=ADMIN                                                          |
+| 11  | A_TOKEN    | Liệt kê Customer                 | GET    | `http://localhost:3000/api/v1/admin/customers?page=1&limit=2`                                    | 200; xem totalItems và cid từng hồ sơ                                    |
+| 11  | A_TOKEN    | Tra Customer c01                 | GET    | `http://localhost:3000/api/v1/customers/c01`                                                     | 200, cid=c01, tên NGUYEN VAN AN                                          |
+| 12  | A_TOKEN    | Liệt kê Driver                   | GET    | `http://localhost:3000/api/v1/admin/drivers?page=1&limit=10`                                     | 200; bộ mẫu d01–d05 nếu chưa thêm tài khoản                              |
+| 12  | A_TOKEN    | Tra Driver d01                   | GET    | `http://localhost:3000/api/v1/drivers/d01`                                                       | 200, did=d01, tên NGUYEN VAN HUNG                                        |
+| 12  | A_TOKEN    | Tìm hồ sơ chờ duyệt              | GET    | `http://localhost:3000/api/v1/admin/drivers?approvalStatus=PENDING&page=1&limit=10`              | 200; chỉ PENDING                                                         |
+| 13  | A_TOKEN    | Nearby trang 1, tối đa 2 người   | GET    | `http://localhost:3000/api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=2` | 200; theo vị trí cuối cùng trong 1 km, gồm offline/chờ duyệt/vị trí cũ   |
+| 13  | A_TOKEN    | Nearby trang 2                   | GET    | `http://localhost:3000/api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=2&limit=2` | 200; did không trùng trang 1                                             |
+| 13  | A_TOKEN    | URL chung cũng hỗ trợ ADMIN      | GET    | `http://localhost:3000/api/v1/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=2`       | Cùng dữ liệu và quy tắc tra cứu ADMIN                                    |
+| 14  | A_TOKEN    | Liệt kê Booking của c01, trang 1 | GET    | `http://localhost:3000/api/v1/admin/bookings?cid=c01&page=1&limit=2`                             | Ban đầu 5 Booking, trang 1 có 2                                          |
+| 14  | A_TOKEN    | Booking của c01, trang 2         | GET    | `http://localhost:3000/api/v1/admin/bookings?cid=c01&page=2&limit=2`                             | Ban đầu 2 Booking, không trùng trang 1                                   |
+| 14  | A_TOKEN    | Booking của c01, trang 3         | GET    | `http://localhost:3000/api/v1/admin/bookings?cid=c01&page=3&limit=2`                             | Ban đầu 1 Booking                                                        |
+| 14  | A_TOKEN    | Tìm Booking của c01              | GET    | `http://localhost:3000/api/v1/admin/bookings?cid=c01&page=1&limit=2`                             | 200; đúng Customer                                                       |
+| 14  | A_TOKEN    | Tra Booking theo ID              | GET    | `http://localhost:3000/api/v1/bookings/b01`                                                      | 200, bid=b01; lịch sử mẫu NO_DRIVER                                      |
 
-| Câu             | Ai / token                       | Thao tác                                 | Method | URL đầy đủ                                                                  | Body / ghi chú                                                                                      |
-| --------------- | -------------------------------- | ---------------------------------------- | ------ | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| 9               | Khách chưa đăng ký — No Auth     | Đăng ký CUSTOMER                         | POST   | `http://localhost:3000/api/v1/auth/register`                                | Email/password/phone; không có plateNumber. Thành công 201; chưa có token                           |
-| 10              | CUSTOMER — No Auth               | Đăng nhập để lấy token CUSTOMER          | POST   | `http://localhost:3000/api/v1/auth/login`                                   | Email/password của Customer đã đăng ký; 200 và accessToken                                          |
-| 10, 11          | CUSTOMER                         | Xem Account đang đăng nhập               | GET    | `http://localhost:3000/api/v1/auth/me`                                      | Có aid, role, phone; aid không phải cid                                          |
-| 11              | CUSTOMER                         | Xem hồ sơ của chính mình, lấy cid | GET    | `http://localhost:3000/api/v1/customers/me`                                 | Lưu cid để dùng URL theo ID                                                                  |
-| 11              | CUSTOMER sở hữu hồ sơ hoặc ADMIN | Lấy Customer theo mã số nội bộ           | GET    | `http://localhost:3000/api/v1/customers/{cid}`                       | CUSTOMER khác gọi cùng ID phải bị từ chối 403                                                       |
-| 11 — bổ trợ     | CUSTOMER                         | Cập nhật tên/contact email của mình      | PATCH  | `http://localhost:3000/api/v1/customers/me`                                 | Ví dụ `{"name":"Khach demo"}`; không đổi email đăng nhập Auth                                       |
-| 11 — bổ trợ     | ADMIN                            | Liệt kê hồ sơ Customer                   | GET    | `http://localhost:3000/api/v1/admin/customers?page=1&limit=2`               | Không dùng token CUSTOMER cho danh sách quản trị                                                    |
-| 12              | DRIVER                           | Xem hồ sơ của mình, lấy did         | GET    | `http://localhost:3000/api/v1/drivers/me`                                   | Lưu did                                                                                        |
-| 12              | DRIVER sở hữu hồ sơ hoặc ADMIN   | Lấy Driver theo mã số nội bộ             | GET    | `http://localhost:3000/api/v1/drivers/{did}`                           | CUSTOMER không được gọi endpoint này                                                                |
-| 12, 21 — bổ trợ | DRIVER                           | Xem xe BIKE của mình                     | GET    | `http://localhost:3000/api/v1/drivers/me/vehicle`                           | Xe cần đã được tạo; thường có sau Submit hồ sơ                                                      |
-| 13              | C1_TOKEN hoặc A_TOKEN              | Xem nearby, trang 1         | GET    | `http://localhost:3000/api/v1/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=1` | 200; một Driver, totalItems=2 nếu d01/d02 vừa cập nhật và đều rảnh |
-| 13              | C1_TOKEN hoặc A_TOKEN              | Xem nearby, trang 2         | GET    | `http://localhost:3000/api/v1/drivers/nearby?latitude=10.8&longitude=106.7&page=2&limit=1` | 200; Driver còn lại, khác did trang 1; không trộn locationCode vào URL này |
-| 14              | CUSTOMER                         | Xem Booking của chính mình               | GET    | `http://localhost:3000/api/v1/bookings?page=1&limit=2`                      | Chuẩn bị ít nhất 5 Booking của Customer này                                                         |
-| 14              | CUSTOMER                         | Xem trang Booking tiếp theo              | GET    | `http://localhost:3000/api/v1/bookings?page=2&limit=2`                      | Dùng cùng token với trang 1                                                                         |
-| 14              | C1_TOKEN                         | Xem trang Booking cuối của bộ mẫu        | GET    | `http://localhost:3000/api/v1/bookings?page=3&limit=2`                      | 200; một Booking nếu c01 vẫn chỉ có 5 Booking mẫu; hai trang trước mỗi trang 2 Booking |
+### Vị trí mẫu để kiểm bán kính 1 km
 
-Body ví dụ câu 9; thay email/phone bằng giá trị chưa tồn tại khi tạo tài khoản mới:
+| Driver | Latitude | Longitude | Khoảng cách từ 10.8,106.7 | ADMIN nearby tại điểm tìm |
+| ------ | -------- | --------- | ------------------------- | ------------------------- |
+| d01    | 10.800   | 106.700   | 0 m                       | Có                        |
+| d02    | 10.802   | 106.702   | khoảng 312 m              | Có                        |
+| d03    | 10.805   | 106.700   | khoảng 556 m              | Có, dù offline            |
+| d04    | 10.820   | 106.700   | khoảng 2.224 m            | Không                     |
+| d05    | 10.780   | 106.680   | khoảng 3.117 m            | Không                     |
+
+Muốn thấy cả 3 trong cùng response dùng `GET http://localhost:3000/api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=3`. Trong mỗi item, `driver` là hồ sơ đầy đủ cho ADMIN: did, aid, name, email, licenseNumber khi có, approvalStatus, isOnline, location, vehicle và các trường hồ sơ khác nếu có. Bên ngoài driver có distanceKm và locationIsFresh. CUSTOMER không nhận email/license/aid của Driver qua nearby. Danh sách `/admin/drivers` vẫn có cả 5 người; chỉ nearby lọc theo 1 km. Dữ liệu có thể thay đổi nếu bạn cập nhật vị trí/nhận chuyến.
+
+**Phân trang:** `limit=1` trả tối đa 1 người mỗi trang, `limit=2` trả tối đa 2; `totalItems` là tổng kết quả. Bộ mẫu có 3 Driver trong 1 km (d01/d02/d03), 2 Driver ở xa (d04/d05). ADMIN thấy totalItems=3; limit=2 cho trang 1 có 2 người, trang 2 có 1 người. d04/d05 không xuất hiện ở khu vực này. ADMIN thấy thêm `approvalStatus`, `isOnline`, `locationIsFresh`; false nghĩa vị trí cũ, không khẳng định Driver sẵn sàng nhận chuyến. Không tự đổi online hay làm mới timestamp khi tra cứu.
+
+URL ban đầu với limit=1 vẫn hợp lệ:
+
+```http
+GET http://localhost:3000/api/v1/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=1
+```
+
+Dùng A_TOKEN: một item, totalItems là tổng Driver gần điểm tìm. Muốn thấy 2 người trong cùng response thì đổi limit=2. Không dùng `/customers/me`, `/drivers/me`, `/bookings` với A_TOKEN để thay các URL ADMIN trong bảng: các endpoint đó phục vụ hồ sơ/dữ liệu của chính CUSTOMER/DRIVER.
+
+**Body câu 9:** dùng email/phone chưa tồn tại; thành công 201. Nếu đã đăng ký thì Login hoặc thay dữ liệu, không reset tài khoản để ép 201:
 
 ```json
 { "email": "quang123@gmail.com", "password": "123", "phone": "0123" }
 ```
 
-Body câu 10 dùng lại email/password đó, không gửi phone:
+**Body câu 10:**
 
 ```json
 { "email": "quang123@gmail.com", "password": "123" }
 ```
 
-Password demo được dùng từ 1 ký tự. Phone luôn là **String** không rỗng, có thể ngắn/chứa chữ; email vẫn cần đúng định dạng. Đăng ký trùng email/phone trả 409; không tạo lại tài khoản đã có chỉ để lấy token.
+Để lấy A_TOKEN, thay email bằng admin@cab.local và nhập mật khẩu ADMIN hiện tại. Register không plateNumber tạo CUSTOMER; có plateNumber đăng ký DRIVER theo hai bước OTP câu 21. Không gửi role/cid/did. Customer/Driver mới dự kiến c06/d06 nếu chưa tạo thêm; luôn lưu ID thực từ response.
 
-Đây là dữ liệu **đăng ký mới câu 9**, không phải c01 có 5 Booking. Nếu email/phone đã dùng, thay cả hai bằng dữ liệu mới hoặc Login tài khoản đó; không yêu cầu Register luôn trả 201 khi chạy lại. Sau 201, Login lấy token của Customer mới và GET `/customers/me` bằng token đó; kiểm `cid` trùng response Register. Profile tạo qua event nên có thể cần đợi vài giây rồi đọc lại.
+### Các API của chủ tài khoản dùng bổ trợ và kiểm quyền
 
-### Câu 11–14: thao tác trực tiếp với ID mẫu
+| Câu                | Ai / token | Thao tác                           | Method | URL đầy đủ                                                                                       | Kết quả cần kiểm                                                                       |
+| ------------------ | ---------- | ---------------------------------- | ------ | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| 11                 | C1_TOKEN   | Hồ sơ Customer của mình            | GET    | `http://localhost:3000/api/v1/customers/me`                                                      | 200, cid=c01                                                                           |
+| 11                 | C1_TOKEN   | Sửa tên hồ sơ của mình             | PATCH  | `http://localhost:3000/api/v1/customers/me`                                                      | Body ví dụ {"name":"NGUYEN VAN AN"}; không đổi email Login Auth                        |
+| 12                 | D1_TOKEN   | Hồ sơ Driver của mình              | GET    | `http://localhost:3000/api/v1/drivers/me`                                                        | 200, did=d01                                                                           |
+| 12                 | D1_TOKEN   | Xe của mình                        | GET    | `http://localhost:3000/api/v1/drivers/me/vehicle`                                                | 200, vid và did                                                                        |
+| 14                 | C1_TOKEN   | Customer xem Booking của mình      | GET    | `http://localhost:3000/api/v1/bookings?page=1&limit=2`                                           | 200; chỉ của c01                                                                       |
+| 11, 28             | C2_TOKEN   | Customer khác đọc c01              | GET    | `http://localhost:3000/api/v1/customers/c01`                                                     | 403                                                                                    |
+| 12, 28             | C1_TOKEN   | Customer đọc chi tiết Driver riêng | GET    | `http://localhost:3000/api/v1/drivers/d01`                                                       | 403; xem snapshot công khai qua nearby/Trip                                            |
+| 13, 28             | C1_TOKEN   | Customer gọi nearby ADMIN          | GET    | `http://localhost:3000/api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=2` | 403                                                                                    |
+| 13 — phía Customer | C1_TOKEN   | Tìm người nhận chuyến              | GET    | `http://localhost:3000/api/v1/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=2`       | Chỉ ACTIVE/APPROVED/online/xe BIKE active/không bận/vị trí mới <=120 giây; có thể rỗng |
 
-| Câu | Token | Method | URL đầy đủ | Kết quả cần kiểm |
-| --- | --- | --- | --- | --- |
-| 11 | C1_TOKEN hoặc A_TOKEN | GET | `http://localhost:3000/api/v1/customers/c01` | 200, cid=c01, tên NGUYEN VAN AN |
-| 11, 28 | C2_TOKEN | GET | `http://localhost:3000/api/v1/customers/c01` | 403 |
-| 12 | D1_TOKEN hoặc A_TOKEN | GET | `http://localhost:3000/api/v1/drivers/d01` | 200, did=d01, tên NGUYEN VAN HUNG |
-| 12, 28 | C1_TOKEN | GET | `http://localhost:3000/api/v1/drivers/d01` | 403; Customer xem dữ liệu Driver công khai qua nearby/Trip |
-| 13 — đối chiếu | A_TOKEN | GET | `http://localhost:3000/api/v1/admin/drivers?page=1&limit=10` | 200, đủ d01–d05 nếu chưa thêm Driver; gồm cả offline/PENDING/REJECTED |
-
-**Chuẩn bị câu 13:** làm hai request dưới đây bằng D1_TOKEN, rồi lặp lại bằng D2_TOKEN:
-
-```http
-PUT http://localhost:3000/api/v1/drivers/me/location
-```
-
-```json
-{"locationCode":"A"}
-```
-
-```http
-PUT http://localhost:3000/api/v1/drivers/me/availability
-```
-
-```json
-{"isOnline":true}
-```
-
-Cả hai trả 200. Sau đó gọi ngay hai trang nearby trong vòng 120 giây. A chính là `(10.8, 106.7)`, lưu tọa độ số trong hồ sơ là đúng. Khi đủ hai Driver và dùng `limit=2`, trang 1 có 2 người, trang 2 rỗng là đúng; hướng dẫn dùng `limit=1` để nhìn rõ phân trang. d03–d05 không xuất hiện ở trạng thái mẫu ban đầu. Nếu totalItems=0: kiểm token, APPROVED/online, location.updatedAt, xe active và có đang bận/giữ chỗ không; không reset dữ liệu.
-
-**Câu 14:** dùng **C1_TOKEN** gọi lần lượt page=1, 2, 3 với limit=2: ban đầu totalItems=5, số lượng 2–2–1, không trùng bid. Nếu đã tạo thêm Booking của c01, totalItems tăng và trang 3 có thể nhiều hơn 1; đó không phải lỗi. Customer mới ở câu 9 có thể trả danh sách rỗng vì chưa đặt xe.
+Customer nearby và Booking dispatch vẫn yêu cầu vị trí mới. Trước khi đặt xe câu 15, dùng token chính Driver PUT `/drivers/me/location` với {"latitude":10.8,"longitude":106.7}, rồi PUT `/drivers/me/availability` với {"isOnline":true}. ADMIN chỉ tra vị trí đã lưu; không dùng kết quả đó để khẳng định mọi người trong danh sách đều có thể nhận chuyến.
 
 ## 4. Câu 15–18: Booking, nhận chuyến, Trip và hủy
 
 | Câu            | Ai / token                            | Thao tác                                           | Method | URL đầy đủ                                                                           | Body / ghi chú                                                                        |
 | -------------- | ------------------------------------- | -------------------------------------------------- | ------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
 | 15             | CUSTOMER                              | Tạo Booking BIKE mới                               | POST   | `http://localhost:3000/api/v1/bookings`                                              | `{"pickupCode":"A","destinationCode":"B"}`; header Idempotency-Key mới; 201 SEARCHING |
-| 15, 16         | DRIVER                                | Xem offer PENDING thuộc tài xế                     | GET    | `http://localhost:3000/api/v1/drivers/me/invitations?status=PENDING&page=1&limit=10` | Chọn invitation có bid đúng Booking vừa tạo; lấy iid                   |
-| 16             | DRIVER nhận offer đó                  | Chấp nhận chuyến                                   | POST   | `http://localhost:3000/api/v1/invitations/{iid}/response`                   | `{"decision":"ACCEPT"}`; nhận tid                                                  |
-| 16 — nhánh phụ | DRIVER nhận offer đó                  | Từ chối offer                                      | POST   | `http://localhost:3000/api/v1/invitations/{iid}/response`                   | `{"decision":"REJECT"}`; không chạy tiếp ACCEPT trên offer đã từ chối                 |
-| 15, 16, 17, 19 | CUSTOMER chủ Booking hoặc ADMIN       | Xem Booking, Driver/Trip và payment summary khi có | GET    | `http://localhost:3000/api/v1/bookings/{bid}`                                  | Sau ACCEPT, Customer xem Driver trong `trip.driver`                                   |
-| 17             | DRIVER của chuyến                     | Báo đã đến điểm đón                                | POST   | `http://localhost:3000/api/v1/trips/{tid}/arrival`                                | `{}`; ASSIGNED → ARRIVED                                                              |
-| 17             | DRIVER của chuyến                     | Bắt đầu chuyến                                     | POST   | `http://localhost:3000/api/v1/trips/{tid}/start`                                  | `{}`; ARRIVED → IN_PROGRESS                                                           |
-| 17             | DRIVER của chuyến                     | Cập nhật vị trí đến B                              | PUT    | `http://localhost:3000/api/v1/trips/{tid}/location`                               | `{"locationCode":"B"}`; chỉ khi IN_PROGRESS                                           |
-| 17             | DRIVER của chuyến                     | Hoàn thành và tính cước                            | POST   | `http://localhost:3000/api/v1/trips/{tid}/completion`                             | `{}`; IN_PROGRESS → COMPLETED                                                         |
-| 17, 19, 20     | CUSTOMER/DRIVER của chuyến hoặc ADMIN | Xem trạng thái/cước Trip                           | GET    | `http://localhost:3000/api/v1/trips/{tid}`                                        | Dùng tid, không dùng bid thay thế                                            |
-| 18             | CUSTOMER chủ Booking                  | Xem có được hủy và phí hủy                         | POST   | `http://localhost:3000/api/v1/bookings/{bid}/cancellation-preview`             | `{"reason":"Doi ke hoach"}`                                                           |
-| 18             | CUSTOMER chủ Booking                  | Xác nhận hủy                                       | POST   | `http://localhost:3000/api/v1/bookings/{bid}/cancellation`                     | `{"reason":"Doi ke hoach","confirmed":true}`                                          |
-| 18             | CUSTOMER chủ Booking hoặc ADMIN       | Kiểm Booking đã hủy                                | GET    | `http://localhost:3000/api/v1/bookings/{bid}`                                  | CANCELED; Trip đã tạo cũng phải CANCELED                                              |
+| 15, 16         | DRIVER                                | Xem offer PENDING thuộc tài xế                     | GET    | `http://localhost:3000/api/v1/drivers/me/invitations?status=PENDING&page=1&limit=10` | Chọn invitation có bid đúng Booking vừa tạo; lấy iid                                  |
+| 16             | DRIVER nhận offer đó                  | Chấp nhận chuyến                                   | POST   | `http://localhost:3000/api/v1/invitations/{iid}/response`                            | `{"decision":"ACCEPT"}`; nhận tid                                                     |
+| 16 — nhánh phụ | DRIVER nhận offer đó                  | Từ chối offer                                      | POST   | `http://localhost:3000/api/v1/invitations/{iid}/response`                            | `{"decision":"REJECT"}`; không chạy tiếp ACCEPT trên offer đã từ chối                 |
+| 15, 16, 17, 19 | CUSTOMER chủ Booking hoặc ADMIN       | Xem Booking, Driver/Trip và payment summary khi có | GET    | `http://localhost:3000/api/v1/bookings/{bid}`                                        | Sau ACCEPT, Customer xem Driver trong `trip.driver`                                   |
+| 17             | DRIVER của chuyến                     | Báo đã đến điểm đón                                | POST   | `http://localhost:3000/api/v1/trips/{tid}/arrival`                                   | `{}`; ASSIGNED → ARRIVED                                                              |
+| 17             | DRIVER của chuyến                     | Bắt đầu chuyến                                     | POST   | `http://localhost:3000/api/v1/trips/{tid}/start`                                     | `{}`; ARRIVED → IN_PROGRESS                                                           |
+| 17             | DRIVER của chuyến                     | Cập nhật vị trí đến B                              | PUT    | `http://localhost:3000/api/v1/trips/{tid}/location`                                  | `{"locationCode":"B"}`; chỉ khi IN_PROGRESS                                           |
+| 17             | DRIVER của chuyến                     | Hoàn thành và tính cước                            | POST   | `http://localhost:3000/api/v1/trips/{tid}/completion`                                | `{}`; IN_PROGRESS → COMPLETED                                                         |
+| 17, 19, 20     | CUSTOMER/DRIVER của chuyến hoặc ADMIN | Xem trạng thái/cước Trip                           | GET    | `http://localhost:3000/api/v1/trips/{tid}`                                           | Dùng tid, không dùng bid thay thế                                                     |
+| 18             | CUSTOMER chủ Booking                  | Xem có được hủy và phí hủy                         | POST   | `http://localhost:3000/api/v1/bookings/{bid}/cancellation-preview`                   | `{"reason":"Doi ke hoach"}`                                                           |
+| 18             | CUSTOMER chủ Booking                  | Xác nhận hủy                                       | POST   | `http://localhost:3000/api/v1/bookings/{bid}/cancellation`                           | `{"reason":"Doi ke hoach","confirmed":true}`                                          |
+| 18             | CUSTOMER chủ Booking hoặc ADMIN       | Kiểm Booking đã hủy                                | GET    | `http://localhost:3000/api/v1/bookings/{bid}`                                        | CANCELED; Trip đã tạo cũng phải CANCELED                                              |
 
 Trước câu 15, DRIVER phải APPROVED, có xe active, ONLINE và vị trí mới trong 120 giây. Offer có thời hạn; cần đọc đúng bid trước khi nhận. Câu 18 dùng Booking SEARCHING hoặc Trip ASSIGNED/ARRIVED; không dùng Trip đã IN_PROGRESS/COMPLETED.
 
@@ -176,15 +179,15 @@ Trước câu 15, DRIVER phải APPROVED, có xe active, ONLINE và vị trí m�
 
 ## 5. Câu 19–20: thanh toán mock và đánh giá
 
-| Câu        | Ai / token                               | Thao tác                        | Method | URL đầy đủ                                                    | Body / ghi chú                                                                                         |
-| ---------- | ---------------------------------------- | ------------------------------- | ------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| 19         | CUSTOMER chủ chuyến                      | Tạo Payment mock                | POST   | `http://localhost:3000/api/v1/trips/{tid}/payments`        | `{}` và header Idempotency-Key mới; Trip phải COMPLETED và có cước; lấy pid/referenceCode/amount |
-| 19         | Công cụ/người giả lập callback — No Auth | Gửi kết quả thanh toán          | POST   | `http://localhost:3000/api/v1/payments/mock/callback`         | Raw JSON đã ký; X-Mock-Timestamp và X-Mock-Signature; không dùng token CUSTOMER/ADMIN thay chữ ký      |
-| 19         | CUSTOMER chủ Payment hoặc ADMIN          | Đọc Payment sau callback        | GET    | `http://localhost:3000/api/v1/payments/{pid}`           | Kết quả thành công phải COMPLETED                                                                      |
-| 19         | CUSTOMER chủ chuyến hoặc ADMIN           | Xem cước và các payment attempt | GET    | `http://localhost:3000/api/v1/trips/{tid}/payment-summary` | Kiểm hasCompleted=true sau callback thành công                                                         |
-| 19 — retry | CUSTOMER chủ Payment                     | Thử lại Payment FAILED          | POST   | `http://localhost:3000/api/v1/payments/{pid}/retries`   | pid của attempt FAILED mới nhất; `{}` và Idempotency-Key mới; ký callback cho Payment mới trả về |
-| 20         | CUSTOMER của chuyến                      | Gửi đánh giá                    | POST   | `http://localhost:3000/api/v1/trips/{tid}/reviews`         | `{"rating":5,"comment":"Chuyen di tot"}`; Trip COMPLETED, một review/chuyến                            |
-| 20         | CUSTOMER/DRIVER của chuyến hoặc ADMIN    | Đọc đánh giá đã lưu             | GET    | `http://localhost:3000/api/v1/trips/{tid}/reviews`         | Review liên kết đúng tid                                                                            |
+| Câu        | Ai / token                               | Thao tác                        | Method | URL đầy đủ                                                 | Body / ghi chú                                                                                    |
+| ---------- | ---------------------------------------- | ------------------------------- | ------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 19         | CUSTOMER chủ chuyến                      | Tạo Payment mock                | POST   | `http://localhost:3000/api/v1/trips/{tid}/payments`        | `{}` và header Idempotency-Key mới; Trip phải COMPLETED và có cước; lấy pid/referenceCode/amount  |
+| 19         | Công cụ/người giả lập callback — No Auth | Gửi kết quả thanh toán          | POST   | `http://localhost:3000/api/v1/payments/mock/callback`      | Raw JSON đã ký; X-Mock-Timestamp và X-Mock-Signature; không dùng token CUSTOMER/ADMIN thay chữ ký |
+| 19         | CUSTOMER chủ Payment hoặc ADMIN          | Đọc Payment sau callback        | GET    | `http://localhost:3000/api/v1/payments/{pid}`              | Kết quả thành công phải COMPLETED                                                                 |
+| 19         | CUSTOMER chủ chuyến hoặc ADMIN           | Xem cước và các payment attempt | GET    | `http://localhost:3000/api/v1/trips/{tid}/payment-summary` | Kiểm hasCompleted=true sau callback thành công                                                    |
+| 19 — retry | CUSTOMER chủ Payment                     | Thử lại Payment FAILED          | POST   | `http://localhost:3000/api/v1/payments/{pid}/retries`      | pid của attempt FAILED mới nhất; `{}` và Idempotency-Key mới; ký callback cho Payment mới trả về  |
+| 20         | CUSTOMER của chuyến                      | Gửi đánh giá                    | POST   | `http://localhost:3000/api/v1/trips/{tid}/reviews`         | `{"rating":5,"comment":"Chuyen di tot"}`; Trip COMPLETED, một review/chuyến                       |
+| 20         | CUSTOMER/DRIVER của chuyến hoặc ADMIN    | Đọc đánh giá đã lưu             | GET    | `http://localhost:3000/api/v1/trips/{tid}/reviews`         | Review liên kết đúng tid                                                                          |
 
 Để thấy chuyến đã thanh toán từ phía Customer, đọc lại `GET http://localhost:3000/api/v1/bookings/{bid}` và kiểm paymentSummary. Callback phải khớp pid/referenceCode/amount thật; không tự nhập cước khác. Cách ký raw JSON tại [postman/README.md](../postman/README.md#callback-mock). Retry tối đa 3 attempt tổng cộng, không retry một Payment đã COMPLETED.
 
@@ -247,15 +250,15 @@ Postman chọn **No Auth**, POST `http://localhost:3000/api/v1/payments/mock/cal
 | 21 — bước 1    | Tài xế chưa có account — No Auth | Gửi đăng ký để nhận OTP mock     | POST   | `http://localhost:3000/api/v1/auth/register`                                        | Email/password/phone/plateNumber; trả 202 OTP_REQUIRED, chưa có account                    |
 | 21 — bước 2    | Cùng tài xế — No Auth            | Hoàn tất đăng ký bằng OTP        | POST   | `http://localhost:3000/api/v1/auth/register`                                        | Giữ nguyên email/password/phone/plateNumber, thêm code thật 6 chữ số; trả 201/did          |
 | 21             | DRIVER — No Auth                 | Login lấy token DRIVER           | POST   | `http://localhost:3000/api/v1/auth/login`                                           | Email/password của Driver vừa hoàn tất OTP                                                 |
-| 21             | DRIVER                           | Đọc hồ sơ, lấy did          | GET    | `http://localhost:3000/api/v1/drivers/me`                                           | Hồ sơ ban đầu DRAFT                                                                        |
+| 21             | DRIVER                           | Đọc hồ sơ, lấy did               | GET    | `http://localhost:3000/api/v1/drivers/me`                                           | Hồ sơ ban đầu DRAFT                                                                        |
 | 21             | DRIVER                           | Bổ sung licenseNumber            | PATCH  | `http://localhost:3000/api/v1/drivers/me`                                           | `{"licenseNumber":"DEMO-123"}`                                                             |
 | 21 — tùy chọn  | DRIVER                           | Tạo/cập nhật xe BIKE và mô tả xe | PUT    | `http://localhost:3000/api/v1/drivers/me/vehicle`                                   | `{"plateNumber":"59A12345","model":"BIKE","color":"Black"}`; không làm khi tài xế đang bận |
 | 21             | DRIVER                           | Gửi hồ sơ chờ duyệt              | POST   | `http://localhost:3000/api/v1/drivers/me/submissions`                               | `{}`; DRAFT/REJECTED → PENDING; Submit có thể tạo xe từ plateNumber đã đăng ký             |
 | 22 — chuẩn bị  | ADMIN — No Auth                  | Login lấy token ADMIN            | POST   | `http://localhost:3000/api/v1/auth/login`                                           | Email/password ADMIN hiện có; không có API đăng ký ADMIN công khai                         |
-| 22             | ADMIN                            | Liệt kê hồ sơ chờ duyệt          | GET    | `http://localhost:3000/api/v1/admin/drivers?approvalStatus=PENDING&page=1&limit=10` | Lấy did đúng hồ sơ cần duyệt                                                          |
-| 22             | ADMIN                            | Xem chi tiết hồ sơ               | GET    | `http://localhost:3000/api/v1/drivers/{did}`                                   | Đọc trước khi quyết định                                                                   |
-| 22             | ADMIN                            | Duyệt hồ sơ                      | POST   | `http://localhost:3000/api/v1/admin/drivers/{did}/approval-decisions`          | `{"decision":"APPROVED"}`                                                                  |
-| 22 — nhánh phụ | ADMIN                            | Từ chối hồ sơ                    | POST   | `http://localhost:3000/api/v1/admin/drivers/{did}/approval-decisions`          | `{"decision":"REJECTED","reason":"Can bo sung ho so"}`; có lý do                           |
+| 22             | ADMIN                            | Liệt kê hồ sơ chờ duyệt          | GET    | `http://localhost:3000/api/v1/admin/drivers?approvalStatus=PENDING&page=1&limit=10` | Lấy did đúng hồ sơ cần duyệt                                                               |
+| 22             | ADMIN                            | Xem chi tiết hồ sơ               | GET    | `http://localhost:3000/api/v1/drivers/{did}`                                        | Đọc trước khi quyết định                                                                   |
+| 22             | ADMIN                            | Duyệt hồ sơ                      | POST   | `http://localhost:3000/api/v1/admin/drivers/{did}/approval-decisions`               | `{"decision":"APPROVED"}`                                                                  |
+| 22 — nhánh phụ | ADMIN                            | Từ chối hồ sơ                    | POST   | `http://localhost:3000/api/v1/admin/drivers/{did}/approval-decisions`               | `{"decision":"REJECTED","reason":"Can bo sung ho so"}`; có lý do                           |
 | 22             | DRIVER                           | Xem kết quả duyệt/từ chối        | GET    | `http://localhost:3000/api/v1/drivers/me`                                           | Xem approvalStatus; kiểm thông báo của Driver ở mục 7 bên dưới                             |
 | 23 — chuẩn bị  | DRIVER                           | Cập nhật vị trí mới ở A          | PUT    | `http://localhost:3000/api/v1/drivers/me/location`                                  | `{"locationCode":"A"}`                                                                     |
 | 23             | DRIVER                           | Bật nhận chuyến                  | PUT    | `http://localhost:3000/api/v1/drivers/me/availability`                              | `{"isOnline":true}`; cần APPROVED/xe active/vị trí mới                                     |
@@ -283,11 +286,11 @@ Body hoàn chỉnh của Register bước 2:
 
 ```json
 {
-  "email":"taixe.moi@example.test",
-  "password":"123",
-  "phone":"driver-new-06",
-  "plateNumber":"59A-00006",
-  "code":"OTP_VUA_NHAN"
+    "email": "taixe.moi@example.test",
+    "password": "123",
+    "phone": "driver-new-06",
+    "plateNumber": "59A-00006",
+    "code": "OTP_VUA_NHAN"
 }
 ```
 
@@ -295,18 +298,18 @@ Body hoàn chỉnh của Register bước 2:
 
 Hai URL OTP độc lập dưới đây đã có trong API, dùng khi cần minh họa riêng thao tác OTP. Luồng Register hai bước phía trên đã tự tạo/kiểm challenge, không bắt buộc gọi thêm hai URL này:
 
-| Câu            | Ai / token                     | Thao tác              | Method | URL đầy đủ                                                        | Body / ghi chú                                                                     |
-| -------------- | ------------------------------ | --------------------- | ------ | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| 21 — OTP riêng | Người đăng ký Driver — No Auth | Yêu cầu challenge OTP | POST   | `http://localhost:3000/api/v1/auth/otp-challenges`                | `{"phone":"abc123"}`; lấy oid; có thể thay thế challenge trước đó của cùng phone |
-| 21 — OTP riêng | Cùng người đăng ký — No Auth   | Kiểm mã OTP           | POST   | `http://localhost:3000/api/v1/auth/otp-challenges/{oid}/verify` | Phone của challenge và code thật 6 chữ số; không đồng nghĩa đã tạo Account         |
+| Câu            | Ai / token                     | Thao tác              | Method | URL đầy đủ                                                      | Body / ghi chú                                                                   |
+| -------------- | ------------------------------ | --------------------- | ------ | --------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 21 — OTP riêng | Người đăng ký Driver — No Auth | Yêu cầu challenge OTP | POST   | `http://localhost:3000/api/v1/auth/otp-challenges`              | `{"phone":"abc123"}`; lấy oid; có thể thay thế challenge trước đó của cùng phone |
+| 21 — OTP riêng | Cùng người đăng ký — No Auth   | Kiểm mã OTP           | POST   | `http://localhost:3000/api/v1/auth/otp-challenges/{oid}/verify` | Phone của challenge và code thật 6 chữ số; không đồng nghĩa đã tạo Account       |
 
 ## 7. Thông báo và các URL ADMIN bổ trợ
 
 | Câu liên quan          | Ai / token                                                            | Thao tác                                   | Method | URL đầy đủ                                                    | Ghi chú                                                                                   |
 | ---------------------- | --------------------------------------------------------------------- | ------------------------------------------ | ------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | 15, 16, 17, 18, 19, 22 | CUSTOMER hoặc DRIVER nhận thông báo; ADMIN chỉ xem thông báo của mình | Liệt kê thông báo của người đang đăng nhập | GET    | `http://localhost:3000/api/v1/notifications?page=1&limit=10`  | Câu 18 gửi lần lượt bằng token Customer và Driver để chứng minh cả hai nhận thông báo hủy |
-| 15, 16, 17, 18, 19, 22 | Người nhận thông báo                                                  | Đọc một thông báo                          | GET    | `http://localhost:3000/api/v1/notifications/{nid}` | Không được đọc thông báo của người khác, kể cả có ID                                      |
-| 14, 15, 18 — bổ trợ    | ADMIN                                                                 | Tra cứu tất cả Booking theo quyền quản trị | GET    | `http://localhost:3000/api/v1/admin/bookings?page=1&limit=10` | Câu 14 chính vẫn dùng GET /bookings bằng CUSTOMER                                         |
+| 15, 16, 17, 18, 19, 22 | Người nhận thông báo                                                  | Đọc một thông báo                          | GET    | `http://localhost:3000/api/v1/notifications/{nid}`            | Không được đọc thông báo của người khác, kể cả có ID                                      |
+| 14, 15, 18 — bổ trợ    | ADMIN                                                                 | Tra cứu tất cả Booking theo quyền quản trị | GET    | `http://localhost:3000/api/v1/admin/bookings?page=1&limit=10` | Câu 14 dùng A_TOKEN tại mục 3; Customer có endpoint riêng                                 |
 | 17 — bổ trợ            | ADMIN                                                                 | Tra cứu Trip                               | GET    | `http://localhost:3000/api/v1/admin/trips?page=1&limit=10`    | Không dùng URL quản trị để Driver cập nhật trạng thái                                     |
 | 19, 30 — bổ trợ        | ADMIN                                                                 | Tra cứu Payment attempt                    | GET    | `http://localhost:3000/api/v1/admin/payments?page=1&limit=10` | Đối chiếu các lần thanh toán/retry                                                        |
 
@@ -320,9 +323,9 @@ Hai URL OTP độc lập dưới đây đã có trong API, dùng khi cần minh 
 | 26            | CUSTOMER                                 | Gửi XSS vào tên hồ sơ                  | PATCH  | `http://localhost:3000/api/v1/customers/me`            | Body `{"name":"<script>alert('hack')</script>"}`; mong đợi 400. Cần thêm browser evidence script không chạy                                       |
 | 27            | Người giữ token CUSTOMER rồi sửa JWT     | JWT tampering                          | GET    | `http://localhost:3000/api/v1/customers/me`            | Authorization dùng JWT đã sửa payload/chữ ký; mong đợi 401                                                                                        |
 | 28            | CUSTOMER, cố gọi thao tác DRIVER         | Unauthorized role                      | PUT    | `http://localhost:3000/api/v1/drivers/me/availability` | Token CUSTOMER còn hợp lệ, body `{"isOnline":true}`; mong đợi 403, không đổi trạng thái Driver                                                    |
-| 28 — bổ sung  | C2_TOKEN                         | Thử đọc hồ sơ Customer khác            | GET    | `http://localhost:3000/api/v1/customers/c01`  | c01 của customer1, dùng token customer2; mong đợi 403                                                                                  |
+| 28 — bổ sung  | C2_TOKEN                                 | Thử đọc hồ sơ Customer khác            | GET    | `http://localhost:3000/api/v1/customers/c01`           | c01 của customer1, dùng token customer2; mong đợi 403                                                                                             |
 | 29            | CUSTOMER dùng để đo tải                  | Gửi nhiều request tạo Booking          | POST   | `http://localhost:3000/api/v1/bookings`                | Giữ token/key/body hợp lệ; kiểm 429/Retry-After và hệ thống còn hoạt động. Cần công cụ tải để đo yêu cầu >1000 req/s                              |
-| 30            | CUSTOMER chủ chuyến                      | Gửi lại request tạo Payment y hệt      | POST   | `http://localhost:3000/api/v1/trips/{tid}/payments` | Giữ nguyên Idempotency-Key của lần tạo và body; mong đợi 200, cùng pid/snapshot, không thêm giao dịch                                       |
+| 30            | CUSTOMER chủ chuyến                      | Gửi lại request tạo Payment y hệt      | POST   | `http://localhost:3000/api/v1/trips/{tid}/payments`    | Giữ nguyên Idempotency-Key của lần tạo và body; mong đợi 200, cùng pid/snapshot, không thêm giao dịch                                             |
 | 30 — bổ sung  | CUSTOMER chủ Booking                     | Gửi lại request tạo Booking y hệt      | POST   | `http://localhost:3000/api/v1/bookings`                | Giữ nguyên Idempotency-Key và body A→B; mong đợi 200/cùng snapshot                                                                                |
 | 30 — callback | Công cụ/người giả lập callback — No Auth | Gửi lại callback thành công y hệt      | POST   | `http://localhost:3000/api/v1/payments/mock/callback`  | Giữ nguyên raw body/eventId/timestamp/signature; kiểm duplicate=true, không xử lý thanh toán lần nữa                                              |
 
@@ -352,17 +355,17 @@ Runner chỉ giúp minh họa 429; **chưa chứng minh tải >1000 request/giâ
 
 "Ai / token" trong các bảng là **người gọi**. Service dưới đây là **thành phần xử lý sau Gateway**; Postman vẫn chỉ gọi URL Gateway đã ghi, không gọi trực tiếp service.
 
-| Thành phần xử lý     | Nhóm đường dẫn sau host Gateway                                                                                                   |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| auth_service         | `/api/v1/auth/...`                                                                                                                |
-| customer_service     | `/api/v1/customers/...`, `/api/v1/admin/customers`                                                                                |
-| driver_service       | `/api/v1/drivers/...` trừ invitations; `/api/v1/admin/drivers/...`                                                                |
+| Thành phần xử lý     | Nhóm đường dẫn sau host Gateway                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| auth_service         | `/api/v1/auth/...`                                                                                                       |
+| customer_service     | `/api/v1/customers/...`, `/api/v1/admin/customers`                                                                       |
+| driver_service       | `/api/v1/drivers/...` trừ invitations; `/api/v1/admin/drivers/...`                                                       |
 | booking_service      | `/api/v1/bookings/...`, `/api/v1/admin/bookings`, `/api/v1/drivers/me/invitations`, `/api/v1/invitations/{iid}/response` |
-| trip_service         | `/api/v1/trips/...` trừ payments/payment-summary/reviews; `/api/v1/admin/trips`                                                   |
-| payment_service      | `/api/v1/payments/...`, `/api/v1/admin/payments`, `/api/v1/trips/{tid}/payments`, `/api/v1/trips/{tid}/payment-summary`     |
-| notification_service | `/api/v1/notifications/...`                                                                                                       |
-| rating_service       | `/api/v1/trips/{tid}/reviews`                                                                                                  |
-| Gateway health       | `/health`, `/ready`, `/health/services`; không phải service thứ 9                                                                 |
+| trip_service         | `/api/v1/trips/...` trừ payments/payment-summary/reviews; `/api/v1/admin/trips`                                          |
+| payment_service      | `/api/v1/payments/...`, `/api/v1/admin/payments`, `/api/v1/trips/{tid}/payments`, `/api/v1/trips/{tid}/payment-summary`  |
+| notification_service | `/api/v1/notifications/...`                                                                                              |
+| rating_service       | `/api/v1/trips/{tid}/reviews`                                                                                            |
+| Gateway health       | `/health`, `/ready`, `/health/services`; không phải service thứ 9                                                        |
 
 ## 10. Header phải nhớ
 
@@ -374,7 +377,7 @@ Runner chỉ giúp minh họa 429; **chưa chứng minh tải >1000 request/giâ
 | Replay cùng nghiệp vụ                   | Giữ nguyên Idempotency-Key và body gốc                                                |
 | Callback mock                           | `X-Mock-Timestamp` và `X-Mock-Signature` đúng raw JSON, không dùng Bearer thay chữ ký |
 
-Không lưu token, signing secret hoặc password thật vào file này. Hướng dẫn nhập tay chi tiết: [MANUAL_POSTMAN_30.md](MANUAL_POSTMAN_30.md). Body/schema đầy đủ: [10 OpenAPI YAML](api/). Danh sách trên bao phủ 47 operation REST hiện hành; một URL có thể phục vụ nhiều câu hoặc nhiều thao tác, phân biệt bằng method, body và token.
+Không lưu token, signing secret hoặc password thật vào file này. Hướng dẫn nhập tay chi tiết: [MANUAL_POSTMAN_30.md](MANUAL_POSTMAN_30.md). Body/schema đầy đủ: [10 OpenAPI YAML](api/). Danh sách trên bao phủ 48 operation REST hiện hành; một URL có thể phục vụ nhiều câu hoặc nhiều thao tác, phân biệt bằng method, body và token.
 
 ## 11. URL có thể dùng ngay và xử lý lỗi thường gặp
 
@@ -393,17 +396,17 @@ GET http://localhost:3000/api/v1/trips/t01
 GET http://localhost:3000/api/v1/payments/p01
 ```
 
-**d01/b01 có trong bộ mẫu; t01/p01 chỉ là ví dụ sau khi tạo Trip/Payment.** b01 là NO_DRIVER nên không có Trip và không dùng để thanh toán. Đọc response để lấy tid/pid thật. aid xác định Account của cả CUSTOMER/DRIVER/ADMIN; hiện tra Account của mình qua GET /auth/me, không có endpoint /accounts/{aid} mới. Field Mongo _id/JWT sub và eventId/requestId/correlationId là dữ liệu kỹ thuật nội bộ, không dùng thay mã tài nguyên trên URL.
+**d01/b01 có trong bộ mẫu; t01/p01 chỉ là ví dụ sau khi tạo Trip/Payment.** b01 là NO_DRIVER nên không có Trip và không dùng để thanh toán. Đọc response để lấy tid/pid thật. aid xác định Account của cả CUSTOMER/DRIVER/ADMIN; hiện tra Account của mình qua GET /auth/me, không có endpoint /accounts/{aid} mới. Field Mongo \_id/JWT sub và eventId/requestId/correlationId là dữ liệu kỹ thuật nội bộ, không dùng thay mã tài nguyên trên URL.
 
-| Hiện tượng | Cách xử lý |
-| --- | --- |
-| 400 | Kiểm JSON, field đúng tên, không gửi role/cid/did khi Register; không trộn locationCode với tọa độ; thay hết chỗ giữ ID/OTP bằng giá trị thật |
-| 401 | Đăng nhập lại, dán accessToken mới, không dùng token tài khoản cũ trước reset; callback kiểm chữ ký/raw thay vì Bearer |
-| 403 | Đổi đúng token theo cột Ai/token; ADMIN được nearby nhưng không thao tác `/drivers/me` thay Driver |
-| 404 | Kiểm ID có thật; c29/d09 cũ đã xóa; chưa có Trip/Payment thì tạo đúng luồng trước |
-| 409 | Kiểm trùng dữ liệu, trạng thái chưa đủ hoặc key dùng lại với payload khác; đọc lại resource thay vì reset dữ liệu |
-| 429 | Chờ Retry-After; không bỏ rate limit |
-| 503 PROFILE_NOT_READY | Đợi event đồng bộ profile vài giây rồi GET lại; nếu kéo dài, kiểm `/ready`, `/health/services` và log container |
-| nearby trống / không có invitation | Refresh vị trí, bật online, kiểm APPROVED/xe active/không bận; offer có hạn, chọn đúng bid và token người nhận |
+| Hiện tượng                         | Cách xử lý                                                                                                                                    |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 400                                | Kiểm JSON, field đúng tên, không gửi role/cid/did khi Register; không trộn locationCode với tọa độ; thay hết chỗ giữ ID/OTP bằng giá trị thật |
+| 401                                | Đăng nhập lại, dán accessToken mới, không dùng token tài khoản cũ trước reset; callback kiểm chữ ký/raw thay vì Bearer                        |
+| 403                                | Đổi đúng token theo cột Ai/token; ADMIN được nearby nhưng không thao tác `/drivers/me` thay Driver                                            |
+| 404                                | Kiểm ID có thật; c29/d09 cũ đã xóa; chưa có Trip/Payment thì tạo đúng luồng trước                                                             |
+| 409                                | Kiểm trùng dữ liệu, trạng thái chưa đủ hoặc key dùng lại với payload khác; đọc lại resource thay vì reset dữ liệu                             |
+| 429                                | Chờ Retry-After; không bỏ rate limit                                                                                                          |
+| 503 PROFILE_NOT_READY              | Đợi event đồng bộ profile vài giây rồi GET lại; nếu kéo dài, kiểm `/ready`, `/health/services` và log container                               |
+| nearby trống / không có invitation | Refresh vị trí, bật online, kiểm APPROVED/xe active/không bận; offer có hạn, chọn đúng bid và token người nhận                                |
 
 Không tự đánh dấu PASS chỉ vì đã có URL/body trong file. Ghi HTTP status, ID và ảnh/response thực tế vào buổi test; đối chiếu trạng thái và phần còn thiếu tại [GRADING_MATRIX.md](GRADING_MATRIX.md).

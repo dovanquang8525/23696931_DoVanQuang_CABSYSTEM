@@ -47,12 +47,15 @@ async function create({db,client,server}) {
     const account = await c.invoke('auth','getAccountAccess',{account_id:row.accountId});
     return account.status === 'ACTIVE' && account.role === 'DRIVER';
   }
-  async function nearby(location) {
+  async function nearby(location,admin=false) {
     const result = [];
-    for (const row of await drivers.find({approval_status:'APPROVED',is_online:true,active_trip_id:{$exists:false},reservation:{$exists:false}}).toArray()) {
+    const filter=admin?{location:{$exists:true}}:{approval_status:'APPROVED',is_online:true,active_trip_id:{$exists:false},reservation:{$exists:false}};
+    for (const row of await drivers.find(filter).toArray()) {
       if (!row.location) continue;
       const km = b.distance(location,row.location);
-      if (km <= 1 && await eligible(row)) result.push({driver:publicView(row),distance_km:km,location:row.location});
+      if (km <= 1 && (admin || await eligible(row))) result.push({driver:publicView(row),distance_km:km,location:row.location,
+        ...(admin?{admin_profile:await view(row),approval_status:row.approval_status,is_online:row.is_online,
+          location_is_fresh:Date.now()-Date.parse(row.location.updated_at)<=120000}:{})});
     }
     return result.sort((a,z)=>a.distance_km-z.distance_km || a.driver.driver_id.localeCompare(z.driver.driver_id));
   }
@@ -134,10 +137,10 @@ async function create({db,client,server}) {
       return b.page(drivers,i.approval_status?{approval_status:i.approval_status}:{},i.paging,view,{_id:-1});
     },
     async ListNearbyDrivers(i,call) {
-      b.v.fields(i,['location','paging','location_code'],['paging']); await c.actor(call,['CUSTOMER','ADMIN']);
+      b.v.fields(i,['location','paging','location_code'],['paging']); const {claims}=await c.actor(call,['CUSTOMER','ADMIN']);
       if(Object.hasOwn(i,'location')===Object.hasOwn(i,'location_code'))b.v.invalid();
       const point=i.location_code!==undefined?await readLocation(db,i.location_code):b.coords(i.location);
-      const {page,limit}=b.v.pagination(i.paging),items=await nearby(point);
+      const {page,limit}=b.v.pagination(i.paging),items=await nearby(point,claims.role==='ADMIN');
       return {items:items.slice((page-1)*limit,page*limit),page,limit,total_items:items.length};
     },
     async FindCandidates(i) {

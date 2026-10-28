@@ -55,7 +55,7 @@ if (manifest.current) {
     }
   }
   assert.equal(operations.size, routing.routes.length, 'Missing or duplicate API operation');
-  console.log('STATIC_OK: current Postman catalog covers 47 Gateway operations; request schemas, variables and scripts checked. No HTTP was sent.');
+  console.log('STATIC_OK: current Postman catalog covers 48 Gateway operations; request schemas, variables and scripts checked. No HTTP was sent.');
   return;
 }
 if(manifest.identityV2Migration?.status==='OUTDATED_COLLECTIONS'){

@@ -1,5 +1,17 @@
 # Báo cáo tổng kiểm tra CAB System — 28/10/2026
 
+## Vị trí Driver và hồ sơ ADMIN nearby — cập nhật mới nhất
+
+Đã sao lưu source và 5 hồ sơ tại `.local/driver-positions-20261028/` trước chỉnh sửa. Chỉ đổi location/version của d01–d05; giữ nguyên tài khoản, tên, approvalStatus, online, xe, ID và Booking. 5 tọa độ khác nhau: d01/d02/d03 cách điểm (10.8,106.7) lần lượt 0m/312m/556m; d04/d05 cách 2,224km/3,117km nên bị loại khỏi nearby tại đây. Không xóa dữ liệu.
+
+ADMIN nhận items[].driver đầy đủ, khớp GET /drivers/{did}; CUSTOMER vẫn DriverPublic, không email/aid/license. Proto thêm admin_profile optional nội bộ, Gateway đưa về driver và bỏ adminProfile; YAML/Postman/contracts/guide đã đồng bộ. Rebuild/restart Gateway/Driver thành công. npm test37/37, check26/26 và Postman48 operation đạt. Runtime xác nhận đúng 3 ID, hai Driver ngoài 1km không xuất hiện, 5 vị trí riêng, phân trang limit2 có 2–1 item và quyền riêng tư Customer. Evidence `.local/evidence/driver-positions-2026-10-28T08-31-34-636Z.json`. Các kết quả 5 Driver cùng trong 1km bên dưới là lịch sử trước lần cập nhật này.
+
+## ADMIN tra cứu câu 11–14 theo yêu cầu mới
+
+ADMIN dùng list/get Customer, Driver, Booking và `GET /api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=2`. URL chung `/drivers/nearby` với ADMIN có cùng hành vi. Tra cứu trong 1 km dựa trên tọa độ cuối cùng, gồm offline/PENDING/REJECTED/vị trí cũ; response bổ sung approvalStatus/isOnline/locationIsFresh. CUSTOMER nearby và booking dispatch giữ nguyên bộ lọc nhận chuyến và freshness120 giây. Không sửa timestamps/online hay dữ liệu tài khoản để tạo kết quả.
+
+Đã đồng bộ Gateway/YAML, Proto common (field optional), Driver, mapping, SRS/contracts, Postman catalog và hướng dẫn. Thêm 1 REST operation, tổng48; dùng lại ListNearbyDrivers gRPC, không thêm service/RPC. Rebuild/restart Gateway và Driver thành công. npm test37/37, npm run check26/26 và kiểm Postman đủ48 operation đạt. Runtime20 HTTP checks đạt: ADMIN câu11–14, nearby alias, 5 vị trí cũ vẫn thấy, 2 trang limit2 không trùng, limit1 đúng1 item, tọa độ xa rỗng, sai quyền403/thiếu token401/input sai400; Customer nearby vẫn không thấy tài xế offline/chờ duyệt/vị trí cũ. Evidence `.local/evidence/admin-search-2026-10-28T08-08-43-679Z.json`. Hướng dẫn thực hiện: [URL_POSTMAN_30.md](URL_POSTMAN_30.md).
+
 ## Bộ dữ liệu demo mới — thay thế dữ liệu kiểm thử cũ
 
 Người dùng đã xác nhận xóa Customer/Driver/Booking cũ cùng Trip/Payment mock/Rating/Notification/OTP/event/idempotency liên quan sau sao lưu. Đã sao lưu đủ 8 database và source tại `.local/demo-reset-20261028/`, ghi SHA256; 20 queue đã rỗng trước khi làm sạch. Mỗi thao tác DB dùng quyền của service sở hữu và transaction. Không drop database, không xóa volumes/secrets; mọi ADMIN giữ nguyên toàn bộ document và password.

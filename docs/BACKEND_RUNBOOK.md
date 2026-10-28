@@ -39,7 +39,7 @@ Email seed là `admin@cab.local`. Password ADMIN đã tồn tại được giữ
 bash scripts/seed-local.sh --fixtures
 ```
 
-Script từ chối trùng tài khoản ngoài seed và giữ password cũ. `SEED_PASSWORD` hiện tại không đảm bảo đăng nhập được tài khoản tạo trước đây. Khi buổi chấm yêu cầu tự nhập, dùng [hướng dẫn tay](MANUAL_POSTMAN_30.md). Driver cập nhật location trước online/nearby; vị trí mới có hiệu lực 120 giây.
+Script từ chối trùng tài khoản ngoài seed và giữ password cũ. `SEED_PASSWORD` hiện tại không đảm bảo đăng nhập được tài khoản tạo trước đây. Khi buổi chấm yêu cầu tự nhập, dùng [hướng dẫn tay](MANUAL_POSTMAN_30.md). Driver cập nhật location trước online/nearby phía Customer hoặc dispatch; vị trí mới có hiệu lực 120 giây. ADMIN dùng /admin/drivers/nearby để tra vị trí cuối cùng, không cần refresh.
 
 ## Test
 
@@ -76,7 +76,7 @@ docker compose ps -a
 | Login seed trả 401 | Kiểm email/password thực; không reset/ghi đè credentials |
 | 503 PROFILE_NOT_READY | Kiểm consumer, outbox/inbox và RabbitMQ; chờ đồng bộ, không đăng ký lại |
 | 429 RATE_LIMITED | Chờ Retry-After; không hạ quota |
-| Nearby rỗng | APPROVED, xe active, ONLINE, không bận, trong 1 km, vị trí chưa quá 120 giây |
+| Nearby rỗng | CUSTOMER: cần APPROVED, xe active, ONLINE, không bận, trong 1 km, vị trí mới <=120 giây. ADMIN: /admin/drivers/nearby tra vị trí cuối cùng, kiểm tọa độ và bán kính 1 km; limit=2 để xem 2 người/trang. |
 | Payment 409 | Trip COMPLETED có cước; không có attempt PENDING/COMPLETED; retry từ FAILED mới nhất |
 | Callback 401/400 | Ký đúng raw JSON/timestamp bằng key local; không sửa body sau ký |
 | Checker v3 báo OUTDATED | Collection cũ; bộ hiện hành dùng scripts/check_postman.cjs |

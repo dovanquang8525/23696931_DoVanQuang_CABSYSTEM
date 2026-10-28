@@ -32,9 +32,15 @@ test('mock HMAC signs original UTF-8 bytes including whitespace',()=>{
   assert.equal(verify(raw,timestamp+1,signature,secret),false);
   assert.equal(verify(raw,timestamp,signature+'0',secret),false);
 });
-test('47 routes compile; static nearby path wins over driver ID and health has root paths',()=>{
-  assert.equal(routes.routes.length,47);
+test('48 routes compile; static nearby path wins over driver ID and health has root paths',()=>{
+  assert.equal(routes.routes.length,48);
   assert.equal(routes.match('GET','/api/v1/drivers/nearby').operation,'listNearbyDrivers');
+  const admin=routes.match('GET','/api/v1/admin/drivers/nearby');
+  assert.equal(admin.operation,'listAdminNearbyDrivers');
+  assert.deepEqual(admin.roles,['ADMIN']);
+  const u=new URL('http://local/api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=2&limit=1');
+  assert.deepEqual(routes.input(admin,undefined,routes.validate(admin,u,undefined),{}),
+    {location:{latitude:10.8,longitude:106.7},paging:{page:2,limit:1}});
   assert.equal(routes.match('GET','/health').operation,'gatewayHealth');
   assert.equal(routes.match('POST','/api/v1/bookings').service,'booking');
   assert.equal(routes.match('POST','/api/v1/booking'),undefined);
@@ -50,6 +56,10 @@ test('REST mapping nests paging/location, keeps idempotency out of body, and for
   assert.equal(routes.input(callback,{}, {},{'x-mock-signature':'signature','x-mock-timestamp':'1'},raw).raw_body,raw);
 });
 test('REST response mapper distinguishes null fare, absent resources, availability and empty arrays',()=>{
+  const page=routes.output({items:[{driver:{driver_id:'d01'},admin_profile:{driver_id:'d01',account_id:'a02',email:'driver1@cab.local',license_number:'DEMO-D01'}}]});
+  assert.equal(page.items[0].driver.aid,'a02');
+  assert.equal(page.items[0].driver.licenseNumber,'DEMO-D01');
+  assert.equal(page.items[0].adminProfile,undefined);
   const result=routes.output({booking:{booking_id:'id'},trip_availability:'TRIP_UNAVAILABLE',payment_availability:'PAYMENT_UNAVAILABLE',eta:{status:'UNAVAILABLE'}});
   assert.equal(result.tripAvailability,'UNAVAILABLE');assert.ok(!('trip' in result));assert.ok(!('paymentSummary' in result));
   assert.deepEqual(routes.output({trip_id:'id',currency:'VND',has_completed:false,latest_status:'NOT_STARTED'}),

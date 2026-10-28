@@ -6,7 +6,7 @@ Dùng để giải thích các mục 1, 3, 4, 7, 8. Chuẩn bị source, compose
 
 ## Request và dữ liệu
 
-Postman → Gateway REST/JSON → service gRPC → database do service sở hữu. Gateway đọc 47 operation từ 10 OpenAPI YAML, kiểm JWT, role, input, rate limit, ánh xạ lỗi và schema response. Health nằm ở root; nghiệp vụ dùng /api/v1.
+Postman → Gateway REST/JSON → service gRPC → database do service sở hữu. Gateway đọc 48 operation từ 10 OpenAPI YAML, kiểm JWT, role, input, rate limit, ánh xạ lỗi và schema response. Health nằm ở root; nghiệp vụ dùng /api/v1.
 
 Đúng 8 service: Auth, Customer, Driver, Booking, Trip, Payment, Notification, Rating. Driver sở hữu Vehicle; không thêm Vehicle/OTP/Report Service. Mỗi service dùng user chỉ có readWrite trên một DB: auth_db, customer_db, driver_db, booking_db, trip_db, payment_db, notification_db, rating_db. Gateway không có MongoDB credentials. gRPC không publish ra host; peer nội bộ cần internal credential và quyền theo docs/api/rpc-access.json. Service vẫn kiểm JWT/ownership của người dùng.
 

@@ -1,5 +1,7 @@
 # Kiểm thử Postman qua Gateway
 
+Câu 11–14 hiện dùng token ADMIN: list/get Customer, Driver, Booking; request `listAdminNearbyDrivers` gọi `/api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=2`. ADMIN tra vị trí cuối cùng, gồm offline/chờ duyệt/vị trí cũ. Request Customer nearby vẫn lọc người đủ điều kiện nhận chuyến và vị trí mới <=120 giây. Có 48 operation hiện hành; collection legacy giữ nguyên để tham khảo. Xem [URL_POSTMAN_30.md](../docs/URL_POSTMAN_30.md).
+
 **ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
 
 Dùng khi kiểm API hoặc chuẩn bị mục 11–30. Cần hệ thống healthy theo [runbook](../docs/BACKEND_RUNBOOK.md), tài khoản CUSTOMER/DRIVER/ADMIN đúng password, Driver đã duyệt và fixture riêng cho từng nhánh.

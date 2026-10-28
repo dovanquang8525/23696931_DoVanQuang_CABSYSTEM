@@ -2,7 +2,7 @@
 
 **ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
 
-Identity v3: Register không nhận cid/did/role/name/oid. Driver có plateNumber, lần đầu trả OTP_REQUIRED 202; lần sau thêm code, tạo account 201. Protobuf RegisterRequest dành riêng tag 3/4/5/7/8 cũ, plate_number tag9 và code tag10. DriverLocationInput/UpdateTripLocationRequest/NearbyRequest có location_code; Booking Create có pickup_code/destination_code. Danh sách 47 REST operation/peer allowlist giữ nguyên, chỉ mở rộng request/response của operation đã có.
+Identity v3: Register không nhận cid/did/role/name/oid. Driver có plateNumber, lần đầu trả OTP_REQUIRED 202; lần sau thêm code, tạo account 201. Protobuf RegisterRequest dành riêng tag 3/4/5/7/8 cũ, plate_number tag9 và code tag10. DriverLocationInput/UpdateTripLocationRequest/NearbyRequest có location_code; Booking Create có pickup_code/destination_code. Hiện có 48 REST operation: bổ sung ADMIN nearby dùng cùng ListNearbyDrivers; peer allowlist giữ nguyên.
 
 Identity v2: Register dùng cid/did/email và không nhận role/name; Login dùng email, password. RequestOtp REST chỉ có phone, Gateway đặt purpose DRIVER_REGISTRATION vào RPC nội bộ. PATCH name được map sang full_name trong Customer/Driver RPC; response full_name thành REST name. Các ID nội bộ và danh sách RPC/REST endpoint dưới đây giữ nguyên. Register protobuf dành riêng các tag cũ 3/4; Login dành riêng tag phone cũ 1, email dùng tag mới 3.
 
@@ -28,6 +28,7 @@ Base path: /api/v1, trừ Health dùng root. Đây là contract mapping, chưa p
 | 03-drivers.yaml | PUT | /drivers/me/availability | setDriverAvailability | cab.driver.v1.DriverService/SetAvailability |
 | 03-drivers.yaml | PUT | /drivers/me/location | updateDriverLocation | cab.driver.v1.DriverService/UpdateDriverLocation |
 | 03-drivers.yaml | GET | /drivers/nearby | listNearbyDrivers | cab.driver.v1.DriverService/ListNearbyDrivers |
+| 03-drivers.yaml | GET | /admin/drivers/nearby | listAdminNearbyDrivers | cab.driver.v1.DriverService/ListNearbyDrivers |
 | 03-drivers.yaml | GET | /admin/drivers | listDrivers | cab.driver.v1.DriverService/ListDrivers |
 | 03-drivers.yaml | POST | /admin/drivers/{did}/approval-decisions | decideDriverApproval | cab.driver.v1.DriverService/DecideDriverApproval |
 | 04-bookings.yaml | POST | /bookings | createBooking | cab.booking.v1.BookingService/CreateBooking |

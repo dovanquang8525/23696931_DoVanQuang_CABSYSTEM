@@ -5,7 +5,7 @@ method: GET
 auth:
   type: bearer
   credentials:
-    token: "{{driverToken}}"
+    token: "{{adminToken}}"
 scripts:
   - type: afterResponse
     code: |-
