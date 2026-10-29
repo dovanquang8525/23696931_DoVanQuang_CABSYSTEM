@@ -25,11 +25,13 @@ async function main(){
   h.expect(await h.request('POST','/api/v1/invitations/'+next.iid+'/response',{decision:'ACCEPT'},second),200,'next candidate accepts');
   await cancel(rejected.bid);await released(second);
   await refresh();
-  const timed=await create(),expired=await invite(first,timed.bid);
-  const replacement=await inviteWithLongDeadline(second,timed.bid);
-  h.expect(await h.request('POST','/api/v1/invitations/'+expired.iid+'/response',{decision:'ACCEPT'},first),409,'expired offer rejected');
-  h.expect(await h.request('POST','/api/v1/invitations/'+replacement.iid+'/response',{decision:'ACCEPT'},second),200,'timeout advances candidate');
-  await cancel(timed.bid);await released(second);
+  const waiting=await create(),persistent=await invite(first,waiting.bid);
+  assert.equal(persistent.expiresAt,undefined);
+  console.log('Checking that invitation remains PENDING after the former 30-second timeout.');
+  await new Promise(resolve=>setTimeout(resolve,31000));
+  assert.equal((await invite(first,waiting.bid)).iid,persistent.iid);
+  h.expect(await h.request('POST','/api/v1/invitations/'+persistent.iid+'/response',{decision:'ACCEPT'},first),200,'delayed acceptance without offer expiry');
+  await cancel(waiting.bid);await released(first);
   await refresh();
   const a=await create(),z=await create(),ai=await invite(first,a.bid),zi=await invite(first,z.bid);
   const results=await Promise.all([h.request('POST','/api/v1/invitations/'+ai.iid+'/response',{decision:'ACCEPT'},first),
@@ -42,9 +44,5 @@ async function main(){
   assert.notEqual(original.trip.did,assigned.invitation.did);assert.notEqual(original.trip.tid,assigned.tid);
   await cancel(winner.bid);await cancel(lost.bid);await released(first);await released(second);
   h.expect(await h.request('PUT','/api/v1/drivers/me/availability',{isOnline:false},second),200,'restore second Driver offline');
-}
-async function inviteWithLongDeadline(token,id){
-  const r=await h.poll(()=>h.request('GET','/api/v1/drivers/me/invitations?status=PENDING',undefined,token),
-    r=>r.status===200&&r.data.items.some(i=>i.bid===id),45000);return r.data.items.find(i=>i.bid===id);
 }
 void main().then(()=>h.record('dispatch')).catch(error=>{h.record('dispatch',error);console.error('Dispatch check failed: '+String(error.message).split('\n')[0]);process.exitCode=1;});

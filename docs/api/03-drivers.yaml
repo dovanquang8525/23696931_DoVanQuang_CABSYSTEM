@@ -552,7 +552,7 @@ paths:
         - Drivers
       operationId: setDriverAvailability
       summary: Bật/tắt online
-      description: Online cần ACTIVE/APPROVED/BIKE/vị trí <=120 giây; offline không hủy Trip đang có.
+      description: Online cần ACTIVE/APPROVED/BIKE/vị trí đã lưu hợp lệ; offline không hủy Trip đang có.
       x-grpc: cab.driver.v1.DriverService/SetAvailability
       x-allowed-roles:
         - DRIVER
@@ -769,7 +769,7 @@ paths:
         - Drivers
       operationId: listNearbyDrivers
       summary: Tra cứu Driver trong 1 km theo quyền người gọi
-      description: CUSTOMER chỉ thấy ACTIVE/APPROVED/online/BIKE/không bận, vị trí mới <=120 giây. ADMIN tra cứu theo vị trí cuối cùng, gồm offline/chờ duyệt/vị trí cũ; locationIsFresh cho biết độ mới, không đảm bảo nhận chuyến. Sort distanceKm rồi did; vẫn phân trang theo limit.
+      description: CUSTOMER chỉ thấy ACTIVE/APPROVED/online/BIKE/không bận, vị trí đã lưu hợp lệ (không giới hạn tuổi trong demo). ADMIN tra cứu theo vị trí cuối cùng, gồm offline/chờ duyệt/vị trí cũ; locationIsFresh cho biết độ mới, không đảm bảo nhận chuyến. Sort distanceKm rồi did; vẫn phân trang theo limit.
       x-grpc: cab.driver.v1.DriverService/ListNearbyDrivers
       x-allowed-roles:
         - CUSTOMER
@@ -897,7 +897,7 @@ paths:
         - Drivers
       operationId: listAdminNearbyDrivers
       summary: Tra cứu Driver trong 1 km theo quyền người gọi
-      description: CUSTOMER chỉ thấy ACTIVE/APPROVED/online/BIKE/không bận, vị trí mới <=120 giây. ADMIN tra cứu theo vị trí cuối cùng, gồm offline/chờ duyệt/vị trí cũ; locationIsFresh cho biết độ mới, không đảm bảo nhận chuyến. Sort distanceKm rồi did; vẫn phân trang theo limit.
+      description: CUSTOMER chỉ thấy ACTIVE/APPROVED/online/BIKE/không bận, vị trí đã lưu hợp lệ (không giới hạn tuổi trong demo). ADMIN tra cứu theo vị trí cuối cùng, gồm offline/chờ duyệt/vị trí cũ; locationIsFresh cho biết độ mới, không đảm bảo nhận chuyến. Sort distanceKm rồi did; vẫn phân trang theo limit.
       x-grpc: cab.driver.v1.DriverService/ListNearbyDrivers
       x-allowed-roles:
         - ADMIN
@@ -1530,7 +1530,7 @@ components:
           description: ADMIN only.
         locationIsFresh:
           type: boolean
-          description: ADMIN only; true if last position is within 120 seconds.
+          description: ADMIN only; informational age indicator (120 seconds), not an eligibility requirement in the demo.
       required:
         - driver
         - distanceKm

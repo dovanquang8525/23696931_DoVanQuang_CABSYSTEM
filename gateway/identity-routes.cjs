@@ -196,6 +196,7 @@ function output(value) {
         for (const child of Object.values(node)) if (typeof child === "object") complete(child);
     }
     complete(result);
+    if (result?.invitation && result?.booking && result.tid) return {tid:result.tid,...result};
     return result;
 }
 module.exports = { match, normalizeBody, validate, snake, camel, routes, input, output, normalizeSchema, publicNames };

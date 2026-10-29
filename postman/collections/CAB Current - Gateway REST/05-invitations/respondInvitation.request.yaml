@@ -19,6 +19,12 @@ scripts:
     code: |-
       pm.test('HTTP status', () => pm.expect(pm.response.code).to.be.oneOf([200]));
       const data = pm.response.json();
+      pm.test('ACCEPT returns Trip ID for the next steps', () => {
+        if (data.invitation?.status === 'ACCEPTED') {
+          pm.expect(data.tid).to.be.a('string').and.not.empty;
+          pm.expect(data.tid).to.eql(data.booking.tid);
+        }
+      });
       pm.test('JSON response', () => pm.expect(data).to.be.an('object'));
       if (pm.response.code < 300) {
       if (data.cid) pm.environment.set('cid', data.cid);

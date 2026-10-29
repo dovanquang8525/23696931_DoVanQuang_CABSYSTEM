@@ -1,5 +1,9 @@
 # THIẾT KẾ MICRO-SERVICE — CAB SYSTEM
 
+**Offer demo không hết hạn — 29/10/2026:** đã bỏ hạn30 giây. Customer có thể đặt trước rồi mới Login Driver, đọc notifications/invitations và ACCEPT khi offer còn PENDING và Booking còn SEARCHING. Không cần nhập nhanh. Driver REJECT để xét người tiếp theo, Customer hủy để dừng tìm. Không tự hồi sinh NO_DRIVER/EXPIRED cũ. JWT/OTP/callback/deadline gRPC vẫn có hạn như cũ; không bỏ bảo vệ đồng thời Driver.
+
+**Chính sách demo mới 29/10/2026:** dùng tọa độ cuối cùng Driver đã gửi, bỏ điều kiện tuổi vị trí 120 giây khi bật online, CUSTOMER nearby, phân công và tính ETA. Không cần cập nhật lại tọa độ chỉ để làm mới thời gian. Giữ timestamp thật; locationIsFresh chỉ là chỉ báo độ mới, không chặn nhận chuyến. Vẫn phải ACTIVE/APPROVED/online/BIKE/không bận, không giữ chỗ và trong1 km; offer PENDING không tự hết hạn trong demo. Đây là giả lập vị trí tĩnh để demo, không phải GPS thời gian thực.
+
 **ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
 
 **Validation demo cập nhật 28/10/2026:** Password là String không rỗng (ít nhất 1 ký tự, ví dụ "123" hoặc "a"), không trim và không yêu cầu độ phức tạp; Phone là String không rỗng sau trim (ví dụ "0123", "123", "abc123"), giữ số 0 đầu và vẫn unique. Email giữ định dạng cơ bản. Chỉ áp dụng cho học tập/demo local; không phải chính sách production. Argon2id, JWT, role/ownership và OTP Driver giữ nguyên.
@@ -240,7 +244,7 @@ customer_db — customer_profiles. Các service khác truy cập qua API/event, 
 
 **Event phát/nhận: **Phát: driver.profile_approved, driver.profile_rejected. Nhận: account.registered role DRIVER để tạo DRAFT/offline; trip.completed, trip.canceled để giải phóng đúng trip/reservation, không xóa chỗ của trip mới hơn.
 
-**Quy tắc nghiệp vụ chính: **RULE06, RULE13, RULE34–RULE35: APPROVED, online, account ACTIVE, không bận/giữ chỗ, xe đúng loại, vị trí tuổi ≤120 giây. Hồ sơ DRAFT hoặc REJECTED được sửa để gửi lại; không tự sửa APPROVED/PENDING để bỏ qua duyệt. Quyết định duyệt dùng cập nhật có điều kiện approvalStatus=PENDING. Tối đa một xe active. Không sửa/đổi xe đang dùng khi giữ chỗ hoặc trip chưa kết thúc; kiểm tra và khóa theo Driver aggregate trong cùng transaction. Nearby: khoảng cách ≤1 km; sắp xếp khoảng cách rồi did tăng dần. page≥1, limit 1–50, mặc định 1/10. Account không xác minh được thì không đưa vào danh sách. Offline ngừng nhận chuyến mới, không hủy trip đã nhận. Reservation chỉ được tạo sau khi kiểm tra lại điều kiện hiện tại; hai booking không giữ cùng một tài xế. Không tự giải phóng reservation chỉ vì HTTP timeout hoặc hết thời gian chờ: phải tra cứu operation/Trip để tránh tài xế có hai chuyến.
+**Quy tắc nghiệp vụ chính: **RULE06, RULE13, RULE34–RULE35: APPROVED, online, account ACTIVE, không bận/giữ chỗ, xe đúng loại, vị trí đã lưu hợp lệ. Hồ sơ DRAFT hoặc REJECTED được sửa để gửi lại; không tự sửa APPROVED/PENDING để bỏ qua duyệt. Quyết định duyệt dùng cập nhật có điều kiện approvalStatus=PENDING. Tối đa một xe active. Không sửa/đổi xe đang dùng khi giữ chỗ hoặc trip chưa kết thúc; kiểm tra và khóa theo Driver aggregate trong cùng transaction. Nearby: khoảng cách ≤1 km; sắp xếp khoảng cách rồi did tăng dần. page≥1, limit 1–50, mặc định 1/10. Account không xác minh được thì không đưa vào danh sách. Offline ngừng nhận chuyến mới, không hủy trip đã nhận. Reservation chỉ được tạo sau khi kiểm tra lại điều kiện hiện tại; hai booking không giữ cùng một tài xế. Không tự giải phóng reservation chỉ vì HTTP timeout hoặc hết thời gian chờ: phải tra cứu operation/Trip để tránh tài xế có hai chuyến.
 
 ### Dữ liệu sở hữu
 
@@ -334,7 +338,7 @@ payment_db — payments. Các service khác truy cập qua API/event, không đ�
 
 **Event phát/nhận: **Nhận: booking.created/invitation_created/assigned/no_driver/canceled; trip.arrived/completed/canceled; payment.completed/failed; driver.profile_approved/profile_rejected. Phát: không có event bắt buộc.
 
-**Quy tắc nghiệp vụ chính: **RULE32: cùng eventId, người nhận và loại chỉ tạo một thông báo. Chỉ người nhận đọc được. trip.started có thể dùng cho đồng bộ khác nhưng không bắt buộc tạo thêm thông báo ngoài các mốc SRS yêu cầu. Lỗi xử lý được retry/log, không làm Booking/Trip/Payment rollback. Không dùng “đã gửi thông báo” làm bằng chứng nghiệp vụ đã hoàn tất. Thông báo lời mời cũ không còn hiệu lực nếu lời mời đã đóng; API Booking vẫn kiểm tra expiresAt và trạng thái hiện tại.
+**Quy tắc nghiệp vụ chính: **RULE32: cùng eventId, người nhận và loại chỉ tạo một thông báo. Chỉ người nhận đọc được. trip.started có thể dùng cho đồng bộ khác nhưng không bắt buộc tạo thêm thông báo ngoài các mốc SRS yêu cầu. Lỗi xử lý được retry/log, không làm Booking/Trip/Payment rollback. Không dùng “đã gửi thông báo” làm bằng chứng nghiệp vụ đã hoàn tất. Thông báo lời mời cũ không còn hiệu lực nếu lời mời đã đóng; API Booking kiểm tra trạng thái hiện tại; demo không kiểm expiresAt của lời mời.
 
 ### Dữ liệu sở hữu
 
@@ -402,7 +406,7 @@ Vehicle là collection riêng nhưng các thao tác đổi xe đang sử dụng 
 
 **bookings: **Entity/aggregate: Booking — root. Trường chính: bid, cid, idempotencyKey, requestHash, pickup/destination, vehicleType, status, distanceKm, bộ thông số giá, candidateDriverIds, dữ liệu hủy, createdAt, updatedAt. Index: Unique (cid,idempotencyKey); (cid,createdAt desc,\_id desc); (status,createdAt desc) cho ADMIN.
 
-**trip_invitations: **Entity/aggregate: TripInvitation — entity trong aggregate Booking. Trường chính: iid, bid, did, candidateOrder, status, expiresAt, respondedAt, createdAt. Index: Unique (bid,did); partial unique bid khi PENDING; (status,expiresAt).
+**trip_invitations: **Entity/aggregate: TripInvitation — entity trong aggregate Booking. Trường chính: iid, bid, did, candidateOrder, status, respondedAt, createdAt (expiresAt chỉ còn ở dữ liệu lịch sử). Index: Unique (bid,did); partial unique bid khi PENDING; index Driver/status.
 
 Đề xuất Booking có version, processingOperation = {operationId, type, phase, did, tid, updatedAt} và tid tham chiếu sau phân công. Transaction booking_db bảo đảm cập nhật Booking và TripInvitation cùng nhất quán. Không dùng unique index trên mảng offers để giả định bảo vệ được mọi ràng buộc lời mời.
 

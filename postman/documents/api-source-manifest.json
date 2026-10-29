@@ -164,7 +164,7 @@
     "status": "STATIC_ONLY",
     "legacy": "Older primary/compatibility and v3 collections remain preserved references; their checker must still report OUTDATED.",
     "sha256": {
-      "postman/collections/CAB Current - Gateway REST": "975816cb9a36b3b635fadc46f94a166bc0bd99c502956d95b33b1930c141ea6c",
+      "postman/collections/CAB Current - Gateway REST": "1027969651db205ca600de171f7c4c5ca8d9f8359e6fb09e56447510fa5dfb39",
       "postman/environments/CAB Current - local template.environment.yaml": "10712c905e72224aa20e9a2d4464b159f3cb3376e4578c7ea039763a9bd9dae1"
     },
     "validationPolicy": "Local demo: nonempty String password and trimmed nonempty String phone; Argon2id and email validation retained.",

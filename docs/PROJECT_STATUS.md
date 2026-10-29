@@ -1,5 +1,75 @@
 # Báo cáo tổng kiểm tra CAB System — 28/10/2026
 
+## Reset lần2 và chẩn đoán đặt chuyến thứ hai — 29/10/2026
+
+Người dùng xác nhận muốn d01 nhận chuyến2 sau khi hoàn thành chuyến1. Trước reset DB chỉ có một Booking mới b21/t04 COMPLETED. Đã tái hiện: POST đúng key/body cũ trả200 b21 với responseSnapshot SEARCHING, GET b21 trả trạng thái hiện tại COMPLETED. POST với key mới tạo b22/201 và offer i05 đúng d01; đã hủy Booking proof trước ACCEPT. Không phải d01 không được tái sử dụng; dùng cùng key là replay theo yêu cầu câu30, không được bỏ cơ chế này.
+
+Sau đó backup đủ8 DB, kiểm20 queue rỗng, reset có chọn lọc b21/b22/t04/i04/i05,11 notification và event liên quan; giữ20 Booking mẫu/3 Trip mẫu/tài khoản/APPROVED/chính sách không hạn. d01 online,rảnh,tọa độ10.8/106.7. Bộ đếm tiếp b21/t04/i04. Mỗi service kiểm preservation theo snapshot trong transaction, không sửa source backend, không xóa volume. Evidence kiểm nguyên nhân `.local/evidence/second-booking-idempotency-2026-10-29T06-40-31-631Z.json`; reset `.local/evidence/reset-manual-flow-second-2026-10-29T06-43-38-959Z.json`. Backup tại `.local/reset-manual-flow-20261029-2/`; hướng dẫn đã thêm bảng key chuyến1/chuyến2. Không cần build Docker.
+
+## Hiển thị tid đầu response nhận chuyến — 29/10/2026
+
+API nhận chuyến vốn đã trả tid ngoài cùng nhưng ở cuối JSON. Đã đưa tid lên đầu riêng response có invitation+booking+tid tại Gateway; không đổi hợp đồng, nghiệp vụ hay tạo Trip mới. Postman giữ auto-save tid và thêm assertion tid khớp booking.tid khi ACCEPTED; URL guide hướng dẫn dùng biến tid cho câu17. Rebuild/restart riêng Gateway. Kiểm thực tế replay i04 đã ACCEPTED trả tid=t04 ở dòng đầu, toàn bộ giá trị response giữ nguyên so với trước sửa; không tạo lại hoặc thay trạng thái chuyến. Evidence `.local/evidence/invitation-tid-first-2026-10-29T06-26-04-253Z.json` (xem file invitation-tid-first mới nhất trong .local/evidence). Unit39/39, check28/28 và Postman48 operation đạt.
+
+## B25 không xuất hiện trong invitations d01 — 29/10/2026
+
+Read-only kiểm thực tế: b24/t05 d01 COMPLETED, Driver hiện không activeTrip. B25 tạo04:23:17Z (11:23 giờ Việt Nam), candidates=[d02], cursor1, status SEARCHING; invitation i07 có driver d02/PENDING. D02 Login đọc invitations và notification n47/booking.invitation_created/b25 được200. D01 location pickup cập nhật04:28:09Z (11:28), sau khi b25 đã tạo. Không có lỗi mất offer hoặc giữ chỗ chưa release qua quan sát hiện tại; b25 đã chọn d02 và không tự đổi người nhận khi d01 cập nhật vị trí sau đó.
+
+Đã bổ sung đúng thứ tự câu18: Driver rảnh → đưa tọa độ về pickup → online → Customer tạo Booking bằng key mới → đúng Driver nhận offer. Chưa hủy/chuyển/nhận b25 thay người dùng. Bằng chứng API `.local/evidence/b25-d02-diagnosis-2026-10-29T04-37-04-919Z.json`, DB đọc riêng owner tại `.local/b25-review-20261029/booking-diagnostic.txt`. Chỉ chỉnh hướng dẫn, không đổi backend hoặc dữ liệu; không cần build Docker.
+
+## Bỏ hạn nhận offer theo yêu cầu demo — 29/10/2026
+
+Booking search không tự đổi PENDING sang EXPIRED; RespondInvitation không kiểm expires_at. Offer mới và event booking.invitation_created không sinh expiry; API view không trả expiresAt. Proto giữ tag8 optional/deprecated và event schema vẫn nhận expiry lịch sử nhưng không bắt buộc cho event mới; trạng thái EXPIRED cũ không được hồi sinh. Giữ đúng Driver, PENDING/SEARCHING, APPROVED/online/không bận, reservation/unique chống nhận2 chuyến. Khi không phản hồi, offer chờ vô thời hạn; Driver REJECT để xét ứng viên tiếp theo hoặc Customer hủy. Không bỏ TTL JWT/OTP/callback hay deadline gRPC.
+
+Đã đồng bộ code/Proto/OpenAPI05/event schema+example/contracts/SRS/Bounded Context/hướng dẫn và smoke-dispatch (thay kịch bản timeout bằng nhận chậm). Rebuild/restart Gateway, Booking, Notification để consumer dùng event schema mới. Unit39/39, check28/28 và Postman48 operation đạt. Runtime tạo b23, chờ35 giây trước Login d01, notifications có offer i05, PENDING không expiresAt; ACCEPT200 tạo t04 ASSIGNED. Sau đó Customer hủy Booking/Trip kiểm thử và đợi Driver rảnh, giữ vị trí/online ban đầu; b21 NO_DRIVER không đổi. Evidence `.local/evidence/no-offer-expiry-2026-10-29T03-22-57-636Z.json`; checkpoint `.local/no-offer-expiry-20261029/source-before.zip`. Không tạo Payment/account mới, không xóa dữ liệu cũ.
+
+## Demo dùng vị trí cuối cùng — bỏ hạn120 giây theo yêu cầu 29/10
+
+Đã bỏ age guard tại Driver eligible/SetAvailability, Booking search (recheck candidate) và ETA. Vẫn giữ yêu cầu có vị trí, account ACTIVE, APPROVED, online, BIKE active, không bận/giữ chỗ, khoảng cách <=1 km. Không ghi lại updatedAt khi đọc hoặc bật online. locationIsFresh vẫn tính tuổi thật để ADMIN tham khảo, không chặn nghiệp vụ; hạn offer30 giây giữ nguyên. SRS RULE13/AC23/AC28/AC43, Bounded Context, API/contracts/runbook và hướng dẫn đã đồng bộ; không thêm config/abstraction.
+
+Rebuild/restart Gateway, Driver và Booking thành công. Unit38/38, check27/27 và Postman48 operation đạt. Runtime dùng d01.location.updatedAt=2026-10-28T15:51:24.941Z không refresh: bật online200, Customer nearby thấy d01, offline không xuất hiện và tọa độ xa không thấy ai. Booking b22 gửi invitation i04 và notification cho d01. Sau kiểm thử đã hủy b22 trước ACCEPT, không tạo Trip/Payment; Driver còn rảnh và location/timestamp/online giữ nguyên. b21 vẫn NO_DRIVER, không hồi sinh Booking cũ; người dùng tạo Booking mới bằng key mới để thử. Evidence `.local/evidence/last-known-location-2026-10-29T03-09-36-147Z.json`, source checkpoint `.local/last-known-location-20261029/source-before.zip`.
+
+## Kiểm tra b21 không có thông báo Driver — 29/10/2026
+
+Đã đọc thực tế qua Gateway và DB của booking_service: b21 của c01 tạo lúc02:45:11.736Z, chuyển NO_DRIVER lúc02:45:11.882Z, candidates=[], cursor0, không có invitation. D01 online/APPROVED nhưng location.updatedAt=2026-10-28T15:51:24.941Z, trước lúc đặt hơn10 giờ; d02 cũng vị trí cũ. FindCandidates loại vị trí quá120 giây nên chưa phát booking.invitation_created cho b21, không phải Notification làm mất offer. Notifications d01 có12 bản ghi nhưng không có b21; lịch sử invitations d01 cũng không có b21. Health12 thành phần healthy. Không gán mặc định c01→d01 hoặc sửa Booking NO_DRIVER.
+
+Read-only diagnostics tại `.local/booking-b21-review-20261029/`, API evidence `.local/evidence/b21-driver-notifications-2026-10-29T02-58-15-090Z.json`. Đã thêm cảnh báo chuẩn bị tọa độ trước câu15, Login/online không làm mới vị trí và cần key mới nếu Booking cũ NO_DRIVER. Không đổi code, dữ liệu hoặc hàng đợi; không cần rebuild Docker.
+
+## Duyệt toàn bộ Driver mẫu — 29/10/2026
+
+Theo yêu cầu mới chỉ áp dụng cho bộ mẫu hiện có, d05 đã Submit lại REJECTED→PENDING qua API của chính d05; ADMIN duyệt d04/d05 APPROVED qua Gateway. Cả5 d01–d05 hiện APPROVED. Đã kiểm giữ nguyên aid/name/email/license/online/location/vehicle so với snapshot trước; lý do từ chối d05 được xóa theo logic duyệt, thời gian duyệt cập nhật. D01/d02 online, d03/d04/d05 offline. Không tự cấp online hay bỏ điều kiện khoảng cách/freshness. Tài khoản đăng ký mới vẫn qua OTP/DRAFT/Submit PENDING và ADMIN quyết định; không sửa backend/enum hay bật auto-approval.
+
+Snapshot trước/sau nằm tại `.local/approve-demo-drivers-20261029/` (private, ignored). Evidence `.local/evidence/approve-demo-drivers-2026-10-29T02-39-10-344Z.json`. Đã đồng bộ trạng thái bộ mẫu ở hướng dẫn URL, hướng dẫn nhập tay và ACCOUNTS.local.md; các kết quả REJECTED trước đó là lịch sử kiểm thử. Không cần rebuild/restart Docker.
+
+## Rà soát hồ sơ Driver bị từ chối — 29/10/2026
+
+Đã đối chiếu SRS RULE34/AC13/AC18/AC21: DriverProfile là hồ sơ đăng ký, role DRIVER không tự cấp quyền nhận chuyến. DB qua API hiện có d05 REJECTED/offline, d04 PENDING/offline; không thấy enum REJECT trong kết quả. Runtime xác nhận d05 Login/đọc hồ sơ được để bổ sung, bật online bị409, tự PATCH approvalStatus bị400, Customer nearby ngay tọa độ d05 không có d05; hồ sơ không bị thay đổi sau các thử lỗi. API filter approvalStatus=REJECT trả400. Bằng chứng `.local/evidence/driver-approval-review-2026-10-29T02-28-14-165Z.json`.
+
+Không tìm thấy lỗi cấp quyền để sửa backend; giữ luồng REJECTED→sửa→PENDING→duyệt, không xóa dữ liệu hay đổi vai trò. Đã bổ sung bảng ý nghĩa trạng thái/quyền và cách gọi hồ sơ đăng ký tại URL_POSTMAN_30.md, MANUAL_POSTMAN_30.md. ADMIN tra cứu hồ sơ từ chối không có nghĩa được phép nhận chuyến. Chỉ thay tài liệu, không cần rebuild/restart Docker.
+
+## Tên tài xế ngay trong danh sách Booking
+
+Đã sửa views.booking để trả did và DriverPublic snapshot gồm did/name/vehicle sau khi đã có trip_id. Dùng operation.dispatch.driver đã lưu, không thêm gRPC query cho từng item hay đổi dữ liệu Mongo. Thêm Proto Booking fields12/13 optional; đồng bộ Booking schema trong04-bookings và05-invitations (kèm DriverPublic/Vehicle), Postman assertions và contracts snapshot. Các responseSnapshot idempotency cũ vẫn giữ nguyên; NO_DRIVER không có Driver; không tiết lộ email/license/aid của Driver cho Customer qua danh sách Booking.
+
+Rebuild/restart Gateway và Booking thành công. npm test38/38, check27/27 và Postman48 operation đạt. Runtime ADMIN/Customer c02 trả cùng danh sách, b18 có d01/name NGUYEN VAN HUNG/xe v01, NO_DRIVER không có driver, chi tiết b19/b20 cũng có snapshot, khác chủ403. Evidence `.local/evidence/booking-driver-list-2026-10-28T16-00-45-698Z.json`. Source checkpoint `.local/booking-driver-list-20261028/source-before.zip`. Không tạo Booking/Trip mới trong lần sửa này.
+
+## Thêm Booking COMPLETED theo yêu cầu rõ ràng mới của người dùng
+
+Sau khi người dùng yêu cầu Booking đã hoàn thành chuyến, đã tạo3 Booking thật và thực hiện Driver ACCEPT/arrival/start/location/completion qua Gateway: c02 b18/t01, c03 b19/t02, c04 b20/t03. d01 thực hiện tuần tự; completedAt của chuyến trước <=assignedAt chuyến sau. Driver ban đầu không bận và không có offer PENDING, không hủy/chiếm chuyến cũ. Hoàn tất đã trả tọa độ và online về giá trị trước chạy. Không tạo Payment. Lần này được cấp phép riêng cho3 chuyến COMPLETED, không chạy lại kế hoạch12 chuyến đã bị chặn trước đây.
+
+Kiểm tra ADMIN và Customer cho từng cid khớp danh sách, Booking SEARCHING đã hiện ở cả hai phía trước nhận chuyến, sau đó đồng bộ COMPLETED; đọc chi tiết có trip.did/trip.driver tên/xe; chặn Customer đọc Booking người khác403. c01 giữ5; c02/c03/c04 mỗi khách4; c05 giữ3; tổng20. Snapshot trước tạo và tiến độ tại `.local/completed-bookings-20261028/progress.private.json`, tổng hợp verification.json. Evidence `.local/evidence/completed-bookings-2026-10-28T15-51-24-923Z.json` và `.local/evidence/completed-booking-details-2026-10-28T15-51-59-474Z.json`. Không sửa backend hoặc cấu hình, không cần rebuild/restart Docker.
+
+## Thêm 3 Booking lịch sử cho mỗi c02–c05
+
+Đã tiếp tục tiến trình bị ngắt theo phương án Booking-only. Bộ duyệt tự động đã từ chối phương án tạo/hoàn thành12 Trip thật vì tác động ngoài thêm Booking; lệnh đó chưa chạy. Phương án đã thực hiện chỉ ghi12 lịch sử NO_DRIVER/CANCELED vào database thuộc booking_service, transaction và bộ đếm ID hiện hành, không tạo Trip/event/payment hay gán tài xế. Sao lưu trước thêm tại `.local/customer-bookings-20261028/bookings-before.private.json`; danh sách mới tại created.json, kết quả tại verification.json cùng thư mục (Git ignored). Không xóa/đổi dữ liệu cũ, tài khoản hoặc trạng thái Driver.
+
+c01 vẫn5 Booking b01–b05; c02 b06–b08, c03 b09–b11, c04 b12–b14, c05 b15–b17 (mỗi khách3), tổng17. ADMIN lọc từng cid khớp hoàn toàn lịch sử token Customer tương ứng, phân trang mỗi khách mới2–1, khác chủ403, Customer gọi admin route403, ready200. Evidence `.local/evidence/customer-bookings-history-2026-10-28T09-20-58-304Z.json`. Không có Driver được phân công trong12 mẫu mới nên không phát sinh xung đột lịch; chưa dùng bộ mẫu này để chứng minh tái sử dụng Driver ở các Trip khác thời điểm. Chức năng xem Booking đang đặt vẫn dùng cùng API, không có bộ lọc trạng thái mặc định. Không thay backend/Compose; không cần rebuild/restart Docker.
+
+## Câu 14 — lịch sử Booking của Customer được chọn
+
+Đối chiếu trực tiếp PHIEU_CHAM_PROJECT.pdf trang2: Booking liên quan Customer, có ít nhất5 Booking mẫu, limit/paging; không quy định role ADMIN trong tiêu chí này. Theo lựa chọn người dùng, dùng ADMIN GET `/api/v1/admin/bookings?cid=c01&page=1&limit=2`. Backend đã lọc customer_id và không mặc định giới hạn ngày/trạng thái; không cần đổi code, không thêm API. Booking mới của cùng Customer sẽ nằm trong lịch sử khi đọc lại. Endpoint quản trị không cid vẫn phục vụ tra cứu toàn bộ, được tách khỏi phép thử chính câu14 trong hướng dẫn.
+
+Đã sửa request Postman listBookings mặc định dùng cid và thêm assertion đúng Customer; cập nhật URL guide và ma trận. Runtime chỉ đọc: ADMIN c01 có5/c02 có0, lịch sử khớp Customer, page1 b01/b02 và page2 b03/b04 không trùng; cid=01 sai trả400, Customer gọi admin route403. Evidence `.local/evidence/customer-booking-filter-2026-10-28T09-05-14-014Z.json`. Không tạo/xóa Booking trong lần kiểm này. Không thay code/YAML/Proto/Compose nên không rebuild/restart Docker cho thay đổi này.
+
 ## Vị trí Driver và hồ sơ ADMIN nearby — cập nhật mới nhất
 
 Đã sao lưu source và 5 hồ sơ tại `.local/driver-positions-20261028/` trước chỉnh sửa. Chỉ đổi location/version của d01–d05; giữ nguyên tài khoản, tên, approvalStatus, online, xe, ID và Booking. 5 tọa độ khác nhau: d01/d02/d03 cách điểm (10.8,106.7) lần lượt 0m/312m/556m; d04/d05 cách 2,224km/3,117km nên bị loại khỏi nearby tại đây. Không xóa dữ liệu.

@@ -5,6 +5,18 @@ const b=require('./business.cjs');
 const routes=require('../gateway/identity-routes.cjs');
 const encryption=require('./driver-crypto.cjs');
 const {sign,verify}=require('./mock-signature.cjs');
+test('Demo offers omit expiry even for legacy records while preserving invitation status',()=>{
+  const result=b.views.invitation({invitation_id:'i01',booking_id:'b23',driver_id:'d01',status:'PENDING',expires_at:'2020-01-01T00:00:00Z'});
+  assert.equal(result.expires_at,undefined);assert.equal(result.status,'PENDING');
+});
+test('Booking lists show the assigned Driver snapshot without private fields or uncommitted offers',()=>{
+  const row={booking_id:'b18',customer_id:'c02',trip_id:'t01',driver_id:'d01',status:'COMPLETED',operation:{dispatch:{driver:{driver_id:'d01',did:'d01',full_name:'NGUYEN VAN HUNG',vehicle:{plate_number:'59A-00001'},email:'private@example.test',license_number:'PRIVATE'}}}};
+  const out=routes.output(b.views.booking(row));
+  assert.equal(out.did,'d01');assert.equal(out.driver.name,'NGUYEN VAN HUNG');
+  assert.equal(out.driver.email,undefined);assert.equal(out.driver.licenseNumber,undefined);
+  assert.equal(b.views.booking({...row,trip_id:undefined}).driver,undefined);
+  assert.equal(b.views.booking({booking_id:'b01',status:'NO_DRIVER'}).driver,undefined);
+});
 test('Haversine, boundary coordinates and fare retain unrounded distance',()=>{
   assert.equal(b.distance({latitude:0,longitude:0},{latitude:0,longitude:0}),0);
   assert.ok(Math.abs(b.distance({latitude:0,longitude:0},{latitude:0,longitude:1})-111.1949)<0.001);

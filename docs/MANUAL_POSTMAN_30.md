@@ -1,10 +1,22 @@
 # CAB System — nhập tay, đủ 30 mục và câu trả lời bảo vệ
 
+**Offer demo không hết hạn — 29/10/2026:** đã bỏ hạn30 giây. Customer có thể đặt trước rồi mới Login Driver, đọc notifications/invitations và ACCEPT khi offer còn PENDING và Booking còn SEARCHING. Không cần nhập nhanh. Driver REJECT để xét người tiếp theo, Customer hủy để dừng tìm. Không tự hồi sinh NO_DRIVER/EXPIRED cũ. JWT/OTP/callback/deadline gRPC vẫn có hạn như cũ; không bỏ bảo vệ đồng thời Driver.
+
+**Chính sách demo mới 29/10/2026:** dùng tọa độ cuối cùng Driver đã gửi, bỏ điều kiện tuổi vị trí 120 giây khi bật online, CUSTOMER nearby, phân công và tính ETA. Không cần cập nhật lại tọa độ chỉ để làm mới thời gian. Giữ timestamp thật; locationIsFresh chỉ là chỉ báo độ mới, không chặn nhận chuyến. Vẫn phải ACTIVE/APPROVED/online/BIKE/không bận, không giữ chỗ và trong1 km; offer PENDING không tự hết hạn trong demo. Đây là giả lập vị trí tĩnh để demo, không phải GPS thời gian thực.
+
+**Cập nhật bộ mẫu 29/10:** d01–d05 đều APPROVED, giữ nguyên tọa độ/xe/online. d01/d02 online; d03/d04/d05 offline. Câu21–22 dùng hồ sơ đăng ký mới để thử PENDING/REJECTED; hệ thống không tự duyệt tài xế mới.
+
+**Danh sách Booking đã bổ sung tài xế:** Booking được nhận có did và driver.name/vehicle ngay trong items, áp dụng cho ADMIN lọc cid và Customer xem chính mình. b18/b19/b20 hiển thị d01/NGUYEN VAN HUNG. NO_DRIVER/chưa có Trip không có driver. Không trả email/license của Driver trong danh sách này.
+
+**Booking COMPLETED mới:** b18/t01 thuộc c02, b19/t02 thuộc c03, b20/t03 thuộc c04, Driver d01 nhận/hoàn thành tuần tự, chưa thanh toán. ADMIN hoặc Customer chủ Booking GET `/api/v1/bookings/b18` (hoặc b19/b20 tương ứng) để xem trip.driver. c02/c03/c04 hiện mỗi khách4 Booking, c05 có3; tổng20 Booking. Vị trí/online ban đầu của Driver đã khôi phục.
+
+**Thêm lịch sử cho các Customer khác:** c02 có b06–b08, c03 b09–b11, c04 b12–b14, c05 b15–b17; mỗi khách3 Booking NO_DRIVER/CANCELED, chưa gán Driver/Trip. c01 giữ5 Booking b01–b05; tổng17. A_TOKEN dùng `/admin/bookings?cid=c02&page=1&limit=2` để chọn khách; token c02 dùng `/bookings?page=1&limit=2` để xem chính mình. Chỉ là Booking lịch sử mẫu; không tạo chuyến thực hiện giả.
+
 **Vị trí mẫu mới:** d01=(10.8,106.7), d02=(10.802,106.702), d03=(10.805,106.7) nằm trong 1 km quanh (10.8,106.7). d04=(10.82,106.7), d05=(10.78,106.68) ở ngoài bán kính nên không xuất hiện tại điểm tìm này. ADMIN nearby trả hồ sơ Driver đầy đủ; CUSTOMER chỉ nhận snapshot công khai. Dùng limit=3 để thấy cả 3 người trong một trang; xem bảng tọa độ tại URL_POSTMAN_30.md. Không cập nhật cả 5 về A khi muốn giữ bộ mẫu kiểm bán kính.
 
-**Cập nhật yêu cầu ADMIN câu 11–14 (28/10/2026):** ADMIN tra Customer qua `/admin/customers` và `/customers/{cid}`, Driver qua `/admin/drivers` và `/drivers/{did}`, Booking qua `/admin/bookings` và `/bookings/{bid}`. `GET /admin/drivers/nearby` (ADMIN-only) và `/drivers/nearby` với ADMIN tìm trong 1 km theo tọa độ cuối cùng đã lưu, gồm offline/chờ duyệt/vị trí cũ; có approvalStatus/isOnline/locationIsFresh. CUSTOMER tại `/drivers/nearby` và dispatch giữ điều kiện ACTIVE/APPROVED/online/BIKE/không bận/vị trí mới <=120 giây. ADMIN nearby không chứng minh khả năng nhận chuyến. Phân trang giữ đúng limit; muốn thấy 2 người mỗi trang dùng limit=2. Hướng dẫn thao tác hiện hành: [URL_POSTMAN_30.md](URL_POSTMAN_30.md).
+**Cập nhật yêu cầu ADMIN câu 11–14 (28/10/2026):** ADMIN tra Customer qua `/admin/customers` và `/customers/{cid}`, Driver qua `/admin/drivers` và `/drivers/{did}`, Booking của Customer được chọn qua `/admin/bookings?cid=c01&page=1&limit=2` và `/bookings/{bid}`. `GET /admin/drivers/nearby` (ADMIN-only) và `/drivers/nearby` với ADMIN tìm trong 1 km theo tọa độ cuối cùng đã lưu, gồm offline/chờ duyệt/vị trí cũ; có approvalStatus/isOnline/locationIsFresh. CUSTOMER tại `/drivers/nearby` và dispatch giữ điều kiện ACTIVE/APPROVED/online/BIKE/không bận/vị trí đã lưu hợp lệ (không giới hạn tuổi trong demo). ADMIN nearby không chứng minh khả năng nhận chuyến. Phân trang giữ đúng limit; muốn thấy 2 người mỗi trang dùng limit=2. Hướng dẫn thao tác hiện hành: [URL_POSTMAN_30.md](URL_POSTMAN_30.md).
 
-**Bộ mẫu hiện tại 28/10/2026:** đã làm sạch dữ liệu demo theo yêu cầu; dùng Customer c01–c05, Driver d01–d05, Booking b01–b05 thuộc c01. Thông tin đăng nhập ở `.local/demo-reset-20261028/ACCOUNTS.local.md`. d01/d02 APPROVED/online gần A, d03 APPROVED/offline, d04 PENDING, d05 REJECTED. Cập nhật location của d01/d02 trước nearby vì hạn vị trí 120 giây. Đã có dữ liệu, bỏ qua bước seed bên dưới; không chạy lại `--fixtures` cũ nếu muốn giữ đúng 5/5/5. Ví dụ c29/d09 và session export cũ không còn trỏ tới tài khoản hiện có.
+**Bộ mẫu hiện tại 28/10/2026:** đã làm sạch dữ liệu demo theo yêu cầu; dùng Customer c01–c05, Driver d01–d05, Booking b01–b05 thuộc c01. Thông tin đăng nhập ở `.local/demo-reset-20261028/ACCOUNTS.local.md`. d01/d02 APPROVED/online gần A, d03 APPROVED/offline, d04/d05 APPROVED (offline), như d03; cả5 đã được duyệt. Tọa độ đã lưu tiếp tục có hiệu lực trong demo; không cần refresh theo thời gian. Đã có dữ liệu, bỏ qua bước seed bên dưới; không chạy lại `--fixtures` cũ nếu muốn giữ đúng bộ mẫu 5 Customer/5 Driver/17 Booking. Ví dụ c29/d09 và session export cũ không còn trỏ tới tài khoản hiện có.
 
 **ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
 
@@ -117,6 +129,8 @@ Không phải gõ lại biển số, model và color trong luồng cơ bản. En
 
 ## 4. Mục 22–23: ADMIN duyệt, Driver online
 
+`DriverProfile` là hồ sơ đăng ký làm tài xế, chưa đồng nghĩa đã đủ điều kiện chạy xe. `role=DRIVER` cho phép người đăng ký Login và quản lý hồ sơ; chỉ APPROVED mới được bật online khi đủ các điều kiện khác. REJECTED nghĩa hồ sơ bị từ chối, vẫn giữ tài khoản để đọc lý do, sửa và Submit lại PENDING. Không dùng enum REJECT, không xóa/đổi vai trò tài khoản để xử lý hồ sơ từ chối. ADMIN có thể xem hồ sơ này; CUSTOMER nearby/dispatch không được chọn người bị từ chối. Mẫu d05 đã được gửi lại và duyệt APPROVED ngày29/10, hiện vẫn offline. Muốn thử REJECTED, đăng ký hồ sơ mới để ADMIN xét duyệt.
+
 A_TOKEN GET `/api/v1/admin/drivers?approvalStatus=PENDING&page=1&limit=10`; GET `/api/v1/drivers/DID` xem chi tiết.
 
 A_TOKEN POST `/api/v1/admin/drivers/DID/approval-decisions`:
@@ -129,63 +143,68 @@ A_TOKEN POST `/api/v1/admin/drivers/DID/approval-decisions`:
 
 D_TOKEN GET profile và `/api/v1/notifications?page=1&limit=10` để xem kết quả.
 
-## 5. Vị trí có sẵn trong DB: chỉ nhập mã A/B
+## 5. Vị trí: nhập trực tiếp latitude/longitude
 
-Mỗi booking_service, driver_service, trip_service có collection **demo_locations** trong DB riêng. Startup tạo nếu chưa có:
+Bộ mẫu mỗi Driver có vị trí riêng: d01=(10.8,106.7), d02=(10.802,106.702), d03=(10.805,106.7); d04/d05 ở xa hơn1 km. Không đưa tất cả về cùng một điểm. Để chuẩn bị d01 nhận chuyến, dùng D_TOKEN của d01:
 
-| Mã  | Latitude | Longitude |
-| --- | -------- | --------- |
-| A   | 10.8     | 106.7     |
-| B   | 10.81    | 106.71    |
-
-Đây là fixture demo, không giả là GPS hay tuyến đường bản đồ thật. Mỗi service chỉ đọc DB của mình; không đọc chéo. Không ghi đè điểm A/B đã có nếu bạn chỉnh DB.
-
-D_TOKEN PUT `/api/v1/drivers/me/location`:
-
-```json
-{ "locationCode": "A" }
+```http
+PUT http://localhost:3000/api/v1/drivers/me/location
 ```
 
-Server đọc tọa độ từ DB và ghi updatedAt lúc nhận cập nhật. D_TOKEN PUT `/api/v1/drivers/me/availability`:
-
 ```json
-{ "isOnline": true }
+{"latitude":10.8,"longitude":106.7}
 ```
 
-Câu 13: A_TOKEN GET `/api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=2` để tra vị trí cuối cùng của Driver. ADMIN không phải refresh vị trí; offline/chờ duyệt/vị trí cũ vẫn có thể xuất hiện. C_TOKEN tại `/drivers/nearby` dành cho tìm người đủ điều kiện nhận chuyến.
+Sau đó PUT `/api/v1/drivers/me/availability` với `{"isOnline":true}`. Cả hai200, Driver phải APPROVED/có xe active/không bận. Đây là giả lập Driver gửi vị trí, không phải Customer cập nhật thay tài xế. CUSTOMER/dispatch chỉ dùng vị trí đã lưu hợp lệ (không giới hạn tuổi trong demo); không cần refresh chỉ vì để lâu.
 
-Đối với CUSTOMER/dispatch, vị trí tài xế vẫn phải mới <=120 giây, APPROVED/ACTIVE/online/có xe/không bận và <=1 km. Điểm mẫu A tồn tại lâu không đồng nghĩa Driver.location luôn mới: phải Send lại cập nhật vị trí khi quá hạn. Đổi availability false để minh họa OFFLINE rồi GET profile; offline không hủy Trip đang có.
+Câu13 dùng A_TOKEN GET `/api/v1/admin/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=3`: ADMIN tra vị trí cuối cùng, không cần refresh để đọc. Hướng dẫn đặt xe bên dưới chỉ dùng tọa độ số; API vẫn có mã điểm demo để tương thích nhưng không bắt buộc dùng.
 
-Muốn chứng minh tọa độ nằm trong DB, mở mongosh với owner cab_booking hoặc cab_driver và chạy `db.demo_locations.find()` trong đúng DB của owner, không dùng code mặc định ẩn ở Postman.
+### Câu 14 — phân biệt ADMIN và Customer xem danh sách
 
-## 6. Booking → Driver nhận → Trip hoàn thành
+| Người thao tác | Method | URL đầy đủ | Token |
+| --- | --- | --- | --- |
+| ADMIN xem Booking của c01 | GET | `http://localhost:3000/api/v1/admin/bookings?cid=c01&page=1&limit=2` | A_TOKEN |
+| Customer c01 xem Booking của mình | GET | `http://localhost:3000/api/v1/bookings?page=1&limit=2` | Token đăng nhập customer1@cab.local |
 
-C_TOKEN POST `/api/v1/bookings`; tự thêm `Idempotency-Key: b01`:
+GET chọn Body none. Phía ADMIN chọn khách qua cid; phía Customer được xác định tự động từ JWT, không gửi cid. Để thử bộ mẫu5 Booking c01, cần Login customer1@cab.local; Customer mới đăng ký ở phần2 có thể chưa có Booking. Hai phía cùng c01/page/limit phải trả cùng danh sách. Đổi page=2 rồi3 để thấy2–2–1 item nếu c01 vẫn có5 Booking. Đổi token sang customer2@cab.local ở URL Customer thì tự thấy4 Booking của c02.
+
+Chi tiết từng bước, kết quả và lỗi quyền: [Câu 14 trong URL_POSTMAN_30.md](URL_POSTMAN_30.md#cau-14). Dùng token ADMIN ở URL Customer hoặc token Customer ở URL ADMIN sẽ403.
+
+## 6. Câu 15–17: Customer đặt → Driver nhận → hoàn thành
+
+**Chuyến thứ hai:** c01/d01 được dùng lại sau khi d01 hoàn thành và đã rảnh, nhưng POST Booking phải có **Idempotency-Key mới**. Ví dụ lần1 c01-trip-001, lần2 c01-trip-002. Nếu dùng biến bookingKey trong Postman, đổi giá trị biến cho chuyến mới. Cùng key/body chỉ trả200 và snapshot Booking cũ (có thể SEARCHING), không sinh offer mới. GET /bookings/BID mới là trạng thái hiện tại; tạo mới đúng phải201 và bid khác. Trước chuyến tiếp theo kiểm d01 đúng tọa độ pickup, online và không activeTrip.
+
+**Chuẩn bị:** Login Customer và Driver, giữ C_TOKEN/D_TOKEN riêng; d01 online và đã gửi tọa độ mới như mục5. Có thể Login Driver sau khi đặt vì offer không tự hết hạn. Nếu muốn xem5 Booking của c01, Login customer1@cab.local; Customer tự đăng ký mới dùng token của chính tài khoản đó.
+
+**Câu15 — Customer đặt:** C_TOKEN POST `http://localhost:3000/api/v1/bookings`, header Idempotency-Key mới, Body raw JSON:
 
 ```json
-{ "pickupCode": "A", "destinationCode": "B" }
+{
+  "pickup":{"latitude":10.8,"longitude":106.7},
+  "destination":{"latitude":10.81,"longitude":106.71}
+}
 ```
 
-201/SEARCHING/BIKE, ghi bid và response gốc. Không tự nhập cid/vehicleType/amount. API cũng hỗ trợ cặp coordinates để kiểm fixture đặc biệt, nhưng không trộn coordinates với mã A/B.
+Tạo mới trả **201 SEARCHING**, lưu bid. Backend tự tìm Driver trong1 km, tạo invitation PENDING và phát RabbitMQ event `booking.invitation_created` cho Notification Service ghi thông báo. Customer không gọi API riêng để gửi offer. GET `/api/v1/bookings/BID` bằng C_TOKEN →200 để đọc trạng thái; bấm Send lại GET khi cần. Response POST cũ không tự chuyển từ201 sang200; HTTP200 của GET chỉ nghĩa đọc thành công, không nghĩa Driver đã nhận. Không ai nhận/hết ứng viên thì có thể NO_DRIVER.
 
-D_TOKEN GET `/api/v1/drivers/me/invitations?status=PENDING&page=1&limit=50`; tìm bid đúng chuyến, ghi iid. Lời mời sống 30 giây; chuẩn bị request trước và thao tác nhanh, nếu hết hạn thì không sửa thời gian DB.
-
-D_TOKEN POST `/api/v1/invitations/IID/response`:
+**Câu16 — Driver nhận:** D_TOKEN GET `http://localhost:3000/api/v1/notifications?page=1&limit=10`, tìm thông báo đúng bid. D_TOKEN GET `http://localhost:3000/api/v1/drivers/me/invitations?status=PENDING&page=1&limit=10`, lấy iid đúng Booking còn PENDING. D_TOKEN POST `http://localhost:3000/api/v1/invitations/IID/response`, body:
 
 ```json
-{ "decision": "ACCEPT" }
+{"decision":"ACCEPT"}
 ```
 
-200/ACCEPTED/ASSIGNED, ghi tid. C_TOKEN GET `/api/v1/bookings/BID` thấy Trip và public Driver snapshot.
+→200, Booking ASSIGNED, lưu tid. Customer GET `/api/v1/bookings/BID` thấy did/driver.name và trip.driver/xe. Notifications nid không thay thế iid; thông báo là lịch sử; kiểm offer còn PENDING và Booking còn SEARCHING. Nếu d01 không có offer, kiểm Driver khác có được chọn và offer còn PENDING. Postman không có push tự hiện thông báo; cần Send GET. Có thể Login Driver ở câu16, không cần thao tác gấp vì offer không hết hạn.
 
-| Token   | Method | Đường dẫn sau http://localhost:3000 | Body tự nhập           | Kết quả               |
-| ------- | ------ | ----------------------------------- | ---------------------- | --------------------- |
-| D_TOKEN | POST   | /api/v1/trips/TID/arrival       | `{}`                   | ARRIVED               |
-| D_TOKEN | POST   | /api/v1/trips/TID/start         | `{}`                   | IN_PROGRESS           |
-| D_TOKEN | PUT    | /api/v1/trips/TID/location      | `{"locationCode":"B"}` | Vị trí B từ DB        |
-| D_TOKEN | POST   | /api/v1/trips/TID/completion    | `{}`                   | COMPLETED, fareAmount |
+**Câu17 — Driver thực sự nhận chuyến:**
 
-Cước giữ snapshot Booking: `1000 * ceil((10000 + 5000 * distanceKm) / 1000)`. Distance là Haversine A–B, không phải tổng GPS. Driver được release độc lập thanh toán. Chuyến tiếp theo nhớ cập nhật vị trí lại A, vì sau chuyến này Driver có thể đang ở B.
+| Token | Method | Đường dẫn sau http://localhost:3000 | Body | Kết quả |
+| --- | --- | --- | --- | --- |
+| D_TOKEN | POST | /api/v1/trips/TID/arrival | `{}` | ARRIVED |
+| D_TOKEN | POST | /api/v1/trips/TID/start | `{}` | IN_PROGRESS |
+| D_TOKEN | PUT | /api/v1/trips/TID/location | `{"latitude":10.81,"longitude":106.71}` | Cập nhật vị trí cuối |
+| D_TOKEN | POST | /api/v1/trips/TID/completion | `{}` | COMPLETED, fareAmount |
+
+Cước theo pricingSnapshot và khoảng cách Haversine pickup→destination; không phải tổng GPS. Driver được release sau hoàn thành, độc lập thanh toán. Trước chuyến mới, cập nhật về vị trí xuất phát thực của Driver (d01 là10.8/106.7) nếu cần; không đổi mọi Driver về cùng điểm.
 
 ## 7. Payment, callback thủ công, Review
 
@@ -225,6 +244,9 @@ Replay b01/p01 giữ key/body →200, cùng ID/snapshot ban đầu. Callback gi�
 
 ## 8. Hủy và các fixture riêng
 
+Sau câu17, Driver có thể đang ở điểm đến (10.81,106.71). Trước khi tạo Booking câu18 để cùng d01 nhận: GET drivers/me kiểm đã rảnh, PUT location {"latitude":10.8,"longitude":106.7}, bật online nếu cần, **rồi mới** Customer POST Booking với key mới. Cập nhật tọa độ sau khi đã tạo không đổi người nhận offer PENDING. Nếu offer đã gửi d02, dùng token d02 để nhận hoặc Customer hủy Booking và tạo lại sau khi chuẩn bị d01. Bỏ hạn vị trí/offer không bỏ bán kính1 km hay bảo đảm d01 nhận mọi Booking. Xem chi tiết ở URL_POSTMAN_30.md phần câu18.
+
+
 Tạo Booking b02 và nhận chuyến riêng, giữ Trip ASSIGNED/ARRIVED. C_TOKEN POST `/api/v1/bookings/BID/cancellation-preview`:
 
 ```json
@@ -259,10 +281,10 @@ Có thể cho tất cả Driver offline rồi tạo 5 Booking A→B với key b1
 | 10  | Login email/password →200/token; sai password →401                                                                             | “Mật khẩu kiểm bằng Argon2id, tài khoản phải ACTIVE; JWT có sub/role/issuer/audience/expiry. Không trả hash/key.”                                                                                      |
 | 11  | C_TOKEN GET /customers/CID; C2_TOKEN thử cùng ID                                                                       | “Token hợp lệ chưa đủ: service kiểm đúng chủ hồ sơ; khác chủ bị 403.”                                                                                                                                  |
 | 12  | D_TOKEN hoặc ADMIN GET /drivers/DID; khách xem snapshot qua Booking                                                      | “Hồ sơ riêng và license chỉ owner/ADMIN. Nearby/Trip chỉ trả public snapshot, không lộ giấy phép.”                                                                                                     |
-| 13  | ADMIN list có >=5 Driver khác điều kiện; nearby locationCode=A&page=1&limit=2                                                  | “A là điểm mẫu trong DB. Chỉ xét <=1 km, vị trí mới <=120 giây, APPROVED/ACTIVE/online/có xe/không bận. Không phải cả 5 fixture đều được trả.”                                                         |
-| 14  | History có >=5 Booking của cùng Customer; page=1/2, limit=2                                                                    | “History lọc ownership và phân trang, sort createdAt rồi bid giảm dần; trang rỗng trả items rỗng.”                                                                                               |
+| 13 | A_TOKEN GET /admin/drivers/nearby?latitude=10.8&longitude=106.7&page=1&limit=2 | “ADMIN tra vị trí cuối cùng trong1 km; bộ mẫu3 gần và2 xa. CUSTOMER/dispatch mới yêu cầu online và vị trí đã lưu hợp lệ (không giới hạn tuổi trong demo).” |
+| 14 | A_TOKEN GET /admin/bookings?cid=c01&page=1&limit=2, rồi page=2; không lọc ngày/status | “Liệt kê cả lịch sử cũ và Booking mới của riêng c01, mới nhất trước. totalItems là tổng của khách được chọn; không phải toàn hệ thống. Phiếu không bắt buộc ADMIN, đây là vai trò chọn cho buổi demo.” |
 | 15  | Create b01 body A→B →201/SEARCHING, chưa Trip                                                                                  | “Server đọc tọa độ DB, tự gán BIKE và chụp snapshot khoảng cách/giá. Không nhận amount/cid/vehicleType tự chọn.”                                                                                |
-| 16  | Poll invitation đúng Booking rồi ACCEPT trong hạn                                                                              | “Mỗi Booking mời tuần tự, 30 giây/offer, tối đa 5 ứng viên ban đầu. Reserve Driver và tạo/activate Trip trước khi hoàn tất phân công; DB unique chống nhận hai chuyến.”                                |
+| 16  | Poll invitation đúng Booking rồi ACCEPT khi còn PENDING                                                                              | “Mỗi Booking mời tuần tự, offer không hết hạn trong demo, tối đa 5 ứng viên ban đầu. Reserve Driver và tạo/activate Trip trước khi hoàn tất phân công; DB unique chống nhận hai chuyến.”                                |
 | 17  | ARRIVED→IN_PROGRESS→location B→COMPLETED                                                                                       | “Không bỏ qua hoặc lùi trạng thái. Driver phải là người được phân công. Cước dựa snapshot Booking, không lấy số tiền khách nhập.”                                                                      |
 | 18  | Chuyến riêng: preview 0 VND, confirm có reason →CANCELED                                                                       | “Customer chỉ hủy SEARCHING hoặc Trip ASSIGNED/ARRIVED. Server kiểm lại lúc xác nhận, ghi người/lý do/thời gian, đóng offer hoặc release; không tạo Payment hủy.”                                      |
 | 19  | Create Payment sau COMPLETED; callback HMAC đúng →COMPLETED; summary đã trả                                                    | “PENDING chưa phải thành công. Payment chỉ COMPLETED khi callback chữ ký/data khớp; Trip và Payment có state riêng, không giữ Driver bận để chờ trả tiền.”                                             |

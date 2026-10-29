@@ -11,6 +11,15 @@ scripts:
     code: |-
       pm.test('HTTP status', () => pm.expect(pm.response.code).to.be.oneOf([200]));
       const data = pm.response.json();
+      pm.test('Booking Driver snapshot stays public', () => {
+        if (pm.response.code !== 200) return;
+        for (const item of data.items) if (item.driver) {
+          pm.expect(item.driver.name).to.be.a('string').and.not.empty;
+          pm.expect(item.driver.did).to.eql(item.did);
+          pm.expect(item.driver).not.to.have.property('email');
+          pm.expect(item.driver).not.to.have.property('licenseNumber');
+        }
+      });
       pm.test('JSON response', () => pm.expect(data).to.be.an('object'));
       if (pm.response.code < 300) {
       if (data.cid) pm.environment.set('cid', data.cid);

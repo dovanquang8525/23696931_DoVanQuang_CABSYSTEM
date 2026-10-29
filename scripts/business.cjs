@@ -30,10 +30,11 @@ function key(value) { if (typeof value !== 'string' || !/^[!-~]{1,128}$/.test(va
 function hash(value) { return crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex'); }
 function pick(row, keys) { return Object.fromEntries(keys.filter(k => row[k] !== undefined).map(k => [k,row[k]])); }
 const views = {
-  booking: row => pick(row, ['booking_id','customer_id','vehicle_type','pickup','destination','status','distance_km','pricing_snapshot','trip_id','created_at','updated_at']),
+  booking: row => ({...pick(row, ['booking_id','customer_id','vehicle_type','pickup','destination','status','distance_km','pricing_snapshot','trip_id','driver_id','created_at','updated_at']),
+    ...(row.trip_id&&row.operation?.dispatch?.driver?{driver:pick(row.operation.dispatch.driver,['driver_id','did','full_name','vehicle'])}:{})}),
   trip: row => pick(row, ['trip_id','booking_id','customer_id','driver_id','vehicle_id','status','pickup','destination','vehicle_type','driver','distance_km','fare_amount','currency','latest_location','assigned_at','arrived_at','started_at','completed_at','canceled_at']),
   payment: row => pick(row, ['payment_id','trip_id','method','status','amount','currency','reference_code','attempt_number','created_at','confirmed_at','failure_code']),
-  invitation: row => pick(row, ['invitation_id','booking_id','driver_id','pickup','destination','vehicle_type','status','expires_at','responded_at']),
+  invitation: row => pick(row, ['invitation_id','booking_id','driver_id','pickup','destination','vehicle_type','status','responded_at']),
   review: row => pick(row, ['review_id','trip_id','customer_id','driver_id','rating','comment','created_at']),
   notification: row => pick(row, ['notification_id','recipient_account_id','event_id','type','content','related_entity_type','related_entity_id','occurred_at','created_at'])
 };

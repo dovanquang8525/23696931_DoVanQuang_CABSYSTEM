@@ -136,6 +136,8 @@ message Booking {
   optional string trip_id = 9;
   string created_at = 10;
   string updated_at = 11;
+  optional string driver_id = 12;
+  optional DriverPublic driver = 13;
 }
 
 message Trip {
@@ -253,7 +255,8 @@ message Invitation {
   Coordinates destination = 5;
   VehicleType vehicle_type = 6;
   Status status = 7;
-  string expires_at = 8;
+  // Legacy timestamp, no longer emitted or enforced by the local demo.
+  optional string expires_at = 8 [deprecated = true];
   optional string responded_at = 9;
 }
 

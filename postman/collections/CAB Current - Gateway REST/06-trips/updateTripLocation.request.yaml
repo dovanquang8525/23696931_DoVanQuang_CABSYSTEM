@@ -8,7 +8,8 @@ body:
   type: json
   content: |-
     {
-      "locationCode": "B"
+      "latitude": 10.81,
+      "longitude": 106.71
     }
 auth:
   type: bearer

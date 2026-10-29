@@ -42,8 +42,7 @@ async function create({db,client,server}) {
     ...(row.reservation ? {reservation_operation_id:row.reservation.operation_id,reserved_booking_id:row.reservation.booking_id}:{})});
   async function eligible(row) {
     if (!row || row.approval_status !== 'APPROVED' || !row.is_online || row.active_trip_id || row.reservation ||
-      !row.vehicle?.is_active || row.vehicle.vehicle_type !== 'BIKE' || !row.location ||
-      Date.now()-Date.parse(row.location.updated_at) > 120000) return false;
+      !row.vehicle?.is_active || row.vehicle.vehicle_type !== 'BIKE' || !row.location) return false;
     const account = await c.invoke('auth','getAccountAccess',{account_id:row.accountId});
     return account.status === 'ACTIVE' && account.role === 'DRIVER';
   }
@@ -120,8 +119,7 @@ async function create({db,client,server}) {
     async SetAvailability(i,call) {
       b.v.fields(i,['is_online'],['is_online']); if (typeof i.is_online !== 'boolean') b.v.invalid();
       const row=await mine(call);
-      if (i.is_online && (row.approval_status !== 'APPROVED' || !row.vehicle?.is_active || !row.location ||
-          Date.now()-Date.parse(row.location.updated_at)>120000)) b.conflict();
+      if (i.is_online && (row.approval_status !== 'APPROVED' || !row.vehicle?.is_active || !row.location)) b.conflict();
       const saved=await edit(row,{is_online:i.is_online}); return {driver_id:saved.driver_id,is_online:saved.is_online};
     },
     async UpdateDriverLocation(i,call) {

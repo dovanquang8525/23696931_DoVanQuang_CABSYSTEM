@@ -1,5 +1,9 @@
 # Ma trận 30 tiêu chí CAB System
 
+**Offer không hạn nhận (29/10):** theo yêu cầu mới, PENDING không tự hết hạn30 giây. Kịch bản thực b23 chờ35 giây rồi Login Driver, đọc noti/invitation và ACCEPT200; Trip t04 đã hủy sau test, Driver rảnh. Evidence `.local/evidence/no-offer-expiry-2026-10-29T03-22-57-636Z.json`. Kiểm thử timeout offer trong các kết quả cũ là lịch sử, không còn là yêu cầu demo hiện tại; RPC/OTP/JWT timeout vẫn giữ nguyên.
+
+**Demo vị trí tĩnh 29/10:** bỏ chặn tuổi vị trí120 giây theo yêu cầu mới; kiểm thử dùng tọa độ d01 từ tối28/10 vẫn online/nearby/tạo offer và thông báo được. Bán kính1 km, quyền, APPROVED/online/không bận và hạn offer30 giây giữ nguyên. Booking kiểm thử b22 đã hủy trước ACCEPT, không tạo Trip. Evidence `.local/evidence/last-known-location-2026-10-29T03-09-36-147Z.json`. Những kết quả freshness trước đây là lịch sử, không còn là yêu cầu demo hiện tại.
+
 **Dữ liệu demo mới 28/10:** sau sao lưu và xác nhận của người dùng, đã thay dữ liệu cũ bằng 5 Customer c01–c05, 5 Driver d01–d05, 5 Booking b01–b05 của c01; giữ ADMIN. Nearby d01/d02 và phân trang 2–2–1 đã kiểm thực qua Gateway. Evidence `.local/evidence/demo-reset-2026-10-28T06-50-57-940Z.json`. Các bằng chứng trước đây vẫn là lịch sử kiểm thử, không còn dùng account/ID cũ để thao tác. Không tự tăng trạng thái PASS của tiêu chí chỉ từ dữ liệu seed; xem hướng dẫn mới trong MANUAL_POSTMAN_30.md.
 
 Cập nhật **28/10/2026**. Đã trích lại trực tiếp [PHIEU_CHAM_PROJECT.pdf](../PHIEU_CHAM_PROJECT.pdf), trang 2–6, đủ 30 mục. Mỗi mục tối đa 1 điểm; chưa có điểm do giảng viên chấm.
@@ -33,7 +37,7 @@ Theo yêu cầu mới, API/URL dùng cid/did/aid/bid/tid/pid/nid/rid/vid/iid/oid
 | 11 | POSTMAN: Lấy thông tin khách hàng với mã số | Customer | PASS | GET theo customerId 200; Customer khác 403 | Send getCustomerById với 2 token |
 | 12 | POSTMAN: Lấy thông tin tài xế với mã số | Driver | PASS | GET Driver test theo driverId 200; chi tiết legacy ADMIN 200 | Send getDriverById bằng DRIVER/ADMIN |
 | 13 | POSTMAN: Liệt kê danh sách tài xế tại khu vực | Driver/nearby | PASS | ADMIN: 3 Driver trong 1 km, 2 Driver ngoài bán kính bị loại; 5 vị trí khác nhau, hồ sơ đầy đủ; CUSTOMER vẫn lọc vị trí mới | A_TOKEN GET /admin/drivers/nearby bằng latitude/longitude; limit2 |
-| 14 | POSTMAN: Liệt kê danh sách các booking của Customer | Booking/paging | PASS | 5 Booking fixture; page1/2 limit2 không trùng ID, đúng Customer | GET bookings?page=1&limit=2 rồi page=2 |
+| 14 | POSTMAN: Liệt kê danh sách các booking của Customer | Booking/paging | PASS | ADMIN lọc c01 có5, c02–c05 mỗi khách3; khớp lịch sử Customer, phân trang không trùng, khác chủ403; gồm NO_DRIVER/CANCELED | A_TOKEN GET /admin/bookings?cid=c01&page=1&limit=2 rồi page=2; chọn cid, không lọc status/ngày |
 | 15 | POSTMAN: Đặt xe | Booking/Driver/events | PASS | 201 SEARCHING/BIKE; invitation đúng booking; chưa tạo Trip sớm | Create Booking mới rồi GET invitations |
 | 16 | POSTMAN: Tài xế nhận chuyến | Booking/Driver/Trip | PASS | ACCEPT→ASSIGNED; Customer thấy Driver; test cạnh tranh đạt | Accept invitation và GET Booking |
 | 17 | POSTMAN: Cập nhật trạng thái chuyến | Trip/Driver | PASS | ARRIVED→IN_PROGRESS→location B→COMPLETED; cước đúng; chặn bỏ bước | Send lần lượt arrival/start/location/completion |

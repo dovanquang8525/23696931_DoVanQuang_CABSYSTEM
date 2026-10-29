@@ -1,6 +1,10 @@
 # CAB System — Đặc tả yêu cầu hệ thống MVP
 
-**Cập nhật yêu cầu ADMIN câu 11–14 (28/10/2026):** ADMIN tra Customer qua `/admin/customers` và `/customers/{cid}`, Driver qua `/admin/drivers` và `/drivers/{did}`, Booking qua `/admin/bookings` và `/bookings/{bid}`. `GET /admin/drivers/nearby` (ADMIN-only) và `/drivers/nearby` với ADMIN tìm trong 1 km theo tọa độ cuối cùng đã lưu, gồm offline/chờ duyệt/vị trí cũ; có approvalStatus/isOnline/locationIsFresh. CUSTOMER tại `/drivers/nearby` và dispatch giữ điều kiện ACTIVE/APPROVED/online/BIKE/không bận/vị trí mới <=120 giây. ADMIN nearby không chứng minh khả năng nhận chuyến. Phân trang giữ đúng limit; muốn thấy 2 người mỗi trang dùng limit=2. Hướng dẫn thao tác hiện hành: [URL_POSTMAN_30.md](URL_POSTMAN_30.md).
+**Offer demo không hết hạn — 29/10/2026:** đã bỏ hạn30 giây. Customer có thể đặt trước rồi mới Login Driver, đọc notifications/invitations và ACCEPT khi offer còn PENDING và Booking còn SEARCHING. Không cần nhập nhanh. Driver REJECT để xét người tiếp theo, Customer hủy để dừng tìm. Không tự hồi sinh NO_DRIVER/EXPIRED cũ. JWT/OTP/callback/deadline gRPC vẫn có hạn như cũ; không bỏ bảo vệ đồng thời Driver.
+
+**Chính sách demo mới 29/10/2026:** dùng tọa độ cuối cùng Driver đã gửi, bỏ điều kiện tuổi vị trí 120 giây khi bật online, CUSTOMER nearby, phân công và tính ETA. Không cần cập nhật lại tọa độ chỉ để làm mới thời gian. Giữ timestamp thật; locationIsFresh chỉ là chỉ báo độ mới, không chặn nhận chuyến. Vẫn phải ACTIVE/APPROVED/online/BIKE/không bận, không giữ chỗ và trong1 km; offer PENDING không tự hết hạn trong demo. Đây là giả lập vị trí tĩnh để demo, không phải GPS thời gian thực.
+
+**Cập nhật yêu cầu ADMIN câu 11–14 (28/10/2026):** ADMIN tra Customer qua `/admin/customers` và `/customers/{cid}`, Driver qua `/admin/drivers` và `/drivers/{did}`, Booking qua `/admin/bookings` và `/bookings/{bid}`. `GET /admin/drivers/nearby` (ADMIN-only) và `/drivers/nearby` với ADMIN tìm trong 1 km theo tọa độ cuối cùng đã lưu, gồm offline/chờ duyệt/vị trí cũ; có approvalStatus/isOnline/locationIsFresh. CUSTOMER tại `/drivers/nearby` và dispatch giữ điều kiện ACTIVE/APPROVED/online/BIKE/không bận/vị trí đã lưu hợp lệ (không giới hạn tuổi trong demo). ADMIN nearby không chứng minh khả năng nhận chuyến. Phân trang giữ đúng limit; muốn thấy 2 người mỗi trang dùng limit=2. Hướng dẫn thao tác hiện hành: [URL_POSTMAN_30.md](URL_POSTMAN_30.md).
 
 **ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
 
@@ -81,7 +85,7 @@ Doanh nghiệp cũng kỳ vọng hệ thống bảo vệ dữ liệu, kiểm so�
 
 | Mã   | Vấn đề được tài liệu xác nhận                      | Đối tượng bị ảnh hưởng                       | Tác động có thể phát sinh — phân tích                                                       | Nhu cầu giải quyết                                                                       |
 | ---- | -------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| BP01 | Phân công tài xế chủ yếu thủ công                  | Khách hàng, tài xế, nhân viên vận hành       | Có thể kéo dài thời gian tìm xe và tăng công việc điều phối khi yêu cầu tăng                | Tự động tìm tài xế phù hợp; tiếp tục mời người khác khi bị từ chối hoặc hết hạn phản hồi |
+| BP01 | Phân công tài xế chủ yếu thủ công                  | Khách hàng, tài xế, nhân viên vận hành       | Có thể kéo dài thời gian tìm xe và tăng công việc điều phối khi yêu cầu tăng                | Tự động tìm tài xế phù hợp; tiếp tục mời người khác khi bị từ chối phản hồi |
 | BP02 | Khách hàng khó theo dõi trạng thái chuyến          | Khách hàng, nhân viên vận hành               | Khách hàng thiếu thông tin để biết tiến trình phục vụ và có thể phải liên hệ hỏi trạng thái | Cung cấp trạng thái yêu cầu, thông tin tài xế, tiến trình chuyến và thông báo            |
 | BP03 | Thông tin thanh toán chưa được quản lý tập trung   | Khách hàng, nhân viên vận hành, ban lãnh đạo | Có thể khó đối chiếu khoản phải trả, kết quả giao dịch và các lần thanh toán thất bại       | Gắn cước và kết quả thanh toán với từng chuyến; kiểm soát xử lý lại và ghi nhận trùng    |
 | BP04 | Bộ phận vận hành gặp khó khăn khi mở rộng hệ thống | Nhân viên vận hành, ban lãnh đạo             | Có thể hạn chế khả năng phục vụ thêm người dùng hoặc bổ sung chức năng                      | Tổ chức trách nhiệm các thành phần rõ ràng và xác định giới hạn triển khai               |
@@ -170,7 +174,7 @@ Các mục tiêu dưới đây giữ mã `BG01–BG10` của SRS hiện tại. T
 | **BG01** | Giảm thời gian tìm và phân công tài xế                                | Giảm thao tác điều phối thủ công và thời gian khách hàng chờ tìm xe            | Tự động tìm tài xế đủ điều kiện gần điểm đón, sắp xếp và gửi lời mời nhận chuyến                                                    |
 | **BG02** | Giúp khách hàng thanh toán thuận tiện và quản lý thanh toán tập trung | Hỗ trợ thanh toán mock và ghi nhận rõ khoản phải trả, kết quả giao dịch        | Server tính cước; hỗ trợ MOCK_ONLINE sau chuyến đi; ghi nhận callback và retry khi thất bại                                         |
 | **BG03** | Tăng tính minh bạch của quá trình phục vụ                             | Giúp khách hàng biết yêu cầu đang được xử lý đến đâu                           | Cung cấp trạng thái đặt xe, thông tin tài xế, tiến trình chuyến và thông báo tại các mốc chính                                      |
-| **BG04** | Nâng cao khả năng đáp ứng yêu cầu đặt xe                              | Hạn chế yêu cầu bị gián đoạn chỉ vì tài xế đầu tiên không nhận chuyến          | Mời tài xế tiếp theo khi bị từ chối hoặc timeout; thông báo rõ khi kết thúc tìm kiếm không thành công                               |
+| **BG04** | Nâng cao khả năng đáp ứng yêu cầu đặt xe                              | Hạn chế yêu cầu bị gián đoạn chỉ vì tài xế đầu tiên không nhận chuyến          | Mời tài xế tiếp theo khi bị từ chối; thông báo rõ khi kết thúc tìm kiếm không thành công                               |
 | **BG05** | Nâng cao hiệu quả quản lý và hỗ trợ vận hành                          | Giúp nhân viên quản lý thông tin và kiểm tra tình trạng hoạt động              | Trong bản demo: `ADMIN` tra cứu dữ liệu cần thiết, duyệt hoặc từ chối hồ sơ tài xế; chưa triển khai support case                    |
 | **BG06** | Cải thiện khả năng theo dõi và đánh giá chất lượng dịch vụ            | Cung cấp lịch sử sử dụng và phản hồi của khách hàng sau chuyến                 | Xem lịch sử chuyến; gửi đánh giá từ 1–5 sao và nhận xét                                                                             |
 | **BG07** | Hỗ trợ ban lãnh đạo ra quyết định dựa trên dữ liệu                    | Giúp đánh giá kết quả kinh doanh và hiệu quả hoạt động                         | Theo yêu cầu gốc: báo cáo chuyến, doanh thu, tỷ lệ hoàn thành và hủy; ngoài phạm vi bản demo                                        |
@@ -210,7 +214,7 @@ Phạm vi dưới đây áp dụng cho bản demo học tập, chạy local bằ
 | SC01 | Quản lý tài khoản             | Đăng ký khách hàng và tài xế; đăng nhập, cấp JWT; xem và cập nhật thông tin cá nhân được phép. Không cho tự đăng ký vai trò `ADMIN`.                                                                                    |
 | SC02 | Quản lý tài xế và phương tiện | Xác thực OTP giả lập khi đăng ký tài xế; gửi hồ sơ ở trạng thái `PENDING`; `ADMIN` duyệt hoặc từ chối. Quản lý một xe đang sử dụng cho mỗi tài xế; cập nhật vị trí và online/offline.                                   |
 | SC03 | Đặt xe                        | Khách hàng nhập điểm đón, điểm đến và tạo `Booking`; server tự gán `vehicleType = BIKE`; hệ thống ghi nhận trạng thái đang tìm tài xế.                                                                                  |
-| SC04 | Tìm và phân công tài xế       | Tìm tài xế đủ điều kiện trong bán kính 1 km; ưu tiên khoảng cách; mời tuần tự, có timeout và giới hạn ứng viên. Tiếp tục tìm khi bị từ chối hoặc hết hạn; thông báo khi không tìm được. Danh sách nearby có phân trang. |
+| SC04 | Tìm và phân công tài xế       | Tìm tài xế đủ điều kiện trong bán kính 1 km; ưu tiên khoảng cách; mời tuần tự, không tự hết hạn offer và có giới hạn ứng viên. Tiếp tục tìm khi bị từ chối; thông báo khi không tìm được. Danh sách nearby có phân trang. |
 | SC05 | Thực hiện và theo dõi chuyến  | Tài xế chấp nhận hoặc từ chối lời mời; sau phân công, cập nhật đến điểm đón, bắt đầu, vị trí và hoàn thành `Trip` theo đúng trình tự. Khách hàng xem trạng thái và thông tin tài xế của chuyến mình.                    |
 | SC06 | Hủy chuyến                    | Khách hàng hủy trong trạng thái được phép; cung cấp lý do; hệ thống ghi nhận người hủy, thời điểm và phí theo quy tắc demo. Dừng tìm tài xế hoặc giải phóng phân công tương ứng.                                        |
 | SC07 | Tính cước                     | Server tính và lưu cước bằng công thức demo thống nhất; không nhận số tiền do client tự quyết định.                                                                                                                     |
@@ -231,7 +235,7 @@ Phạm vi dưới đây áp dụng cho bản demo học tập, chạy local bằ
 | MBB01 | Tài khoản và quyền truy cập | Đăng ký, đăng nhập, JWT, OTP giả lập; kiểm tra vai trò và quyền truy cập dữ liệu | Đăng nhập mạng xã hội, quyền tùy biến, tự đăng ký quản trị      |
 | MBB02 | Tài xế và phương tiện       | Hồ sơ chờ duyệt, duyệt/từ chối, thông tin xe, online/offline, vị trí và nearby   | Xác minh giấy tờ tự động, nhận diện khuôn mặt, bảo dưỡng xe     |
 | MBB03 | Đặt xe và chuyến đi         | Tạo booking, xem trạng thái, thực hiện trip, hủy và xem lịch sử                  | Đặt xe định kỳ, nhiều điểm dừng, ghép chuyến                    |
-| MBB04 | Tìm và phân công tài xế     | Lọc điều kiện, bán kính 1 km, ưu tiên khoảng cách, mời tuần tự và xử lý timeout  | Điều phối bằng AI, tối ưu toàn mạng lưới, mời hàng loạt         |
+| MBB04 | Tìm và phân công tài xế     | Lọc điều kiện, bán kính 1 km, ưu tiên khoảng cách, mời tuần tự và xử lý từ chối  | Điều phối bằng AI, tối ưu toàn mạng lưới, mời hàng loạt         |
 | MBB05 | Tính cước và thanh toán     | Công thức cước BIKE, payment mock, callback, retry và idempotency                | Thu tiền thật, ví nội bộ, hoàn tiền, hoa hồng và chi trả tài xế |
 | MBB06 | Thông báo                   | Thông báo nội bộ đúng người nhận; tra cứu thông báo; ghi nhận lỗi xử lý          | SMS, email hoặc push từ nhà cung cấp thực tế                    |
 | MBB07 | Đánh giá sau chuyến         | Điểm 1–5 sao, nhận xét và kiểm tra điều kiện đánh giá                            | Phân tích cảm xúc, xếp hạng nâng cao, chỉnh sửa đánh giá        |
@@ -295,7 +299,7 @@ Mỗi service dùng MongoDB URI/database riêng: auth_db, customer_db, driver_db
 
 **Thứ tự triển khai sau khi contracts được chuẩn hóa:** kiểm tra môi trường/repository và bảo toàn code → cấu trúc thư mục → .gitignore/.env.example/secrets → Compose/network/volumes/healthcheck → DB connection/index và contracts gRPC → Auth + profile Customer/Driver → Booking/Invitations + Trip theo giao diện phụ thuộc → Payment → Notification/Rating và event → seed hoàn chỉnh → health/smoke → nghiệp vụ/bảo mật. Có thể tạo skeleton các RPC trước để giải quyết phụ thuộc; không đánh dấu chức năng hoàn thành chỉ vì stub trả thành công.
 
-Seed account/profile trước Booking; dữ liệu mẫu phải có ID tham chiếu hợp lệ. Seed ít nhất một ADMIN, hai CUSTOMER để kiểm tra ownership, ít nhất 5 DRIVER khác trạng thái/vị trí và ít nhất 5 Booking của Customer kiểm tra phân trang. Script có thể chạy lại mà không nhân bản hoặc ghi đè dữ liệu người dùng; cập nhật vị trí demo rõ ràng khi cần vì vị trí hết mới sau 120 giây. Tài khoản seed dùng mật khẩu giả lập do môi trường cung cấp, không chứa credential thật trong Git.
+Seed account/profile trước Booking; dữ liệu mẫu phải có ID tham chiếu hợp lệ. Seed ít nhất một ADMIN, hai CUSTOMER để kiểm tra ownership, ít nhất 5 DRIVER khác trạng thái/vị trí và ít nhất 5 Booking của Customer kiểm tra phân trang. Script có thể chạy lại mà không nhân bản hoặc ghi đè dữ liệu người dùng; chỉ cập nhật vị trí demo khi muốn đổi tọa độ, không giới hạn tuổi vị trí. Tài khoản seed dùng mật khẩu giả lập do môi trường cung cấp, không chứa credential thật trong Git.
 
 Các việc hạ tầng được phân bổ trong P01–P30 sau này, không thêm mục chấm 31. Số mục chấm khác thứ tự triển khai; mỗi prompt phải có dependency, file tác động, lệnh kiểm tra, kết quả thực tế, evidence và PASS/FAIL/BLOCKED. SRS này chưa phải bộ prompt triển khai.
 
@@ -442,10 +446,10 @@ Không đánh số lại để lấp khoảng trống `BR19`. Các ID có nội 
 
 **Thay thế và ngoại lệ:**
 
-- Tài xế từ chối, timeout hoặc không còn đủ điều kiện → đóng lời mời và mời ứng viên tiếp theo trong cùng booking.
+- Tài xế từ chối hoặc không còn đủ điều kiện → đóng lời mời và mời ứng viên tiếp theo trong cùng booking.
 - Không có ứng viên hoặc hết giới hạn tìm kiếm → kết thúc tìm kiếm không thành công và thông báo khách hàng.
 - Khách hàng hủy hợp lệ → dừng tìm kiếm, vô hiệu lời mời còn lại.
-- Tài xế chấp nhận lời mời hết hạn → từ chối phân công.
+- Offer đã kết thúc (REJECTED/CANCELED/EXPIRED lịch sử) hoặc Booking không còn SEARCHING: từ chối phân công.
 - Các thao tác đồng thời không được tạo hai trip cho cùng booking hoặc gán hai trip đang hoạt động cho một tài xế.
 
 **Kết quả:** Booking được phân công, kết thúc tìm kiếm không thành công hoặc bị hủy. Không tìm được tài xế không được ghi thành khách hàng hủy.
@@ -461,7 +465,7 @@ flowchart TD
     F -- Không --> G["Kết thúc tìm kiếm và thông báo"]
     F -- Có --> H["Gửi một lời mời có thời hạn"]
     H --> I{"Phản hồi lời mời"}
-    I -- "Từ chối hoặc timeout" --> J["Đóng lời mời, xét ứng viên tiếp theo"]
+    I -- "Từ chối" --> J["Đóng lời mời, xét ứng viên tiếp theo"]
     J --> F
     I -- "Chấp nhận" --> K{"Còn đủ điều kiện phân công?"}
     K -- Không --> J
@@ -639,9 +643,9 @@ Mỗi retry hợp lệ tạo pid và khóa mới; gửi lại khóa cũ không p
 | BR05       | FR10  | Tìm tài xế phù hợp                 | Hệ thống lọc tài xế có hồ sơ được duyệt, xe phù hợp, online, không bận, vị trí đủ mới và khoảng cách đến điểm đón không vượt quá 1 km.                                                                                       |
 | BR05       | FR11  | Xếp thứ tự ưu tiên tài xế          | Hệ thống sắp xếp ứng viên theo khoảng cách tăng dần; khi bằng khoảng cách, dùng quy tắc phụ cố định để kết quả có thể kiểm thử.                                                                                              |
 | BR06, BR14 | FR12  | Gửi lời mời nhận chuyến            | Hệ thống gửi lời mời có thông tin booking và thời hạn phản hồi cho một ứng viên; mỗi booking chỉ có một lời mời còn hiệu lực tại một thời điểm.                                                                              |
-| BR06       | FR13  | Phản hồi lời mời nhận chuyến       | Hệ thống cho đúng tài xế được mời chấp nhận hoặc từ chối; kiểm tra hiệu lực lời mời trước khi xử lý. Phản hồi hết hạn bị từ chối; gửi lại cùng phản hồi không tạo kết quả mới.                                               |
+| BR06       | FR13  | Phản hồi lời mời nhận chuyến       | Hệ thống cho đúng tài xế được mời chấp nhận hoặc từ chối; kiểm tra hiệu lực lời mời trước khi xử lý. Offer đã đóng bị từ chối; gửi lại cùng phản hồi không tạo kết quả mới.                                               |
 | BR05, BR06 | FR14  | Xác nhận phân công tài xế          | Hệ thống kiểm tra lại booking, lời mời và khả năng nhận chuyến; xác nhận một tài xế, ghi nhận xe và tạo một `Trip` cho booking. Thao tác đồng thời không được phân công trùng hoặc khiến tài xế nhận hai trip chưa kết thúc. |
-| BR07       | FR15  | Tìm tài xế thay thế                | Khi ứng viên từ chối, timeout hoặc mất điều kiện nhận chuyến, hệ thống đóng lời mời và mời ứng viên tiếp theo trong cùng booking, không mời lại ứng viên đã xử lý.                                                           |
+| BR07       | FR15  | Tìm tài xế thay thế                | Khi ứng viên từ chối hoặc mất điều kiện nhận chuyến, hệ thống đóng lời mời và mời ứng viên tiếp theo trong cùng booking, không mời lại ứng viên đã xử lý.                                                           |
 | BR07       | FR16  | Kết thúc tìm kiếm không thành công | Khi hết ứng viên hoặc đạt giới hạn demo, hệ thống kết thúc tìm kiếm và thông báo khách hàng. Kết quả này được phân biệt với khách hàng hủy.                                                                                  |
 
 `FR46` phục vụ tra cứu danh sách; `FR10` phục vụ lựa chọn ứng viên trong quy trình phân công. Hai chức năng dùng chung điều kiện đủ nhận chuyến.
@@ -761,11 +765,11 @@ Trạng thái hồ sơ, online/offline, tình trạng bận và trạng thái t�
 | RULE06 | Tài xế được xét phải có tài khoản `ACTIVE`, hồ sơ `APPROVED`, online, không bận, có xe đang sử dụng phù hợp và vị trí đủ mới.                                                                                             | KH + Demo                  | FR07, FR10, FR46 |
 | RULE07 | Chỉ xét tài xế cách điểm đón **không quá 1 km**, tính bằng Haversine. Sắp xếp khoảng cách tăng dần; bằng khoảng cách thì sắp xếp `did` tăng dần.                                                                     | PC + Demo                  | FR10–FR11, FR46  |
 | RULE08 | Một booking có tối đa một trip; một tài xế có tối đa một trip ở trạng thái `ASSIGNED`, `ARRIVED` hoặc `IN_PROGRESS` tại một thời điểm.                                                                                    | Demo                       | FR14             |
-| RULE09 | Chỉ xác nhận phân công khi booking còn `SEARCHING`, lời mời còn `PENDING` và chưa hết hạn, tài xế vẫn đủ điều kiện. Tìm thấy ứng viên không đồng nghĩa đã phân công.                                                      | Demo                       | FR13–FR14        |
-| RULE10 | Mỗi lời mời có hiệu lực **30 giây**, tính theo thời gian server. Chấp nhận tại hoặc sau `expiresAt` bị từ chối. Mỗi booking chỉ có một lời mời còn hiệu lực.                                                              | KH + Demo                  | FR12–FR15        |
-| RULE11 | Từ chối, timeout hoặc mất điều kiện nhận chuyến → mời ứng viên tiếp theo trong cùng booking; không mời lại tài xế đã xử lý trong booking đó.                                                                              | KH + Demo                  | FR15             |
+| RULE09 | Chỉ xác nhận phân công khi booking còn `SEARCHING`, lời mời còn `PENDING`, tài xế vẫn đủ điều kiện. Tìm thấy ứng viên không đồng nghĩa đã phân công.                                                      | Demo                       | FR13–FR14        |
+| RULE10 | Lời mời PENDING không tự hết hạn trong demo. Đúng Driver được phản hồi khi Booking còn SEARCHING; chỉ một lời mời PENDING mỗi Booking. Không nhận được offer đã REJECTED/CANCELED/EXPIRED lịch sử hoặc Booking đã kết thúc. | Demo, cập nhật29/10/2026 | FR12–FR15 |
+| RULE11 | Driver REJECT thì mời ứng viên tiếp theo; không mời lại người đã xử lý. Không tự chuyển sang ứng viên khác chỉ vì người hiện tại chưa phản hồi. | Demo | FR15 |
 | RULE12 | Xét tối đa **5 ứng viên** trong danh sách ban đầu; không bổ sung hoặc tìm lại vòng mới. Hết ứng viên → `NO_DRIVER`; booking bị hủy → dừng tìm kiếm. Phải thông báo kết quả cho khách hàng.                                | KH + Demo                  | FR14–FR16, FR21  |
-| RULE13 | Vị trí dùng để tìm tài xế có tuổi **không quá 120 giây**, tính từ lúc server nhận bản cập nhật hợp lệ. Không có vị trí hoặc vị trí cũ hơn ngưỡng → loại khỏi danh sách ứng viên.                                          | Demo                       | FR08, FR10, FR46 |
+| RULE13 | Demo dùng vị trí cuối cùng hợp lệ đã lưu; không giới hạn tuổi vị trí để online/nearby/phân công. Giữ timestamp thật, không giả lập GPS mới cập nhật. Thiếu tọa độ hợp lệ thì không xét ứng viên. | Demo, cập nhật 29/10/2026 | FR08, FR10, FR46 |
 
 Giới hạn danh sách và thời hạn lời mời tạo ra tối đa **150 giây chờ phản hồi**, chưa tính thời gian xử lý kỹ thuật. Đây không phải cam kết tổng thời gian tìm xe.
 
@@ -846,10 +850,10 @@ Các quy tắc trên là lựa chọn demo, không mô tả khả năng tính tu
 | ---- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | EX01 | Dữ liệu đăng ký hoặc đặt xe thiếu, sai hoặc trùng                | Từ chối thao tác; trả thông tin lỗi phù hợp; không tạo dữ liệu nghiệp vụ dở dang.                                      |
 | EX02 | Không có tài xế đủ điều kiện                                     | Booking chuyển `NO_DRIVER`; thông báo khách hàng; không tạo trip.                                                      |
-| EX03 | Tài xế từ chối hoặc timeout                                      | Đóng lời mời; xét ứng viên tiếp theo theo RULE11–RULE12.                                                               |
-| EX04 | Chấp nhận khi lời mời hết hạn hoặc booking đã hủy                | Từ chối phân công; không tạo trip.                                                                                     |
+| EX03 | Tài xế từ chối                                      | Đóng lời mời; xét ứng viên tiếp theo theo RULE11–RULE12.                                                               |
+| EX04 | Chấp nhận khi lời mời đã đóng hoặc booking đã hủy                | Từ chối phân công; không tạo trip.                                                                                     |
 | EX05 | Tài xế đã nhận trip khác hoặc chuyển offline trước khi chấp nhận | Từ chối phân công; tiếp tục ứng viên khác.                                                                             |
-| EX06 | Vị trí thiếu hoặc quá cũ                                         | Không xét tài xế nearby hoặc phân công; không cung cấp ETA thiếu căn cứ.                                               |
+| EX06 | Thiếu vị trí hợp lệ                                         | Không xét tài xế nearby hoặc phân công; không cung cấp ETA thiếu căn cứ.                                               |
 | EX07 | Không gặp khách tại điểm đón                                     | Tài xế chưa bắt đầu trip; không tự ghi hoàn thành. Demo chưa có tự động hủy vì khách không xuất hiện.                  |
 | EX08 | Mất kết nối khi gửi thao tác                                     | Tra cứu kết quả đã lưu và gửi lại an toàn; không mặc định thao tác thất bại chỉ vì client không nhận phản hồi.         |
 | EX09 | Cập nhật trạng thái sai trình tự                                 | Từ chối; giữ nguyên trạng thái và thời điểm đã lưu.                                                                    |
@@ -1138,7 +1142,7 @@ erDiagram
 | `verifiedAt`, `consumedAt`             | Phân biệt OTP đã xác minh với bằng chứng xác minh đã được dùng để đăng ký       |
 | `DriverProfile.approvalStatus`         | Trạng thái hồ sơ; độc lập với trạng thái tài khoản và online                    |
 | `DriverProfile.tid`           | Trip chưa kết thúc đang được tài xế nhận; `null` khi không bận                  |
-| `locationUpdatedAt`                    | Thời điểm server nhận vị trí hợp lệ; dùng kiểm tra ngưỡng 120 giây              |
+| `locationUpdatedAt`                    | Thời điểm server nhận vị trí hợp lệ; dùng kiểm tra tuổi vị trí để hiển thị thông tin, không loại ứng viên              |
 | `Vehicle.isActive`                     | Xe đang được tài xế sử dụng để nhận chuyến                                      |
 | `Booking.candidateDriverIds`           | Danh sách ban đầu đã sắp xếp, tối đa 5 tài xế; không bổ sung vòng tìm mới       |
 | `idempotencyKey`, `requestHash`        | Nhận diện thao tác gửi lại và phát hiện cùng khóa nhưng khác dữ liệu            |
@@ -1187,7 +1191,7 @@ Các trường văn bản dùng trim trước kiểm tra (trừ password): REST 
 | Booking         | Index `(cid, createdAt, _id)`                              | Tra cứu lịch sử và sắp xếp ổn định                                |
 | TripInvitation  | Unique `(bid, did)`                                    | Không mời lại cùng tài xế trong booking                           |
 | TripInvitation  | Partial unique `bid` khi `status = PENDING`                 | Tối đa một lời mời đang chờ                                       |
-| TripInvitation  | Index `(status, expiresAt)`                                       | Tìm lời mời cần xử lý timeout                                     |
+| TripInvitation | Index theo driver/status và unique booking khi PENDING | Tra offer của Driver, bảo đảm mỗi Booking chỉ có một offer PENDING |
 | Trip            | Unique `bid`                                                | Một booking có tối đa một trip                                    |
 | Trip            | Partial unique `did` với trạng thái chưa kết thúc            | Ngăn tài xế có hai trip đang hoạt động                            |
 | Payment         | Unique `(tid, idempotencyKey)`                                 | Chống tạo lần thanh toán trùng                                    |
@@ -1196,7 +1200,7 @@ Các trường văn bản dùng trim trước kiểm tra (trừ password): REST 
 | Notification    | Unique `(eventId, aid, type)`                      | Chống thông báo trùng                                             |
 | Review          | Unique `tid`                                                   | Một đánh giá cho mỗi trip                                         |
 
-**Index không thay thế kiểm tra nghiệp vụ.** Ví dụ, lời mời vẫn có thể lưu `PENDING` dù đã qua `expiresAt`; server phải kiểm tra thời hạn khi tài xế phản hồi và đóng lời mời trước khi mời ứng viên tiếp theo.
+**Index không thay thế kiểm tra nghiệp vụ.** Demo kiểm đúng Driver, trạng thái PENDING và Booking SEARCHING khi phản hồi; không dùng expiresAt để chặn vì đã bỏ thời hạn offer.
 
 ### 9.8. Dữ liệu truy vấn và dữ liệu tính toán
 
@@ -1258,9 +1262,9 @@ Các ngưỡng thời gian, tải và lưu log được ghi là **thông số de
 | NFR06 | **Thời gian phản hồi:** các API đọc cơ bản phải phản hồi trong thời gian phù hợp cho demo.                        | Demo đề xuất: **p95 ≤ 2 giây** với ít nhất 100 yêu cầu, tối đa 10 yêu cầu đồng thời, trên máy 4 CPU logic và RAM 8 GB. Áp dụng cho xem hồ sơ, nearby, Booking history và chi tiết trip; ghi rõ dữ liệu thử và cấu hình máy. |
 | NFR07 | **Giới hạn dữ liệu trả về:** nearby và Booking history phải phân trang, không trả toàn bộ dữ liệu không giới hạn. | Mặc định `page = 1`, `limit = 10`; `limit` từ 1–50. Trang không có dữ liệu trả danh sách trống; dữ liệu và thứ tự phù hợp RULE36–RULE37.                                                                                    |
 | NFR08 | **Deadline gRPC:** mọi lời gọi đồng bộ nội bộ có giới hạn 5 giây; truyền correlationId và thông tin caller.       | Quá deadline trả lỗi 504 qua Gateway, dependency không sẵn sàng trả 503; không retry mù write. Tra cứu operation cũ khi kết quả chưa rõ.                                                                                    |
-| NFR09 | **Xử lý lời mời hết hạn:** hệ thống phải tự xử lý timeout mà không phụ thuộc việc người dùng mở ứng dụng.         | Lời mời hết hiệu lực đúng tại `expiresAt`; phản hồi đến muộn bị từ chối. Khi hệ thống hoạt động bình thường, demo đề xuất đóng lời mời và xét ứng viên tiếp theo trong **5 giây sau khi hết hạn**.                          |
+| NFR09 | **Chờ Driver thao tác:** demo không tự đóng offer theo thời gian. | PENDING tồn tại đến khi Driver ACCEPT/REJECT, Customer hủy hoặc nghiệp vụ phân công xử lý; EXPIRED chỉ dùng đọc lịch sử cũ. |
 
-Ngưỡng phản hồi API không bao gồm thời gian chờ tài xế nhận chuyến. Thời hạn lời mời 30 giây và tối đa 5 ứng viên vẫn tuân theo Business Rules.
+Ngưỡng phản hồi API không bao gồm thời gian chờ Driver; demo không giới hạn thời gian phản hồi offer, vẫn giới hạn tối đa5 ứng viên ban đầu.
 
 ### 10.4. Tính nhất quán và độ tin cậy
 
@@ -1665,7 +1669,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 
 1. Khách hàng gửi tọa độ, `page` và `limit`; server chỉ xét BIKE.
 2. Hệ thống kiểm tra tọa độ và phân trang; không có lựa chọn loại xe.
-3. Hệ thống lọc tài xế `ACTIVE`, hồ sơ `APPROVED`, online, không bận, có xe phù hợp và vị trí không quá 120 giây.
+3. Hệ thống lọc tài xế `ACTIVE`, hồ sơ `APPROVED`, online, không bận, có xe phù hợp và vị trí đã lưu hợp lệ.
 4. Hệ thống giữ tài xế cách tọa độ truy vấn không quá 1 km.
 5. Hệ thống sắp xếp khoảng cách tăng dần; bằng khoảng cách thì `did` tăng dần.
 6. Hệ thống trả trang kết quả và thông tin được phép hiển thị.
@@ -1674,7 +1678,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 
 - Không có kết quả hoặc trang vượt dữ liệu: trả danh sách trống.
 - Input sai: từ chối.
-- Dữ liệu vị trí cũ: loại tài xế khỏi kết quả.
+- Dữ liệu vị trí đã lưu vẫn dùng trong demo; chỉ loại khi không có vị trí hợp lệ.
 
 **Hậu điều kiện:** không tạo booking, lời mời hoặc giữ chỗ tài xế.
 
@@ -1696,7 +1700,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 2. Hệ thống kiểm tra dữ liệu và khóa idempotency.
 3. Hệ thống tính khoảng cách Haversine, lưu thông số giá và tạo Booking `SEARCHING`.
 4. Hệ thống lập danh sách ban đầu tối đa 5 tài xế đủ điều kiện, theo thứ tự ưu tiên.
-5. Hệ thống tạo lời mời `PENDING` cho ứng viên đầu tiên, hiệu lực 30 giây.
+5. Hệ thống tạo lời mời `PENDING` cho ứng viên đầu tiên, không tự hết hạn.
 6. Tài xế chấp nhận qua UC18.
 7. Hệ thống kiểm tra lại điều kiện, xác nhận phân công và tạo một Trip `ASSIGNED`.
 8. Hệ thống chuyển Booking thành `ASSIGNED` và thông báo khách hàng.
@@ -1705,7 +1709,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 
 - Cùng khóa và dữ liệu: trả booking đã tạo; không bắt đầu tìm kiếm mới.
 - Cùng khóa nhưng khác dữ liệu: từ chối xung đột.
-- Tài xế từ chối, timeout hoặc mất điều kiện: đóng lời mời và mời ứng viên tiếp theo.
+- Tài xế từ chối hoặc mất điều kiện: đóng lời mời và mời ứng viên tiếp theo.
 - Không có hoặc hết ứng viên: chuyển `NO_DRIVER`, thông báo khách hàng; không tạo trip.
 - Khách hàng hủy qua UC08: dừng tìm kiếm và đóng lời mời.
 - Lỗi phân công: không báo thành công khi chưa xác nhận được kết quả; xử lý lại an toàn.
@@ -1734,7 +1738,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 **Thay thế / ngoại lệ**
 
 - Chưa phân công: chưa có thông tin trip hoặc tài xế.
-- Thiếu vị trí hoặc vị trí quá cũ: trả trạng thái chưa có ETA.
+- Thiếu vị trí hợp lệ: trả trạng thái chưa có ETA; trong demo tính ETA ước lượng từ tọa độ cuối cùng đã lưu.
 - Trip `ARRIVED`: ETA bằng 0.
 - ETA đến điểm đón không còn áp dụng khi trip đã bắt đầu hoặc kết thúc.
 - Booking không tồn tại hoặc không thuộc khách hàng: từ chối truy cập.
@@ -1986,7 +1990,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 **Luồng chính**
 
 1. Tài xế gửi trạng thái mong muốn.
-2. Khi bật online, hệ thống kiểm tra hồ sơ `APPROVED`, xe đang sử dụng hợp lệ và vị trí không quá 120 giây.
+2. Khi bật online, hệ thống kiểm tra hồ sơ `APPROVED`, xe đang sử dụng hợp lệ và vị trí đã lưu hợp lệ.
 3. Hệ thống lưu `isOnline` và trả kết quả.
 
 **Thay thế / ngoại lệ**
@@ -2020,7 +2024,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 
 - Tọa độ sai hoặc thiếu: từ chối; không ghi đè vị trí hợp lệ.
 - Cập nhật thay tài xế khác: từ chối.
-- Vị trí đã lưu quá 120 giây: không được dùng xét nearby hoặc phân công.
+- Demo dùng vị trí cuối cùng đã lưu, không loại khỏi nearby hoặc phân công chỉ vì tuổi vị trí.
 
 **Hậu điều kiện:** có vị trí hiện tại mới nhất khi cập nhật thành công; không tự chuyển online.
 
@@ -2038,7 +2042,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 **Luồng chính — chấp nhận**
 
 1. Tài xế chọn chấp nhận lời mời.
-2. Hệ thống kiểm tra đúng người nhận, lời mời `PENDING`, thời gian hiện tại nhỏ hơn `expiresAt` và booking còn `SEARCHING`.
+2. Hệ thống kiểm tra đúng người nhận, lời mời `PENDING`, booking còn `SEARCHING`.
 3. Hệ thống kiểm tra lại điều kiện tài xế và xe.
 4. Hệ thống xác nhận quyền nhận chuyến, ngăn phân công đồng thời.
 5. Hệ thống tạo một Trip `ASSIGNED`, ghi nhận tài xế và xe.
@@ -2048,7 +2052,7 @@ Ví dụ, **UC06 — Đặt xe** bao gồm nhập tọa độ điểm đón/đ�
 **Thay thế / ngoại lệ**
 
 - Từ chối: chuyển lời mời `REJECTED`, xét ứng viên tiếp theo.
-- Hết hạn: từ chối chấp nhận; xử lý lời mời hết hạn.
+- Offer không còn PENDING: từ chối chấp nhận; không hồi sinh offer lịch sử.
 - Booking đã hủy, tài xế offline hoặc đã nhận trip khác: không phân công; tiếp tục tìm nếu booking còn hợp lệ.
 - Gửi lại cùng phản hồi đã thành công: trả kết quả cũ.
 - Đổi phản hồi sau khi lời mời đã có kết quả cuối: từ chối.
@@ -2357,12 +2361,12 @@ Trong các bảng dưới đây:
 
 | Mã AC | FR / UC                 | Điều kiện / hành động                                                                                              | Kết quả chấp nhận                                                                                                                                      |
 | ----- | ----------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| AC23  | FR07 / UC16             | DRIVER có tài khoản `ACTIVE`, hồ sơ `APPROVED`, xe đang sử dụng hợp lệ và vị trí không quá 120 giây yêu cầu online | Lưu `isOnline = true`.                                                                                                                                 |
+| AC23  | FR07 / UC16             | DRIVER có tài khoản `ACTIVE`, hồ sơ `APPROVED`, xe đang sử dụng hợp lệ và vị trí đã lưu hợp lệ yêu cầu online | Lưu `isOnline = true`.                                                                                                                                 |
 | AC24  | FR07 / UC16             | DRIVER thiếu một điều kiện bật online                                                                              | Từ chối và trả lý do; không bật online.                                                                                                                |
 | AC25  | FR07 / UC16             | DRIVER đang có trip chuyển offline                                                                                 | Lưu `isOnline = false`; không nhận chuyến mới, nhưng trip đã nhận không bị tự hủy.                                                                     |
 | AC26  | FR08 / UC17             | DRIVER gửi latitude thuộc `[-90, 90]` và longitude thuộc `[-180, 180]`                                             | Lưu vị trí mới và thời điểm server nhận; không tự thay đổi trạng thái online.                                                                          |
 | AC27  | FR08 / UC17             | DRIVER gửi tọa độ thiếu hoặc ngoài miền giá trị                                                                    | Từ chối; vị trí hợp lệ trước đó và thời điểm của nó không bị ghi đè.                                                                                   |
-| AC28  | FR46 / UC05             | CUSTOMER truy vấn nearby bằng tọa độ và phân trang hợp lệ; server chỉ xét BIKE                                     | Chỉ trả tài xế đủ điều kiện, không bận, vị trí không quá 120 giây và khoảng cách không quá 1 km; không trả dữ liệu nhạy cảm.                           |
+| AC28  | FR46 / UC05             | CUSTOMER truy vấn nearby bằng tọa độ và phân trang hợp lệ; server chỉ xét BIKE                                     | Chỉ trả tài xế đủ điều kiện, không bận, vị trí đã lưu hợp lệ và khoảng cách không quá 1 km; không trả dữ liệu nhạy cảm.                           |
 | AC29  | FR46 / UC05             | Kết quả có nhiều tài xế hoặc khoảng cách bằng nhau                                                                 | Sắp xếp khoảng cách tăng dần, sau đó `did` tăng dần; phân trang theo thứ tự này.                                                                  |
 | AC30  | FR33, FR46 / UC05, UC10 | Truy vấn nearby hoặc Booking history                                                                               | Mặc định `page = 1`, `limit = 10`; chỉ nhận page nguyên ≥ 1 và limit nguyên từ 1–50. Input sai bị từ chối; trang không có dữ liệu trả danh sách trống. |
 
@@ -2373,12 +2377,12 @@ Trong các bảng dưới đây:
 | AC31  | FR09 / UC06                  | CUSTOMER gửi điểm đón, điểm đến khác nhau, tọa độ hợp lệ và khóa idempotency; server tự gán BIKE | Tạo một Booking `SEARCHING`; server lưu khoảng cách Haversine và thông số giá áp dụng.                                                                  |
 | AC32  | FR09 / UC06                  | Gửi lại cùng khóa idempotency và cùng dữ liệu của khách hàng                                     | Trả booking đã tạo; không tạo booking hoặc vòng tìm kiếm mới. Cùng khóa nhưng khác dữ liệu bị từ chối xung đột.                                         |
 | AC33  | FR10–FR11 / UC06             | Hệ thống lập danh sách ứng viên                                                                  | Chỉ chọn tài xế đủ điều kiện trong bán kính 1 km; sắp xếp khoảng cách tăng dần, sau đó `did` tăng dần; lưu tối đa 5 ứng viên ban đầu.              |
-| AC34  | FR12 / UC06                  | Booking còn `SEARCHING` và có ứng viên tiếp theo                                                 | Tạo một lời mời `PENDING`, hiệu lực 30 giây theo thời gian server; booking không có hai lời mời còn hiệu lực.                                           |
+| AC34  | FR12 / UC06                  | Booking còn `SEARCHING` và có ứng viên tiếp theo                                                 | Tạo một lời mời `PENDING`, không tự hết hạn theo thời gian server; booking không có hai lời mời còn hiệu lực.                                           |
 | AC35  | FR13 / UC18                  | Đúng tài xế phản hồi lời mời `PENDING` trước `expiresAt`                                         | Tiếp nhận chấp nhận hoặc từ chối. Phản hồi tại hoặc sau `expiresAt` không được dùng để phân công.                                                       |
 | AC36  | FR14 / UC06, UC18            | Tài xế chấp nhận và mọi điều kiện vẫn hợp lệ                                                     | Tạo đúng một Trip `ASSIGNED`; lưu tài xế, xe và snapshot cần thiết; booking `ASSIGNED`, lời mời `ACCEPTED`, tài xế được ghi nhận bận.                   |
 | AC37  | FR14 / UC18                  | Hai yêu cầu phân công cùng booking hoặc cùng tài xế được xử lý đồng thời                         | Không tạo hai trip cho một booking; không cho tài xế nhận hai trip chưa kết thúc. Yêu cầu không thành công không được trả kết quả phân công thành công. |
 | AC38  | FR13 / UC18                  | Gửi lại cùng phản hồi đã được xử lý thành công                                                   | Trả kết quả đã lưu; không tạo thêm trip. Phản hồi trái kết quả cuối bị từ chối.                                                                         |
-| AC39  | FR15 / UC06, UC18            | Ứng viên từ chối, timeout hoặc mất điều kiện                                                     | Đóng lời mời và xét ứng viên tiếp theo trong danh sách ban đầu; không mời lại ứng viên đã xử lý.                                                        |
+| AC39  | FR15 / UC06, UC18            | Ứng viên từ chối hoặc mất điều kiện                                                     | Đóng lời mời và xét ứng viên tiếp theo trong danh sách ban đầu; không mời lại ứng viên đã xử lý.                                                        |
 | AC40  | FR16 / UC06                  | Không có hoặc đã hết ứng viên trong danh sách tối đa 5 tài xế                                    | Booking chuyển `NO_DRIVER`; không tạo trip; tạo thông báo cho khách hàng.                                                                               |
 | AC41  | FR12–FR15, FR21 / UC06, UC08 | Booking bị hủy trong lúc tìm tài xế                                                              | Dừng tìm kiếm và đóng lời mời; phản hồi đến sau không tạo trip hoặc chuyển booking thành `ASSIGNED`.                                                    |
 
@@ -2387,7 +2391,7 @@ Trong các bảng dưới đây:
 | Mã AC | FR / UC                 | Điều kiện / hành động                                                             | Kết quả chấp nhận                                                                                                                          |
 | ----- | ----------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | AC42  | FR18 / UC07             | CUSTOMER xem booking của mình                                                     | Trả trạng thái booking, trip nếu có và thông tin tài xế, xe được phép xem; booking chưa phân công không có trip giả.                       |
-| AC43  | FR19 / UC07             | Trip `ASSIGNED` có vị trí tài xế không quá 120 giây                               | ETA bằng `ceil(distanceKm × 60 / 20)`, tính khoảng cách tài xế đến điểm đón; trip `ARRIVED` có ETA bằng 0.                                 |
+| AC43  | FR19 / UC07             | Trip `ASSIGNED` có vị trí tài xế cuối cùng đã lưu hợp lệ                               | ETA bằng `ceil(distanceKm × 60 / 20)`, tính khoảng cách tài xế đến điểm đón; trip `ARRIVED` có ETA bằng 0.                                 |
 | AC44  | FR19 / UC07             | Chưa phân công, vị trí thiếu hoặc cũ, hoặc trip đã bắt đầu/kết thúc               | Thể hiện ETA chưa có hoặc không còn áp dụng; không trả số ước tính thiếu căn cứ.                                                           |
 | AC45  | FR17 / UC19             | Tài xế được phân công gửi thao tác đúng mốc                                       | Chỉ chuyển `ASSIGNED → ARRIVED → IN_PROGRESS → COMPLETED`, lưu thời điểm mốc và tạo thông báo tương ứng.                                   |
 | AC46  | FR17 / UC19             | Yêu cầu bỏ qua mốc, quay ngược hoặc cập nhật trip đã kết thúc                     | Từ chối; trạng thái và thời điểm đã lưu giữ nguyên. Gửi lại mốc đã thành công không tạo thêm lần chuyển trạng thái.                        |

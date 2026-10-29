@@ -86,28 +86,22 @@ async function create({db,client,server}) {
       row=await get(id);
     }
     const pending=await invitations.findOne({booking_id:id,status:'PENDING'});
-    if(pending&&pending.expires_at>b.now())return;
-    if(pending)await c.tx(async session=>{
-      const current=await get(id,session);if(current.operation||current.status!=='SEARCHING')return;
-      await bookings.updateOne({_id:row._id,version:current.version},{$inc:{version:1}},{session});
-      await invitations.updateOne({_id:pending._id,status:'PENDING',expires_at:{$lte:b.now()}},{$set:{status:'EXPIRED'}},{session});
-    });
+    if(pending)return;
     row=await get(id);if(row.operation||row.status!=='SEARCHING')return;
     for(let n=row.cursor;n<row.candidates.length;n++){
       const data=await c.invoke('driver','getDispatchData',{driver_id:row.candidates[n]});
-      if(!data.is_online||data.active_trip_id||data.reservation_operation_id||!data.location||
-        Date.now()-Date.parse(data.location.updated_at)>120000||b.distance(row.pickup,data.location)>1){
+      if(!data.is_online||data.active_trip_id||data.reservation_operation_id||!data.location||b.distance(row.pickup,data.location)>1){
         await bookings.updateOne({_id:row._id,status:'SEARCHING'},{$max:{cursor:n+1}});continue;
       }
       await c.tx(async session=>{
         const current=await get(id,session);if(current.operation||current.status!=='SEARCHING')return;
         if(await invitations.findOne({booking_id:id,status:'PENDING'},{session}))return;
-        const invId=new b.ObjectId(),publicId=await b.allocateId(db,'i',session),expires=new Date(Date.now()+30000).toISOString();
+        const invId=new b.ObjectId(),publicId=await b.allocateId(db,'i',session);
         await bookings.updateOne({_id:row._id,version:current.version},{$set:{cursor:n+1},$inc:{version:1}},{session});
         await invitations.insertOne({_id:invId,invitation_id:publicId,booking_id:id,driver_id:row.candidates[n],
-          pickup:row.pickup,destination:row.destination,vehicle_type:'BIKE',status:'PENDING',expires_at:expires},{session});
+          pickup:row.pickup,destination:row.destination,vehicle_type:'BIKE',status:'PENDING'},{session});
         await c.emit('booking.invitation_created',publicId,{invitationId:publicId,bookingId:id,
-          driverAccountId:data.driver_account_id,expiresAt:expires},session);
+          driverAccountId:data.driver_account_id},session);
       });return;
     }
     await c.tx(async session=>{
@@ -167,7 +161,7 @@ async function create({db,client,server}) {
         result.eta={status:'UNAVAILABLE'};
         if(trip.status==='ARRIVED')result.eta={status:'AVAILABLE',minutes:0,calculated_at:b.now()};
         else try{const data=await c.invoke('driver','getDispatchData',{driver_id:trip.driver_id});
-          if(data.location&&Date.now()-Date.parse(data.location.updated_at)<=120000)result.eta={status:'AVAILABLE',minutes:Math.ceil(b.distance(data.location,row.pickup)*3),calculated_at:b.now()};
+          if(data.location)result.eta={status:'AVAILABLE',minutes:Math.ceil(b.distance(data.location,row.pickup)*3),calculated_at:b.now()};
         }catch{}
       }
       if(trip.status==='COMPLETED'){
@@ -225,7 +219,7 @@ async function create({db,client,server}) {
           const current=await invitations.findOne({_id:inv._id},{session}),row=await get(inv.booking_id,session);
           if(current.status===(i.decision==='ACCEPT'?'ACCEPTED':'REJECTED'))return;
           if(row.operation?.invitationId===i.invitation_id&&i.decision==='ACCEPT')return;
-          if(current.status!=='PENDING'||current.expires_at<=b.now()||row.status!=='SEARCHING'||row.operation)b.conflict();
+          if(current.status!=='PENDING'||row.status!=='SEARCHING'||row.operation)b.conflict();
           if(i.decision==='REJECT'){
             await bookings.updateOne({_id:row._id,version:row.version},{$inc:{version:1}},{session});
             await invitations.updateOne({_id:inv._id},{$set:{status:'REJECTED',responded_at:b.now()}},{session});

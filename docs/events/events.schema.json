@@ -384,14 +384,14 @@
             },
             "expiresAt": {
               "type": "string",
-              "format": "date-time"
+              "format": "date-time",
+              "description": "Legacy only; new demo invitations do not expire."
             }
           },
           "required": [
             "invitationId",
             "bookingId",
-            "driverAccountId",
-            "expiresAt"
+            "driverAccountId"
           ]
         }
       },

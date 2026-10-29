@@ -1,5 +1,9 @@
 # Cài đặt, khởi động và kiểm tra local
 
+**Offer demo không hết hạn — 29/10/2026:** đã bỏ hạn30 giây. Customer có thể đặt trước rồi mới Login Driver, đọc notifications/invitations và ACCEPT khi offer còn PENDING và Booking còn SEARCHING. Không cần nhập nhanh. Driver REJECT để xét người tiếp theo, Customer hủy để dừng tìm. Không tự hồi sinh NO_DRIVER/EXPIRED cũ. JWT/OTP/callback/deadline gRPC vẫn có hạn như cũ; không bỏ bảo vệ đồng thời Driver.
+
+**Chính sách demo mới 29/10/2026:** dùng tọa độ cuối cùng Driver đã gửi, bỏ điều kiện tuổi vị trí 120 giây khi bật online, CUSTOMER nearby, phân công và tính ETA. Không cần cập nhật lại tọa độ chỉ để làm mới thời gian. Giữ timestamp thật; locationIsFresh chỉ là chỉ báo độ mới, không chặn nhận chuyến. Vẫn phải ACTIVE/APPROVED/online/BIKE/không bận, không giữ chỗ và trong1 km; offer PENDING không tự hết hạn trong demo. Đây là giả lập vị trí tĩnh để demo, không phải GPS thời gian thực.
+
 **ID công khai hiện hành:** cid=c29, did=d01, aid=a01, bid=b01, tid=t01, pid=p01, nid=n01, rid=r01; thêm vid cho Vehicle, iid cho Invitation và oid cho OTP challenge. API/URL dùng các mã ngắn do server cấp; cid/did chính là ID Customer/Driver, không còn customerId/driverId hay accountId ObjectId trong JSON công khai. MongoDB _id và JWT sub là định danh kỹ thuật nội bộ, không nhập vào URL. ADMIN cũng có aid; không tự nhập ID khi Register.
 
 Dùng khi cài máy, chạy demo hoặc tìm lỗi container/API. Chạy các lệnh bằng PowerShell ở root repository. Cần Node.js >=22, Docker Desktop và Docker Compose. Git Bash dùng `npm` thay `npm.cmd`.
@@ -39,7 +43,7 @@ Email seed là `admin@cab.local`. Password ADMIN đã tồn tại được giữ
 bash scripts/seed-local.sh --fixtures
 ```
 
-Script từ chối trùng tài khoản ngoài seed và giữ password cũ. `SEED_PASSWORD` hiện tại không đảm bảo đăng nhập được tài khoản tạo trước đây. Khi buổi chấm yêu cầu tự nhập, dùng [hướng dẫn tay](MANUAL_POSTMAN_30.md). Driver cập nhật location trước online/nearby phía Customer hoặc dispatch; vị trí mới có hiệu lực 120 giây. ADMIN dùng /admin/drivers/nearby để tra vị trí cuối cùng, không cần refresh.
+Script từ chối trùng tài khoản ngoài seed và giữ password cũ. `SEED_PASSWORD` hiện tại không đảm bảo đăng nhập được tài khoản tạo trước đây. Khi buổi chấm yêu cầu tự nhập, dùng [hướng dẫn tay](MANUAL_POSTMAN_30.md). Driver cập nhật location trước online/nearby phía Customer hoặc dispatch; tọa độ cuối cùng tiếp tục được dùng đến khi Driver cập nhật. ADMIN dùng /admin/drivers/nearby để tra vị trí cuối cùng, không cần refresh.
 
 ## Test
 
@@ -76,7 +80,7 @@ docker compose ps -a
 | Login seed trả 401 | Kiểm email/password thực; không reset/ghi đè credentials |
 | 503 PROFILE_NOT_READY | Kiểm consumer, outbox/inbox và RabbitMQ; chờ đồng bộ, không đăng ký lại |
 | 429 RATE_LIMITED | Chờ Retry-After; không hạ quota |
-| Nearby rỗng | CUSTOMER: cần APPROVED, xe active, ONLINE, không bận, trong 1 km, vị trí mới <=120 giây. ADMIN: /admin/drivers/nearby tra vị trí cuối cùng, kiểm tọa độ và bán kính 1 km; limit=2 để xem 2 người/trang. |
+| Nearby rỗng | CUSTOMER: cần APPROVED, xe active, ONLINE, không bận, trong 1 km, vị trí đã lưu hợp lệ (không giới hạn tuổi trong demo). ADMIN: /admin/drivers/nearby tra vị trí cuối cùng, kiểm tọa độ và bán kính 1 km; limit=2 để xem 2 người/trang. |
 | Payment 409 | Trip COMPLETED có cước; không có attempt PENDING/COMPLETED; retry từ FAILED mới nhất |
 | Callback 401/400 | Ký đúng raw JSON/timestamp bằng key local; không sửa body sau ký |
 | Checker v3 báo OUTDATED | Collection cũ; bộ hiện hành dùng scripts/check_postman.cjs |

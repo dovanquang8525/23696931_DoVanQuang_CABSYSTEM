@@ -9,8 +9,8 @@ body:
   type: json
   content: |-
     {
-      "pickupCode": "A",
-      "destinationCode": "B"
+      "pickup": {"latitude": 10.8, "longitude": 106.7},
+      "destination": {"latitude": 10.81, "longitude": 106.71}
     }
 auth:
   type: bearer
